@@ -53,6 +53,7 @@ fun Info(){
                 Alignment.Center
             )
             .padding(top = 125.dp, start = 70.dp, end = 70.dp), fontSize = 40.sp, fontFamily = FontFamily(Font(R.font.poppinsregulartext)), textAlign = TextAlign.Center)
+        Spacer(modifier = Modifier.size(10.dp))
         Text(text = "Track and save your all exercises in this app",color = Color.White, modifier = Modifier
             .align(
                 Alignment.Center
