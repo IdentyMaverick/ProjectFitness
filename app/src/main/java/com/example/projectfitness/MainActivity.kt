@@ -20,18 +20,21 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.projectfitness.ui.theme.ProjectFitnessTheme
 import com.example.projectfitness.ui.theme.poppins
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen()
         setContent {
             Main()
         }
     }
     @Composable
     fun Main(){
+
         LoginScreen()
     }
 
