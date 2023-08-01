@@ -13,6 +13,11 @@
         android:theme="@style/Theme.ProjectFitness"
         tools:targetApi="31">
         <activity
+            android:name=".InfoScreen"
+            android:exported="false"
+            android:label="@string/title_activity_info_screen"
+            android:theme="@style/Theme.ProjectFitness" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"

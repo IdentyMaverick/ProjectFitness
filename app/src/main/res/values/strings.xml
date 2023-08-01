@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ProjectFitness</string>
+    <string name="title_activity_info_screen">InfoScreen</string>
 </resources>
