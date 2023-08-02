@@ -13,6 +13,16 @@
         android:theme="@style/Theme.ProjectFitness"
         tools:targetApi="31">
         <activity
+            android:name=".ThirdInfoScreen"
+            android:exported="false"
+            android:label="@string/title_activity_third_info_screen"
+            android:theme="@style/Theme.ProjectFitness" />
+        <activity
+            android:name=".SecondInfoScreen"
+            android:exported="false"
+            android:label="@string/title_activity_second_info_screen"
+            android:theme="@style/Theme.ProjectFitness" />
+        <activity
             android:name=".InfoScreen"
             android:exported="false"
             android:label="@string/title_activity_info_screen"
