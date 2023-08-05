@@ -50,6 +50,9 @@ android {
 }
 
 dependencies {
+    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    val nav_version = "2.6.0"
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
@@ -75,5 +78,6 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.31.1-alpha")
     implementation ("androidx.compose.material3:material3-window-size-class:1.1.0")
+    implementation("androidx.navigation:navigation-compose:$nav_version")
 
 }

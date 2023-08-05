@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,18 +25,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.projectfitness.ui.theme.ProjectFitnessTheme
+import androidx.navigation.NavController
 
 class ThirdInfoScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
         }
     }
 }
 @Composable
-fun ThirdInfo() {
+fun ThirdInfo(navController:NavController) {
+
     Box(
         Modifier
             .fillMaxSize()
@@ -77,10 +77,16 @@ fun ThirdInfo() {
             ),
             textAlign = TextAlign.Center
         )
+        Button(onClick = { navController.navigate(ProjectFitnessPageScreen.LoginPageScreen.route)}, modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(end = 40.dp, bottom = 40.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))) {
+                Text(text = "GO", color = Color.Black)
+        }
     }
 }
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
 @Composable
 fun PreviewThirdInfo(){
-    ThirdInfo()
+    //ThirdInfo()
 }
