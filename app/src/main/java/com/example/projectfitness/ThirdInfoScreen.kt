@@ -1,8 +1,3 @@
-package com.example.projectfitness
-
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,20 +17,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.projectfitness.R
+import com.example.projectfitness.Screens
 
-class ThirdInfoScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-        }
-    }
-}
 @Composable
-fun ThirdInfo(navController:NavController) {
+fun ThirdInfo(navController: NavController) {
 
     Box(
         Modifier
@@ -77,16 +66,14 @@ fun ThirdInfo(navController:NavController) {
             ),
             textAlign = TextAlign.Center
         )
-        Button(onClick = { navController.navigate(ProjectFitnessPageScreen.LoginPageScreen.route)}, modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .padding(end = 40.dp, bottom = 40.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))) {
-                Text(text = "GO", color = Color.Black)
+        Button(
+            onClick = { navController.navigate(Screens.LoginScreen.route)},
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 40.dp, bottom = 40.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+        ) {
+            Text(text = "GO", color = Color.Black)
         }
     }
-}
-@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
-@Composable
-fun PreviewThirdInfo(){
-    //ThirdInfo()
 }

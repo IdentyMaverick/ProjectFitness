@@ -4,4 +4,5 @@
     <string name="title_activity_second_info_screen">SecondInfoScreen</string>
     <string name="title_activity_third_info_screen">ThirdInfoScreen</string>
     <string name="title_activity_login">Login</string>
+    <string name="title_activity_register">Register</string>
 </resources>

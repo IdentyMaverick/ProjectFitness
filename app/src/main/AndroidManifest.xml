@@ -13,6 +13,11 @@
         android:theme="@style/Theme.ProjectFitness"
         tools:targetApi="31">
         <activity
+            android:name=".Register"
+            android:exported="false"
+            android:label="@string/title_activity_register"
+            android:theme="@style/Theme.ProjectFitness" />
+        <activity
             android:name=".Login"
             android:exported="false"
             android:label="@string/title_activity_login"
