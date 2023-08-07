@@ -25,13 +25,17 @@ fun Navigation() {
         composable(route = Screens.ThirdInfoScreen.route) {
             ThirdInfo(navController = navController)
         }
-        composable(route = Screens.LoginScreen.route) {
+        composable(route = Screens.LoginScreen.route){
             LoginScreen(navController = navController)
         }
-        composable(route = Screens.RegisterScreen.route) {
+        composable(route = Screens.LoginScreen.ForgetPasswordScreen.route) {
+            ForgetPasswordScreen(navController = navController)
+        }
+        composable(route = Screens.LoginScreen.RegisterScreen.route) {
             RegisterScreen(navController = navController)
         }
     }
+
 }
 /*@OptIn(ExperimentalFoundationApi::class)
 @Composable

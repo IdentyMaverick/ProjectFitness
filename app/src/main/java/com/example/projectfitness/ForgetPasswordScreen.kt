@@ -1,7 +1,7 @@
+package com.example.projectfitness
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,18 +31,15 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.projectfitness.R
-import com.example.projectfitness.Screens
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun LoginScreen(navController: NavController) {
-
-    val scaleMultiplier = 0.5f
+fun ForgetPasswordScreen(navController: NavController) {
     Box(
         Modifier
             .fillMaxSize()
@@ -70,23 +67,39 @@ fun LoginScreen(navController: NavController) {
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Login with Google account",
+            text = "Forget Password ?",
             color = Color.White,
             modifier = Modifier
                 .align(
                     Alignment.Center
                 )
-                .padding(bottom = 230.dp, start = 65.dp, end = 65.dp),
+                .padding(bottom = 280.dp, start = 65.dp, end = 65.dp),
             fontSize = 25.sp,
             fontFamily = FontFamily(
                 Font(R.font.poppinslighttext)
             ),
             textAlign = TextAlign.Center
         )
+        val annotedText = buildAnnotatedString {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append("No worries,")
+            }
+                append(" we’ll send you reset instruction")
+        }
+        Text(
+            text = annotedText, color = Color.White,
+            modifier = Modifier
+                .align(
+                    Alignment.Center
+                )
+                .padding(bottom = 180.dp, start = 55.dp, end = 55.dp)
+                , fontSize = 15.sp, fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                textAlign = TextAlign.Center
+        )
         Box(
             modifier = Modifier
                 .size(400.dp)
-                .padding(bottom = 50.dp, start = 30.dp, end = 30.dp)
+                .padding(bottom = 150.dp, start = 30.dp, end = 30.dp)
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color.White.copy(alpha = 0.6f))
                 .align(Alignment.BottomCenter)
@@ -109,35 +122,8 @@ fun LoginScreen(navController: NavController) {
                     ),
                     modifier = Modifier, shape = RoundedCornerShape(10.dp)
                 )
-
-                var password = remember { mutableStateOf("") }
-                Text(
-                    text = "Password", fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
-                    modifier = Modifier.padding(top = 5.dp, end = 135.dp)
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                OutlinedTextField(
-                    value = password.value, onValueChange = { password.value = it }, maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ),
-                        unfocusedContainerColor = Color(0xFF2C3E50),
-                        cursorColor = Color(0xFFF1C40F)
-                    ),
-                    modifier = Modifier, shape = RoundedCornerShape(10.dp)
-                )
                 Spacer(modifier = Modifier.size(15.dp))
                 //Checkbox(checked = false, onCheckedChange = { check(true) }, modifier = Modifier.scale(scaleMultiplier).padding(end = 320.dp))
-
-                Text(text = "Forget Password ?",
-                    fontSize = 13.sp,
-                    textDecoration = TextDecoration.Underline,
-                    fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
-                    modifier = Modifier
-                        .padding(start = 100.dp)
-                        .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route)})
-                Spacer(modifier = Modifier.size(20.dp))
                 Button(
                     onClick = { },
                     colors = ButtonDefaults.buttonColors(
@@ -145,24 +131,29 @@ fun LoginScreen(navController: NavController) {
                         contentColor = Color(0xFFF1C40F)
                     ), shape = RoundedCornerShape(5.dp)
                 ) {
-                    Text(text = "Sign-in")
+                    Text(text = "Reset Password")
                 }
-                Spacer(modifier = Modifier.size(7.dp))
-                val annotedText = buildAnnotatedString {
-                    append("Don’t have an account yet ?")
+                Spacer(modifier = Modifier.size(14.dp))
+                val annotedText = buildAnnotatedString{
+                    append("<- Back to ")
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(" Sign-up")
+                        append("Login")
                     }
                 }
                 //Text(text = annotedText, modifier = Modifier.clickable { })
                 ClickableText(text = annotedText, onClick = { offset ->
-                    if (offset in 27..34) {
-                        navController.navigate(Screens.LoginScreen.RegisterScreen.route)
-                    }
+                        navController.navigate(Screens.LoginScreen.route)
+
                 })
 
             }
         }
 
     }
+}
+
+@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
+@Composable
+fun PreviewForgetPasswordScreen() {
+    ForgetPasswordScreen(rememberNavController())
 }
