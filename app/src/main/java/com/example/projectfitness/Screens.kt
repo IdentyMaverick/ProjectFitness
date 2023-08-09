@@ -8,5 +8,11 @@ sealed class Screens(val route: String) {
         object ForgetPasswordScreen : Screens("fps")
         object RegisterScreen : Screens("Register")
     }
+    object Home : Screens("home"){
+        object Profile : Screens("profile"){
+            object ProfileEdit : Screens("profileedit")
+        }
+    }
+    object Activity : Screens("activity")
 
 }

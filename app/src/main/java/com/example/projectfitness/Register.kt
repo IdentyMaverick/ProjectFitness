@@ -1,14 +1,16 @@
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
+import com.example.projectfitness.Screens
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -67,20 +70,29 @@ fun RegisterScreen(navController: NavController) {
             ),
             textAlign = TextAlign.Center
         )
-        Text(
-            text = "Register with Google account",
-            color = Color.White,
-            modifier = Modifier
-                .align(
-                    Alignment.Center
+        Row(
+            Modifier
+                .align(Alignment.Center)
+                .padding(bottom = 260.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.6f)), shape = RoundedCornerShape(10.dp),
+                onClick = { /*TODO*/ }
+            ) {
+                Text(
+                    text = "Register with Google account",
+                    color = Color(0xFF2C3E50),
+                    modifier = Modifier.padding(end=5.dp),
+                    fontSize = 15.sp,
+                    fontFamily = FontFamily(
+                        Font(R.font.poppinslighttext)
+                    ),
+                    textAlign = TextAlign.Center
                 )
-                .padding(bottom = 270.dp, start = 45.dp, end = 45.dp),
-            fontSize = 20.sp,
-            fontFamily = FontFamily(
-                Font(R.font.poppinslighttext)
-            ),
-            textAlign = TextAlign.Center
-        )
+                Image(painterResource(id = R.drawable.google), contentDescription = null)
+            }
+        }
         Box(
             modifier = Modifier
                 .size(430.dp)
@@ -97,7 +109,7 @@ fun RegisterScreen(navController: NavController) {
                     fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
                     modifier = Modifier.padding(top = 30.dp, end = 150.dp)
                 )
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(5.dp))
                 OutlinedTextField(
                     value = name.value, onValueChange = { name.value = it }, maxLines = 1,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -114,7 +126,7 @@ fun RegisterScreen(navController: NavController) {
                     fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
                     modifier = Modifier.padding(top = 5.dp, end = 120.dp)
                 )
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(5.dp))
                 OutlinedTextField(
                     value = emailText.value,
                     onValueChange = { emailText.value = it },
@@ -134,7 +146,7 @@ fun RegisterScreen(navController: NavController) {
                     text = "Password", fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
                     modifier = Modifier.padding(top = 5.dp, end = 150.dp)
                 )
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(5.dp))
                 OutlinedTextField(
                     value = password.value,
                     onValueChange = { password.value = it },
@@ -163,7 +175,7 @@ fun RegisterScreen(navController: NavController) {
                         append(" Sign-in")
                     }
                 }
-                Text(text = annotedText, modifier = Modifier.clickable { })
+                ClickableText(text = annotedText, onClick = {navController.navigate(Screens.LoginScreen.route)} )
             }
         }
 

@@ -1,3 +1,4 @@
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
@@ -17,9 +19,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
 import com.example.projectfitness.Screens
 
@@ -66,6 +70,11 @@ fun ThirdInfo(navController: NavController) {
             ),
             textAlign = TextAlign.Center
         )
+        Canvas(modifier = Modifier.fillMaxSize().align(Alignment.BottomCenter)) {
+            drawCircle(color = Color.White, radius = 10f,center = Offset(size.width/2-40,size.height-220))
+            drawCircle(color = Color.White, radius = 10f,center = Offset(size.width/2,size.height-220))
+            drawCircle(color = Color(0xFFF1C40F), radius = 10f,center = Offset(size.width/2+40,size.height-220))
+        }
         Button(
             onClick = { navController.navigate(Screens.LoginScreen.route)},
             modifier = Modifier
@@ -76,4 +85,9 @@ fun ThirdInfo(navController: NavController) {
             Text(text = "GO", color = Color.Black)
         }
     }
+}
+@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
+@Composable
+fun PreviewThirdInfoScreen() {
+    ThirdInfo(rememberNavController())
 }

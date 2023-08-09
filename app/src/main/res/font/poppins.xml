@@ -3,4 +3,5 @@
     <font android:font="@font/poppinsboldtext" android:fontWeight="700"/>
     <font android:font="@font/poppinslighttext" android:fontWeight="300"/>
     <font android:font="@font/poppinsregulartext" android:fontWeight="400"/>
+    <font android:font="@font/poppinsextralighttext" android:fontWeight="300"/>
 </font-family>

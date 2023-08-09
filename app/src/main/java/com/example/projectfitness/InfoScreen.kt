@@ -1,3 +1,5 @@
+
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
@@ -62,12 +65,17 @@ fun Info(navController: NavController) {
             fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
             textAlign = TextAlign.Center
         )
+        Canvas(modifier = Modifier.fillMaxSize().align(Alignment.BottomCenter)) {
+            drawCircle(color = Color(0xFFF1C40F), radius = 10f,center = Offset(size.width/2-40,size.height-220))
+            drawCircle(color = Color.White, radius = 10f,center = Offset(size.width/2,size.height-220))
+            drawCircle(color = Color.White, radius = 10f,center = Offset(size.width/2+40,size.height-220))
+        }
         Text(
             text = "Next ->",
             Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 20.dp, end = 20.dp)
-                .clickable { navController.navigate(Screens.SecondInfoScreen.route)},
+                .padding(bottom = 45.dp, end = 40.dp)
+                .clickable { navController.navigate(Screens.SecondInfoScreen.route) },
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
             color = Color(0xFFF1C40F)

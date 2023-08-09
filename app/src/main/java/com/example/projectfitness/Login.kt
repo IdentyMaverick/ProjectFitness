@@ -1,9 +1,10 @@
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -33,9 +34,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
 import com.example.projectfitness.Screens
 
@@ -69,20 +72,30 @@ fun LoginScreen(navController: NavController) {
             ),
             textAlign = TextAlign.Center
         )
-        Text(
-            text = "Login with Google account",
-            color = Color.White,
-            modifier = Modifier
-                .align(
-                    Alignment.Center
+        Row(
+            Modifier
+                .align(Alignment.Center)
+                .padding(bottom = 200.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.6f)), shape = RoundedCornerShape(10.dp),
+                onClick = { /*TODO*/ }
+            ) {
+                Text(
+                    text = "Login with Google account",
+                    color = Color(0xFF2C3E50),
+                    modifier = Modifier.padding(end=5.dp),
+                    fontSize = 17.sp,
+                    fontFamily = FontFamily(
+                        Font(R.font.poppinslighttext)
+                    ),
+                    textAlign = TextAlign.Center
                 )
-                .padding(bottom = 230.dp, start = 65.dp, end = 65.dp),
-            fontSize = 25.sp,
-            fontFamily = FontFamily(
-                Font(R.font.poppinslighttext)
-            ),
-            textAlign = TextAlign.Center
-        )
+                Image(painterResource(id = R.drawable.google), contentDescription = null)
+            }
+        }
+        Spacer(modifier = Modifier.size(20.dp))
         Box(
             modifier = Modifier
                 .size(400.dp)
@@ -115,7 +128,7 @@ fun LoginScreen(navController: NavController) {
                     text = "Password", fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
                     modifier = Modifier.padding(top = 5.dp, end = 135.dp)
                 )
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(5.dp))
                 OutlinedTextField(
                     value = password.value, onValueChange = { password.value = it }, maxLines = 1,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -136,10 +149,10 @@ fun LoginScreen(navController: NavController) {
                     fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
                     modifier = Modifier
                         .padding(start = 100.dp)
-                        .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route)})
+                        .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route) })
                 Spacer(modifier = Modifier.size(20.dp))
                 Button(
-                    onClick = { },
+                    onClick = { navController.navigate(Screens.Home.route)},
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2C3E50),
                         contentColor = Color(0xFFF1C40F)
@@ -165,4 +178,10 @@ fun LoginScreen(navController: NavController) {
         }
 
     }
+}
+
+@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
+@Composable
+fun PreviewLoginScreen() {
+    LoginScreen(rememberNavController())
 }
