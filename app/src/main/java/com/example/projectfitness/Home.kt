@@ -43,51 +43,48 @@ fun Home(navController: NavController) {
             fontSize = 20.sp
         )
         Canvas(
+            modifier = Modifier.size(100.dp).clickable(interactionSource = MutableInteractionSource(),
+                indication = null,
+                onClick = { navController.navigate(Screens.Home.Profile.route) })
+        )
+        {
+            drawCircle(color = Color.Black, radius = 70f, center = Offset(170f, 200f))
+        }
+        Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .clickable(interactionSource = MutableInteractionSource(),
-                    indication = null,
-                    onClick = { navController.navigate(Screens.Home.Profile.route) }))
-     {
-        drawCircle(color = Color.Black, radius = 70f, center = Offset(170f, 200f))
+                .padding(top = 40.dp)
+        ) {
+            drawLine(
+                color = Color(0xFF516273),
+                start = Offset(100f, 250f),
+                end = Offset(800f, 250f)
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 380.dp)
+        ) {
+            Text(
+                text = "Your Workouts",
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                fontSize = 17.sp
+            )
+            Spacer(modifier = Modifier.size(120.dp))
+            Text(
+                text = "See all",
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                fontSize = 12.sp
+            )
+        }
+        val indexs = 0
+        NavigationBar(navController = navController, indexs)
     }
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 40.dp)
-    ) {
-        drawLine(
-            color = Color(0xFF516273),
-            start = Offset(100f, 250f),
-            end = Offset(800f, 250f)
-        )
-    }
-        Spacer(modifier = Modifier.size(10.dp))
-
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 380.dp)
-    ) {
-        Text(
-            text = "Your Workouts",
-            color = Color.White,
-            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-            fontSize = 17.sp
-        )
-        Spacer(modifier = Modifier.size(120.dp))
-        Text(
-            text = "See all",
-            color = Color.White,
-            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-            fontSize = 12.sp
-        )
-    }
-    val indexs = 0
-    NavigationBar(navController = navController, indexs)
-}
 
 
 }

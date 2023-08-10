@@ -53,10 +53,10 @@ fun Navigation() {
         composable(route = Screens.Activity.route) {
             Activity(navController = navController)
         }
-        composable(route = Screens.Home.Profile.route){
+        composable(route = Screens.Home.Profile.route) {
             Profile(navController = navController)
         }
-        composable(route = Screens.Home.Profile.ProfileEdit.route){
+        composable(route = Screens.Home.Profile.ProfileEdit.route) {
             ProfileEdit()
         }
     }
@@ -101,114 +101,108 @@ fun HorizontalPagers(){
 */
 @Composable
 fun NavigationBar(navController: NavController, indexs: Int) {
-        val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
-        androidx.compose.material3.NavigationBar(
-            Modifier
-                .fillMaxHeight()
-                .height(50.dp)
-                .padding(top = 600.dp), containerColor = Color(0xFF2C3E50)
-        ) {
-            items.forEachIndexed { index, item ->
-                if (index == 0) {
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = {
-                            if (indexs == 0) {
-                                //Do nothing
-                            }
-                            else if (indexs == 1){
-                                navController.navigate(Screens.Home.route)
-                            }
-                            else if (indexs == 2){
+    val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
+    androidx.compose.material3.NavigationBar(
+        Modifier
+            .fillMaxHeight()
+            .height(50.dp)
+            .padding(top = 600.dp), containerColor = Color(0xFF2C3E50)
+    ) {
+        items.forEachIndexed { index, item ->
+            if (index == 0) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {
+                        if (indexs == 0) {
+                            //Do nothing
+                        } else if (indexs == 1) {
+                            navController.navigate(Screens.Home.route)
 
-                            }
-                            else if (indexs == 3){
+                        } else if (indexs == 2) {
 
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                painterResource(id = R.drawable.home),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
-                            )
-                        },
-                        Modifier.background(Color(0xFF2C3E50)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF2C3E50),
-                            selectedIconColor = Color(0xFFF1C40F)
-                        ),
-                    )
-                } else if (index == 1) {
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = {
-                            if (indexs == 0) {
-                                navController.navigate(Screens.Activity.route)
-                            }
-                            else if (indexs == 1){
-                                // Do nothing
-                            }
-                            else if (indexs == 2){
+                        } else if (indexs == 3) {
 
-                            }
-                            else if (indexs == 3){
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.home),
+                            contentDescription = null,
+                            Modifier
+                                .size(30.dp)
+                        )
+                    },
+                    Modifier.background(Color(0xFF2C3E50)),
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color(0xFF2C3E50)
+                    ),
+                )
+            } else if (index == 1) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = {
+                        if (indexs == 0) {
+                            navController.navigate(Screens.Activity.route)
+                        } else if (indexs == 1) {
+                            // Do nothing
+                        } else if (indexs == 2) {
 
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                painterResource(id = R.drawable.run),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
-                            )
-                        },
-                        Modifier.background(Color(0xFF2C3E50)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF2C3E50),
-                            unselectedIconColor = Color(0xFF2C3E50)
-                        ),
-                    )
-                } else if (index == 2) {
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = { },
-                        icon = {
-                            Icon(
-                                painterResource(id = R.drawable.leaderboard),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
-                            )
-                        },
-                        Modifier.background(Color(0xFF2C3E50)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF2C3E50),
-                            unselectedIconColor = Color(0xFF2C3E50)
-                        ),
-                    )
-                } else if (index == 3) {
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = { },
-                        icon = {
-                            Icon(
-                                painterResource(id = R.drawable.meal),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
-                            )
-                        },
-                        Modifier.background(Color(0xFF2C3E50)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF2C3E50),
-                            unselectedIconColor = Color(0xFF2C3E50)
-                        ),
-                    )
-                }
+                        } else if (indexs == 3) {
 
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.run),
+                            contentDescription = null,
+                            Modifier
+                                .size(30.dp)
+                        )
+                    },
+                    Modifier.background(Color(0xFF2C3E50)),
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color(0xFF2C3E50),
+                        unselectedIconColor = Color(0xFF2C3E50)
+                    ),
+                )
+            } else if (index == 2) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.leaderboard),
+                            contentDescription = null,
+                            Modifier
+                                .size(30.dp)
+                        )
+                    },
+                    Modifier.background(Color(0xFF2C3E50)),
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color(0xFF2C3E50),
+                        unselectedIconColor = Color(0xFF2C3E50)
+                    ),
+                )
+            } else if (index == 3) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.meal),
+                            contentDescription = null,
+                            Modifier
+                                .size(30.dp)
+                        )
+                    },
+                    Modifier.background(Color(0xFF2C3E50)),
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Color(0xFF2C3E50),
+                        unselectedIconColor = Color(0xFF2C3E50)
+                    ),
+                )
             }
+
         }
+    }
 }
