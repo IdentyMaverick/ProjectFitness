@@ -13,6 +13,9 @@ sealed class Screens(val route: String) {
             object ProfileEdit : Screens("profileedit")
         }
     }
-    object Activity : Screens("activity")
+    object Activity : Screens("activity"){
+        object CreateWorkout : Screens(route = "createworkout")
+    }
+    object LeaderBoard : Screens("leaderboard")
 
 }

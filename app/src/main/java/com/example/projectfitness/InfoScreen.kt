@@ -32,7 +32,7 @@ fun Info(navController: NavController) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.projectfitnessblue)),
+            .background(Color(0xFF181F26)),
     ) {
         Image(
             painter = painterResource(id = R.drawable.info),

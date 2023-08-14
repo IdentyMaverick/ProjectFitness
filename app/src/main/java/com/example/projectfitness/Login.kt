@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,14 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -49,7 +52,7 @@ fun LoginScreen(navController: NavController) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.projectfitnessblue))
+            .background(color = Color(0xFF181F26))
     ) {
         Image(
             painter = painterResource(id = R.drawable.login),
@@ -79,13 +82,14 @@ fun LoginScreen(navController: NavController) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.6f)), shape = RoundedCornerShape(10.dp),
+            Button(colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(10.dp),
                 onClick = { /*TODO*/ }
             ) {
                 Text(
                     text = "Login with Google account",
                     color = Color(0xFF2C3E50),
-                    modifier = Modifier.padding(end=5.dp),
+                    modifier = Modifier.padding(end = 5.dp),
                     fontSize = 17.sp,
                     fontFamily = FontFamily(
                         Font(R.font.poppinslighttext)
@@ -95,7 +99,6 @@ fun LoginScreen(navController: NavController) {
                 Image(painterResource(id = R.drawable.google), contentDescription = null)
             }
         }
-        Spacer(modifier = Modifier.size(20.dp))
         Box(
             modifier = Modifier
                 .size(400.dp)
@@ -110,35 +113,41 @@ fun LoginScreen(navController: NavController) {
                 Text(
                     text = "E-Mail Address",
                     fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
-                    modifier = Modifier.padding(top = 30.dp, end = 100.dp)
+                    modifier = Modifier.padding(top = 30.dp, end = 150.dp),
                 )
                 Spacer(modifier = Modifier.size(10.dp))
-                OutlinedTextField(
-                    value = emailText.value, onValueChange = { emailText.value = it }, maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ), unfocusedContainerColor = Color(0xFF2C3E50)
-                    ),
-                    modifier = Modifier, shape = RoundedCornerShape(10.dp)
+                BasicTextField(
+                    value = emailText.value,
+                    onValueChange = { emailText.value = it },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(270.dp)
+                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
+                    maxLines = 1,
+                    textStyle = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.LineThrough
+                    )
+
                 )
 
                 var password = remember { mutableStateOf("") }
                 Text(
                     text = "Password", fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
-                    modifier = Modifier.padding(top = 5.dp, end = 135.dp)
-                )
+                    modifier = Modifier.padding(top = 5.dp, end = 185.dp),
+
+                    )
                 Spacer(modifier = Modifier.size(5.dp))
-                OutlinedTextField(
-                    value = password.value, onValueChange = { password.value = it }, maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ),
-                        unfocusedContainerColor = Color(0xFF2C3E50),
-                        cursorColor = Color(0xFFF1C40F)
-                    ),
-                    modifier = Modifier, shape = RoundedCornerShape(10.dp)
+                BasicTextField(
+                    value = password.value,
+                    onValueChange = { password.value = it },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(270.dp)
+                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp))
                 )
                 Spacer(modifier = Modifier.size(15.dp))
                 //Checkbox(checked = false, onCheckedChange = { check(true) }, modifier = Modifier.scale(scaleMultiplier).padding(end = 320.dp))
@@ -152,7 +161,7 @@ fun LoginScreen(navController: NavController) {
                         .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route) })
                 Spacer(modifier = Modifier.size(20.dp))
                 Button(
-                    onClick = { navController.navigate(Screens.Home.route)},
+                    onClick = { navController.navigate(Screens.Home.route) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2C3E50),
                         contentColor = Color(0xFFF1C40F)

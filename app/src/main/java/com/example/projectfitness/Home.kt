@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -27,10 +31,12 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun Home(navController: NavController) {
+    var flag by remember{ mutableStateOf(true) }
+    var flag2 by remember{ mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF2C3E50))
+            .background(Color(0xFF181F26))
     ) {
 
         Text(
@@ -50,7 +56,7 @@ fun Home(navController: NavController) {
         {
             drawCircle(color = Color.Black, radius = 70f, center = Offset(170f, 200f))
         }
-        Canvas(
+        /*Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 40.dp)
@@ -60,7 +66,7 @@ fun Home(navController: NavController) {
                 start = Offset(100f, 250f),
                 end = Offset(800f, 250f)
             )
-        }
+        }*/
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -72,7 +78,7 @@ fun Home(navController: NavController) {
                 text = "Your Workouts",
                 color = Color.White,
                 fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-                fontSize = 17.sp
+                fontSize = 25.sp
             )
             Spacer(modifier = Modifier.size(120.dp))
             Text(
@@ -83,7 +89,7 @@ fun Home(navController: NavController) {
             )
         }
         val indexs = 0
-        NavigationBar(navController = navController, indexs)
+        NavigationBar(navController = navController, indexs,flag,flag2)
     }
 
 

@@ -7,14 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -27,11 +28,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,7 +50,7 @@ fun RegisterScreen(navController: NavController) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.projectfitnessblue))
+            .background(color = Color(0xFF181F26))
     ) {
         Image(
             painter = painterResource(id = R.drawable.login),
@@ -110,14 +113,22 @@ fun RegisterScreen(navController: NavController) {
                     modifier = Modifier.padding(top = 30.dp, end = 150.dp)
                 )
                 Spacer(modifier = Modifier.size(5.dp))
-                OutlinedTextField(
-                    value = name.value, onValueChange = { name.value = it }, maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ), unfocusedContainerColor = Color(0xFF2C3E50)
-                    ),
-                    modifier = Modifier, shape = RoundedCornerShape(10.dp)
+                BasicTextField(
+                    value = name.value,
+                    onValueChange = { name.value = it },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(270.dp)
+                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
+                    maxLines = 1,
+                    textStyle = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.LineThrough
+                    )
+
                 )
 
                 var emailText = remember { mutableStateOf("") }
@@ -127,19 +138,22 @@ fun RegisterScreen(navController: NavController) {
                     modifier = Modifier.padding(top = 5.dp, end = 120.dp)
                 )
                 Spacer(modifier = Modifier.size(5.dp))
-                OutlinedTextField(
+                BasicTextField(
                     value = emailText.value,
                     onValueChange = { emailText.value = it },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(270.dp)
+                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
                     maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ),
-                        unfocusedContainerColor = Color(0xFF2C3E50),
-                        cursorColor = Color(0xFFF1C40F)
-                    ),
-                    modifier = Modifier,
-                    shape = RoundedCornerShape(10.dp)
+                    textStyle = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.LineThrough
+                    )
+
                 )
                 var password = remember { mutableStateOf("") }
                 Text(
@@ -147,17 +161,22 @@ fun RegisterScreen(navController: NavController) {
                     modifier = Modifier.padding(top = 5.dp, end = 150.dp)
                 )
                 Spacer(modifier = Modifier.size(5.dp))
-                OutlinedTextField(
+                BasicTextField(
                     value = password.value,
                     onValueChange = { password.value = it },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(270.dp)
+                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
                     maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ), unfocusedContainerColor = Color(0xFF2C3E50)
-                    ),
-                    modifier = Modifier,
-                    shape = RoundedCornerShape(10.dp)
+                    textStyle = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.LineThrough
+                    )
+
                 )
                 Spacer(modifier = Modifier.size(15.dp))
                 Button(

@@ -31,7 +31,7 @@ fun SecondInfo(navController: NavController){
     Box(
         Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.projectfitnessblue)), ) {
+            .background(Color(0xFF181F26)), ) {
         Image(painter = painterResource(id = R.drawable.secondinfo), contentDescription =null, alpha = 0.3f, contentScale = ContentScale.FillHeight, modifier = Modifier.size(800.dp) )
         Text(text = "SHOW YOUR STRENGTH",color = colorResource(id = R.color.projectfitnessyellow), modifier = Modifier
             .align(

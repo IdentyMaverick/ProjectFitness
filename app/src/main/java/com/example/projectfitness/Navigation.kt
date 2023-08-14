@@ -59,6 +59,12 @@ fun Navigation() {
         composable(route = Screens.Home.Profile.ProfileEdit.route) {
             ProfileEdit()
         }
+        composable(route = Screens.LeaderBoard.route){
+            LeaderBoard(navController = navController)
+        }
+        composable(route = Screens.Activity.CreateWorkout.route){
+            CreateWorkout(navController = navController)
+        }
     }
 
 }
@@ -100,28 +106,46 @@ fun HorizontalPagers(){
 }
 */
 @Composable
-fun NavigationBar(navController: NavController, indexs: Int) {
+fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 : Boolean) {
+
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
     androidx.compose.material3.NavigationBar(
         Modifier
             .fillMaxHeight()
             .height(50.dp)
-            .padding(top = 600.dp), containerColor = Color(0xFF2C3E50)
+            .padding(top = 600.dp), containerColor = Color(0xFF181F26)
     ) {
+
+        var flag = flag
+        var flag2 = flag2
+
+        var color = if (flag){
+            Color(0xFFF1C40F)
+        }else Color.Black
+
+        var color2 = if (flag2){
+            Color(0xFFF1C40F)
+        }else{ Color.Black  }
+
         items.forEachIndexed { index, item ->
-            if (index == 0) {
+            if (index == 0) { // Click Home Button
                 NavigationBarItem(
-                    selected = true,
+                    selected = flag,
                     onClick = {
-                        if (indexs == 0) {
-                            //Do nothing
+                        if (indexs == 0) { // When inside Home screen
+                            flag = false
                         } else if (indexs == 1) {
+                            flag = true
+                            flag2 = false
                             navController.navigate(Screens.Home.route)
 
                         } else if (indexs == 2) {
-
+                            flag = true
+                            flag2 = false
+                            navController.navigate(Screens.Home.route)
                         } else if (indexs == 3) {
-
+                            flag = true
+                            flag2 = false
                         }
                     },
                     icon = {
@@ -132,23 +156,30 @@ fun NavigationBar(navController: NavController, indexs: Int) {
                                 .size(30.dp)
                         )
                     },
-                    Modifier.background(Color(0xFF2C3E50)),
+                    Modifier.background(Color(0xFF181F26)),
                     colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF2C3E50)
+                        indicatorColor = Color(0xFF181F26),
+                        unselectedIconColor = color,
+                        selectedIconColor = color
                     ),
                 )
             } else if (index == 1) {
                 NavigationBarItem(
-                    selected = true,
+                    selected = flag2,
                     onClick = {
                         if (indexs == 0) {
+                            flag = false
+                            flag2 = true
                             navController.navigate(Screens.Activity.route)
                         } else if (indexs == 1) {
                             // Do nothing
                         } else if (indexs == 2) {
-
+                            flag = false
+                            flag2 = true
+                            navController.navigate(Screens.Activity.route)
                         } else if (indexs == 3) {
-
+                            flag = false
+                            flag2 = true
                         }
                     },
                     icon = {
@@ -159,16 +190,29 @@ fun NavigationBar(navController: NavController, indexs: Int) {
                                 .size(30.dp)
                         )
                     },
-                    Modifier.background(Color(0xFF2C3E50)),
+                    Modifier.background(Color(0xFF181F26)),
                     colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF2C3E50),
-                        unselectedIconColor = Color(0xFF2C3E50)
+                        indicatorColor = Color(0xFF181F26),
+                        unselectedIconColor = color2,
+                        selectedIconColor = color2
                     ),
                 )
             } else if (index == 2) {
                 NavigationBarItem(
                     selected = true,
-                    onClick = { },
+                    onClick = { if (indexs == 0) {
+                        navController.navigate(Screens.LeaderBoard.route)
+                        //flag = false
+                       //flag2 = true
+                    } else if (indexs == 1) {
+                        navController.navigate(Screens.LeaderBoard.route)
+                    } else if (indexs == 2) {
+                        //flag = false
+                        //flag2 = true
+                    } else if (indexs == 3) {
+                        //flag = false
+                        //flag2 = true
+                    }},
                     icon = {
                         Icon(
                             painterResource(id = R.drawable.leaderboard),
@@ -177,10 +221,11 @@ fun NavigationBar(navController: NavController, indexs: Int) {
                                 .size(30.dp)
                         )
                     },
-                    Modifier.background(Color(0xFF2C3E50)),
+                    Modifier.background(Color(0xFF181F26)),
                     colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF2C3E50),
-                        unselectedIconColor = Color(0xFF2C3E50)
+                        indicatorColor = Color(0xFF181F26),
+                        unselectedIconColor = Color.Black,
+                        selectedIconColor = Color.Black
                     ),
                 )
             } else if (index == 3) {
@@ -195,10 +240,11 @@ fun NavigationBar(navController: NavController, indexs: Int) {
                                 .size(30.dp)
                         )
                     },
-                    Modifier.background(Color(0xFF2C3E50)),
+                    Modifier.background(Color(0xFF181F26)),
                     colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF2C3E50),
-                        unselectedIconColor = Color(0xFF2C3E50)
+                        indicatorColor = Color(0xFF181F26),
+                        unselectedIconColor = Color.Black,
+                        selectedIconColor = Color.Black
                     ),
                 )
             }

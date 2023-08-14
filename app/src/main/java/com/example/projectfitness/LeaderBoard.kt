@@ -1,7 +1,9 @@
 package com.example.projectfitness
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -13,12 +15,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -39,20 +46,17 @@ import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Activity(navController: NavController) {
-    var expanded by remember { mutableStateOf(false) }
-    val options = listOf("Create Workout")
-    val selectedOptionsText by remember { mutableStateOf(options[0]) }
+fun LeaderBoard(navController: NavController) {
 
     var flag by remember { mutableStateOf(true) }
     var flag2 by remember { mutableStateOf(true) }
     var flag3 by remember { mutableStateOf(true) }
     var flag4 by remember { mutableStateOf(true) }
 
-    var flagg by remember { mutableStateOf(true) }
-    var flagg2 by remember { mutableStateOf(false) }
+    val exercises = arrayOf("Chest Press", "Bench Press")
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionTest by remember { mutableStateOf(exercises[0]) }
 
-    //val isPressed by interactionSource.collectIsPressedAsState()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -68,52 +72,79 @@ fun Activity(navController: NavController) {
             fontSize = 20.sp
         )
         Text(
-            text = "Workouts",
+            text = "Leader Board",
             color = Color.White,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 60.dp),
-            fontSize = 30.sp,
-            fontFamily = FontFamily(Font(R.font.poppinsextralighttext))
+                .padding(top = 60.dp, end = 170.dp),
+            fontSize = 20.sp,
+            fontFamily = FontFamily(Font(R.font.poppinslighttext))
         )
 
-
-        Box(  modifier = Modifier.align(Alignment.TopEnd) ){IconButton(
-            onClick = { expanded = true }, modifier = Modifier
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 55.dp)
+                .padding(top = 45.dp, end = 30.dp)
         ) {
-            Icon(
-                painterResource(id = R.drawable.point),
-                contentDescription = null,
-                modifier = Modifier.size(30.dp),
-                tint = Color.White
+            TextField(
+                value = selectedOptionTest,
+                onValueChange = {},
+                Modifier
+                    .menuAnchor()
+                    .height(60.dp)
+                    .width(150.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color(0xFF181F26),
+                    unfocusedTextColor = Color(0xFFF1C40F),
+                    focusedTextColor = (Color(0xFFF1C40F)),
+                    unfocusedIndicatorColor = Color(0xFF181F26),
+                    focusedIndicatorColor = Color(0xFF181F26)
+                ),
+                readOnly = true,
+                trailingIcon = {
+                    Icon(
+                        painterResource(id = R.drawable.down),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             )
 
-        }
-
-            DropdownMenu(
+            ExposedDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = !expanded },
-                modifier = Modifier
-            ) {
-                DropdownMenuItem(text = { Text(text = "Create Workout") }, onClick = { navController.navigate(Screens.Activity.CreateWorkout.route) })
+                onDismissRequest = { expanded = false },
+
+                ) {
+                exercises.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(text = selectionOption) },
+                        onClick = {
+                            selectedOptionTest = selectionOption
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    )
+                }
+
             }
+
         }
 
-        /*Canvas(
+        Canvas(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 20.dp)
+                .fillMaxSize()
                 .align(Alignment.TopCenter)
+                .padding(top = 25.dp)
         ) {
             drawLine(
                 color = Color(0xFF516273),
                 start = Offset(0f,225f),
                 end =   Offset(1200f,225f)
             )
-        }*/
-        //val itemsList = (0..2).toList()
+        }
 
         val itemIndexedList = listOf("A", "B", "C", "D")
         LazyRow(
@@ -159,11 +190,19 @@ fun Activity(navController: NavController) {
                         },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(35.dp),
+                            .width(70.dp)
+                            .height(25.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = color),
+                        contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text(text = "All", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(
+                            text = "All Time",
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            fontFamily = FontFamily(
+                                Font(R.font.poppinslighttext)
+                            )
+                        )
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 } else if (index == 1) {
@@ -180,12 +219,13 @@ fun Activity(navController: NavController) {
                         },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(35.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = color2)
+                            .width(70.dp)
+                            .height(25.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = color2),
+                        contentPadding = PaddingValues(0.dp)
 
                     ) {
-                        Text(text = "UpperBody", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(text = "6 Months", fontSize = 12.sp, textAlign = TextAlign.Center)
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 } else if (index == 2) {
@@ -202,12 +242,13 @@ fun Activity(navController: NavController) {
                         },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(35.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = color3)
+                            .width(70.dp)
+                            .height(25.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = color3),
+                        contentPadding = PaddingValues(0.dp)
 
                     ) {
-                        Text(text = "LowerBody", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(text = "3 Months", fontSize = 12.sp, textAlign = TextAlign.Center)
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 } else if (index == 3) {
@@ -224,24 +265,28 @@ fun Activity(navController: NavController) {
                         },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
-                            .width(120.dp)
-                            .height(35.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = color4)
+                            .width(70.dp)
+                            .height(25.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = color4),
+                        contentPadding = PaddingValues(0.dp)
 
                     ) {
-                        Text(text = "Chest", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(text = "1 Months", fontSize = 12.sp, textAlign = TextAlign.Center)
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 }
             }
         }
-        val indexs = 1
-        NavigationBar(navController = navController, indexs, flagg, flagg2)
+        Canvas(modifier = Modifier.size(100.dp).align(Alignment.TopStart).padding(top = 170.dp)){
+            drawRoundRect(color = Color(0xFFF1C40F), cornerRadius = CornerRadius(40f), size = Size(600f,150f))
+
+        }
     }
+    //NavigationBar(navController = navController, indexs = 2, flag = , flag2 = )
 }
 
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
 @Composable
-fun PreviewActivity() {
-    Activity(navController = rememberNavController())
+fun PreviewLeaderBoard() {
+    LeaderBoard(rememberNavController())
 }

@@ -35,7 +35,7 @@ fun Profile(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF2C3E50))
+            .background(Color(0xFF181F26))
     ) {
         Text(
             modifier = Modifier
