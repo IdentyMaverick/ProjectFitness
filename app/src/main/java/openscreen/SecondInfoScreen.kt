@@ -1,3 +1,5 @@
+package openscreen
+
 import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -45,16 +47,14 @@ fun SecondInfo(navController: NavController){
             .align(
                 Alignment.Center
             )
-            .padding(top = 125.dp, start = 70.dp, end = 70.dp), fontSize = 35.sp, fontFamily = FontFamily(
-            Font(R.font.poppinsregulartext)
-        ), textAlign = TextAlign.Center)
+            .padding(top = 125.dp, start = 70.dp, end = 70.dp), fontSize = 35.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
+        , textAlign = TextAlign.Center)
         Text(text = "Compete other users",color = Color.White, modifier = Modifier
             .align(
                 Alignment.Center
             )
-            .padding(top = 330.dp, start = 55.dp, end = 55.dp), fontSize = 20.sp, fontFamily = FontFamily(
-            Font(R.font.poppinsregulartext)
-        ), textAlign = TextAlign.Center)
+            .padding(top = 330.dp, start = 55.dp, end = 55.dp), fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+            textAlign = TextAlign.Center)
         Canvas(modifier = Modifier.fillMaxSize().align(Alignment.BottomCenter)) {
             drawCircle(color = Color.White, radius = 10f,center = Offset(size.width/2-40,size.height-220))
             drawCircle(color = Color(0xFFF1C40F), radius = 10f,center = Offset(size.width/2,size.height-220))
@@ -68,7 +68,8 @@ fun SecondInfo(navController: NavController){
                 .clickable(interactionSource = MutableInteractionSource(),indication = null) { navController.navigate(Screens.ThirdInfoScreen.route) },
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
-            color = Color(0xFFF1C40F)
+            color = Color(0xFFF1C40F),
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
         )
     }
 }

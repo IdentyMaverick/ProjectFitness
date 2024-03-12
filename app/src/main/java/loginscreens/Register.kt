@@ -1,14 +1,13 @@
+package loginscreens
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,23 +23,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -59,46 +57,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.Database
 import com.example.projectfitness.R
 import com.example.projectfitness.Screens
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
-class Login : ComponentActivity() {
-
+class Register : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
-    var usernames : String = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var context: Context
         auth = Firebase.auth
+        //var user = auth.currentUser
+        //context = applicationContext
         setContent {
+
+
         }
     }
 
     public override fun onStart() {
         super.onStart()
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            Toast.makeText(this, "hello", Toast.LENGTH_SHORT).show()
+        }
     }
 
+
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun LoginScreen(navController: NavController) {
-
-
-        val configuration = LocalConfiguration.current
-        val screenwidthDp = configuration.screenWidthDp.dp
-        val screenheightDp = configuration.screenHeightDp.dp
-
-        val checkedState = remember { mutableStateOf(true) }
+    fun RegisterScreen(navController: NavController) {
+        val db = Firebase.firestore
         val context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope()
-
-        //getCurrentUser(navController)
-
+        val scaleMultiplier = 0.5f
         Box(
             Modifier
                 .fillMaxSize()
@@ -128,7 +124,7 @@ class Login : ComponentActivity() {
             Row(
                 Modifier
                     .align(Alignment.Center)
-                    .padding(bottom = 200.dp),
+                    .padding(bottom = 260.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -137,7 +133,7 @@ class Login : ComponentActivity() {
                     onClick = { /*TODO*/ }
                 ) {
                     Text(
-                        text = "Login with Google account",
+                        text = "Register with Google account",
                         color = Color(0xFFD9D9D9),
                         modifier = Modifier.padding(end = 5.dp),
                         fontSize = 17.sp,
@@ -152,23 +148,71 @@ class Login : ComponentActivity() {
             }
             Box(
                 modifier = Modifier
-                    .size(400.dp)
-                    .padding(bottom = 50.dp, start = 30.dp, end = 30.dp)
+                    .size(430.dp)
+                    .padding(bottom = 30.dp, start = 30.dp, end = 30.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(Color(0xFF182129).copy(alpha = 0.4f))
                     .align(Alignment.BottomCenter)
             ) {
 
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    var name = remember { mutableStateOf("") }
+                    Text(
+                        text = "Full Name",
+                        fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
+                        modifier = Modifier.padding(top = 30.dp, end = 150.dp),
+                        color = Color(0xFFD9D9D9)
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    BasicTextField(
+                        value = name.value,
+                        onValueChange = { name.value = it },
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(270.dp)
+                            .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
+                        maxLines = 1,
+                        textStyle = TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                            color = Color.White,
+                            textDecoration = TextDecoration.LineThrough,
+                        ),
+                        decorationBox = { innerTextField ->
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 20.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = Color(0xFF2C3E50),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        width = 2.dp,
+                                        color = Color(0xFF2C3E50),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AccountBox,
+                                    contentDescription = "Favorite icon",
+                                    tint = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(width = 10.dp))
+                                innerTextField()
+                            }
+                        }
+                    )
+
                     var emailText = remember { mutableStateOf("") }
                     Text(
                         text = "E-Mail Address",
-                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                        modifier = Modifier.padding(top = 30.dp, end = 150.dp),
-                        style = TextStyle(letterSpacing = 3.sp),
+                        fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
+                        modifier = Modifier.padding(top = 5.dp, end = 120.dp),
                         color = Color(0xFFD9D9D9)
                     )
-                    Spacer(modifier = Modifier.size(10.dp))
+                    Spacer(modifier = Modifier.size(5.dp))
                     BasicTextField(
                         value = emailText.value,
                         onValueChange = { emailText.value = it },
@@ -178,10 +222,9 @@ class Login : ComponentActivity() {
                             .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
                         maxLines = 1,
                         textStyle = TextStyle(
-                            fontSize = 12.sp,
-                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
                             color = Color.White,
-                            letterSpacing = 1.sp
                         ),
                         decorationBox = { innerTextField ->
                             Row(
@@ -206,20 +249,16 @@ class Login : ComponentActivity() {
                                 )
                                 Spacer(modifier = Modifier.width(width = 10.dp))
                                 innerTextField()
-
                             }
                         }
-
                     )
-
                     var password = remember { mutableStateOf("") }
                     Text(
-                        text = "Password", fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                        modifier = Modifier.padding(top = 5.dp, end = 185.dp),
-                        style = TextStyle(letterSpacing = 3.sp),
+                        text = "Password", fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
+                        modifier = Modifier.padding(top = 5.dp, end = 150.dp),
                         color = Color(0xFFD9D9D9)
+                    )
 
-                        )
                     Spacer(modifier = Modifier.size(5.dp))
                     BasicTextField(
                         value = password.value,
@@ -228,11 +267,13 @@ class Login : ComponentActivity() {
                             .height(40.dp)
                             .width(270.dp)
                             .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
-                        visualTransformation = PasswordVisualTransformation(),
+                        maxLines = 1,
                         textStyle = TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
                             color = Color.White,
-                            letterSpacing = 1.sp
                         ),
+                        visualTransformation = PasswordVisualTransformation(),
                         decorationBox = { innerTextField ->
                             Row(
                                 modifier = Modifier
@@ -260,52 +301,22 @@ class Login : ComponentActivity() {
                         }
 
                     )
-                    Spacer(modifier = Modifier.size(5.dp))
-
-
-
-                    Box(Modifier.fillMaxWidth().height(40.dp)){
-                        Checkbox(checked = checkedState.value, onCheckedChange = { checkedState.value = it } ,
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(end = screenwidthDp / 20))
-                        Text(text = "Remember Me",
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(end = screenwidthDp / 6 , top = screenheightDp/50),
-                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                            color = Color(0xFFD9D9D9),
-                            style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp)
-                        )
-                    }
-
-
-                    Text(text = "Forget Password ?",
-                        textDecoration = TextDecoration.Underline,
-                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                        modifier = Modifier
-                            .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route) },
-                        color = Color(0xFFD9D9D9),
-                        style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp))
-                    Spacer(modifier = Modifier.size(10.dp))
+                    Spacer(modifier = Modifier.size(15.dp))
                     Button(
                         onClick = {
-                            if (emailText.value.isNullOrEmpty() || password.value.isNullOrEmpty()) {
+                            if (name.value.isNullOrEmpty() || emailText.value.isNullOrEmpty() || password.value.isNullOrEmpty()) {
                                 Toast.makeText(
                                     context,
-                                    "E-Mail or Password empty, try again",
+                                    "Name ,E-Mail and Password should filled, try again",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
-                                coroutineScope.launch {
-                                    LoginFirebase(
-                                        emailText.value,
-                                        password.value,
-                                        navController,
-                                        context = context
-                                    )
-                                }
-
+                                RegisterFirebase(
+                                    emailText = emailText.value,
+                                    password = password.value,
+                                    navController = navController,
+                                    name = name.value,
+                                )
                             }
 
                         },
@@ -314,84 +325,56 @@ class Login : ComponentActivity() {
                             contentColor = Color(0xFFF1C40F)
                         ), shape = RoundedCornerShape(5.dp)
                     ) {
-                        Text(text = "Sign-in", fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), fontSize = 15.sp, letterSpacing = 1.sp)
+                        Text(text = "Sign-up")
                     }
-                    Spacer(modifier = Modifier.size(7.dp))
                     val annotedText = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), fontSize = 15.sp, letterSpacing = 1.sp)){
-                            append("Don’t have an account yet ?")
+                        withStyle(style = SpanStyle(color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(
+                            R.font.postnobillscolombosemibold
+                        )), fontSize = 15.sp, letterSpacing = 1.sp)){
+                            append("Do you already have an account ?")
                         }
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = Color(0xFFF1C40F),fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), fontSize = 15.sp, letterSpacing = 1.sp)) {
-                            append(" Sign-up")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = Color(0xFFF1C40F),fontFamily = FontFamily(Font(
+                            R.font.postnobillscolombosemibold
+                        )), fontSize = 15.sp, letterSpacing = 1.sp)) {
+                            append(" Sign-in")
                         }
                     }
-                    //Text(text = annotedText, modifier = Modifier.clickable { })
-                    ClickableText(text = annotedText, onClick = { offset ->
-                        if (offset in 27..34) {
-                            navController.navigate(Screens.LoginScreen.RegisterScreen.route)
-                        }//style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp)
-                    })
-
+                    ClickableText(
+                        text = annotedText,
+                        onClick = { navController.navigate(Screens.LoginScreen.route) })
                 }
             }
 
         }
     }
 
-    suspend fun LoginFirebase(
-        email: String,
+    fun RegisterFirebase(
+        emailText: String,
         password: String,
         navController: NavController,
-        context: Context
-
+        name: String
     ) {
-        val db = Firebase.firestore
-        val docRef = db.collection("users")
         auth = Firebase.auth
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
-            if (task.isSuccessful) {
-                val query = docRef.whereEqualTo("email", email)
-                CoroutineScope(Dispatchers.Main).launch {
-                    query.get().addOnSuccessListener { document ->
-                        for (document in document) {
-                            var usernameinfo = document.data.get("first").toString()
-                            this@Login.usernames = usernameinfo
-                        }
-                    }.await()
-                    Toast.makeText(context, "user is " + this@Login.usernames, Toast.LENGTH_SHORT).show()
-                    navController.navigate(Screens.Home.route)
+        auth.createUserWithEmailAndPassword(emailText, password)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    //user = auth.currentUser
+                    val user = hashMapOf(
+                        "first" to name,
+                        "email" to emailText,
+                        "password" to password)
+                    Database().DatabaseUserCreate(user)
+                    navController.navigate(Screens.LoginScreen.route)
                     finish()
+                } else {
+                    Toast.makeText(this@Register, "" + task.exception, Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                Toast.makeText(
-                    context,
-                    "E-Mail or Password wrong, try again",
-                    Toast.LENGTH_SHORT
-                ).show()
             }
-        }
-    }
-
-    fun getCurrentUser(navController: NavController){
-        try {
-            val user = Firebase.auth.currentUser
-            if (user != null){
-                navController.navigate(Screens.Home.route)
-            }
-            else{
-                // Login
-            }
-        }
-        catch (e:Exception){
-            Log.d("LOOOL",e.message.toString())}
-
-
-
     }
 
     @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
     @Composable
-    fun PreviewLoginScreen() {
-        LoginScreen(rememberNavController())
+    fun PreviewRegisterScreen() {
+        RegisterScreen(navController = rememberNavController())
     }
 }

@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package loginscreens
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.R
+import com.example.projectfitness.Screens
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -54,7 +56,7 @@ fun ForgetPasswordScreen(navController: NavController) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.projectfitnessblue))
+            .background(color = Color(0xFF181F26))
     ) {
         Image(
             painter = painterResource(id = R.drawable.login),
@@ -72,10 +74,9 @@ fun ForgetPasswordScreen(navController: NavController) {
                 )
                 .padding(bottom = 400.dp, start = 20.dp, end = 20.dp),
             fontSize = 35.sp,
-            fontFamily = FontFamily(
-                Font(R.font.poppinsboldtext)
-            ),
-            textAlign = TextAlign.Center
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+            textAlign = TextAlign.Center,
+            style = TextStyle(fontSize = 35.sp, letterSpacing = 5.sp)
         )
         Text(
             text = "Forget Password ?",
@@ -87,15 +88,20 @@ fun ForgetPasswordScreen(navController: NavController) {
                 .padding(bottom = 280.dp, start = 65.dp, end = 65.dp),
             fontSize = 25.sp,
             fontFamily = FontFamily(
-                Font(R.font.poppinslighttext)
+                Font(R.font.postnobillscolombosemibold)
             ),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            style = TextStyle(letterSpacing = 3.sp)
         )
         val annotedText = buildAnnotatedString {
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), color = Color(0xFFF1C40F)),) {
                 append("No worries,")
             }
+            withStyle(style = SpanStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))) )
+            {
                 append(" we’ll send you reset instruction")
+            }
+
         }
         Text(
             text = annotedText, color = Color.White,
@@ -112,7 +118,7 @@ fun ForgetPasswordScreen(navController: NavController) {
                 .size(400.dp)
                 .padding(bottom = 150.dp, start = 30.dp, end = 30.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color.White.copy(alpha = 0.6f))
+                .background(Color(0xFF182129).copy(alpha = 0.4f))
                 .align(Alignment.BottomCenter)
         ) {
 
@@ -120,8 +126,10 @@ fun ForgetPasswordScreen(navController: NavController) {
                 var emailText = remember { mutableStateOf("") }
                 Text(
                     text = "E-Mail Address",
-                    fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
-                    modifier = Modifier.padding(top = 30.dp, end = 100.dp)
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                    modifier = Modifier.padding(top = 30.dp, end = 150.dp),
+                    color = Color(0xFFD9D9D9),
+                    style = TextStyle(letterSpacing = 3.sp),
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 BasicTextField(
@@ -175,13 +183,19 @@ fun ForgetPasswordScreen(navController: NavController) {
                         contentColor = Color(0xFFF1C40F)
                     ), shape = RoundedCornerShape(5.dp)
                 ) {
-                    Text(text = "Reset Password")
+                    Text(text = "Reset Password",fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
                 }
                 Spacer(modifier = Modifier.size(14.dp))
                 val annotedText = buildAnnotatedString{
-                    append("<- Back to ")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Login")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFD9D9D9),fontFamily = FontFamily(Font(
+                        R.font.postnobillscolombosemibold
+                    )))) {
+                        append("<- Back to ")
+                    }
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFF1C40F), fontFamily = FontFamily(Font(
+                        R.font.postnobillscolombosemibold
+                    )))) {
+                        append("Login ")
                     }
                 }
                 //Text(text = annotedText, modifier = Modifier.clickable { })

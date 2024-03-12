@@ -1,3 +1,6 @@
+package openscreen
+
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -27,10 +31,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
 import com.example.projectfitness.Screens
+import com.example.projectfitness.Show
 
 @Composable
 fun ThirdInfo(navController: NavController) {
 
+    var show = Show()
+    var context : Context = LocalContext.current
     Box(
         Modifier
             .fillMaxSize()
@@ -52,9 +59,7 @@ fun ThirdInfo(navController: NavController) {
                 )
                 .padding(top = 125.dp, start = 70.dp, end = 70.dp),
             fontSize = 35.sp,
-            fontFamily = FontFamily(
-                Font(R.font.poppinsregulartext)
-            ),
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             textAlign = TextAlign.Center
         )
         Text(
@@ -66,9 +71,7 @@ fun ThirdInfo(navController: NavController) {
                 )
                 .padding(top = 330.dp, start = 55.dp, end = 55.dp),
             fontSize = 20.sp,
-            fontFamily = FontFamily(
-                Font(R.font.poppinsregulartext)
-            ),
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             textAlign = TextAlign.Center
         )
         Canvas(modifier = Modifier.fillMaxSize().align(Alignment.BottomCenter)) {
@@ -77,7 +80,9 @@ fun ThirdInfo(navController: NavController) {
             drawCircle(color = Color(0xFFF1C40F), radius = 10f,center = Offset(size.width/2+40,size.height-220))
         }
         Button(
-            onClick = { navController.navigate(Screens.LoginScreen.route)},
+            onClick = {
+                show.setPageShownFlag(context,true)
+                navController.navigate(Screens.LoginScreen.route)},
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 40.dp, bottom = 40.dp),

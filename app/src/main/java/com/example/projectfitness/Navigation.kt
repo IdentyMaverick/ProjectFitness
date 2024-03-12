@@ -1,9 +1,9 @@
 package com.example.projectfitness
 
-import Info
-import Login
-import SecondInfo
-import ThirdInfo
+import openscreen.Info
+import loginscreens.Login
+import openscreen.SecondInfo
+import openscreen.ThirdInfo
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,6 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import loginscreens.ForgetPasswordScreen
+import loginscreens.Register
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalFoundationApi::class)
@@ -190,6 +192,7 @@ fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag
                             flag2 = false
                             flag3 = false
                             flag4 = false
+                            navController.navigate(Screens.Home.route)
                         }
                     },
                     icon = {
@@ -230,6 +233,7 @@ fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag
                             flag2 = true
                             flag3 = false
                             flag4 = false
+                            navController.navigate(Screens.Activity.route)
                         }
                     },
                     icon = {
@@ -258,13 +262,19 @@ fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag
                             flag3 = true
                             flag4 = false
                         } else if (indexs == 1) {
+                            flag = false
+                            flag2 = false
+                            flag3 = true
+                            flag4 = false
                             navController.navigate(Screens.LeaderBoard.route)
                         } else if (indexs == 2) {
-                            //flag = false
-                            //flag2 = true
+                            // nothing
                         } else if (indexs == 3) {
-                            //flag = false
-                            //flag2 = true
+                            flag = false
+                            flag2 = false
+                            flag3 = true
+                            flag4 = false
+                            navController.navigate(Screens.LeaderBoard.route)
                         }
                     },
                     icon = {
@@ -294,13 +304,18 @@ fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag
                             flag4 = true
                         } else if (indexs == 1) {
                             navController.navigate(Screens.Meal.route)
+                            flag = false
+                            flag2 = false
+                            flag3 = false
+                            flag4 = true
                         } else if (indexs == 2) {
                             navController.navigate(Screens.Meal.route)
-                            //flag = false
-                            //flag2 = true
+                            flag = false
+                            flag2 = false
+                            flag3 = false
+                            flag4 = true
                         } else if (indexs == 3) {
-                            //flag = false
-                            //flag2 = true
+                            // nothing
                         }
                     },
                     icon = {

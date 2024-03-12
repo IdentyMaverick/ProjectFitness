@@ -148,8 +148,8 @@ class Homes : ComponentActivity() {
                     modifier = Modifier
                 ) {
                     DropdownMenuItem(
-                        text = { Text(text = "Add Workout") },
-                        onClick = {  })
+                        text = { Text(text = "Profile Settings") },
+                        onClick = { navController.navigate(route = "profile") })
                     DropdownMenuItem(
                         text = { Text(text = "Logout") },
                         onClick = { navController.navigate(Screens.LoginScreen.route) })

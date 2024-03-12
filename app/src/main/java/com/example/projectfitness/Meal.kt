@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,12 +25,27 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun Meal(navController: NavController)
 {
+    var flagggg by remember { mutableStateOf(false) }
+    var flagggg2 by remember { mutableStateOf(false) }
+    var flagggg3 by remember { mutableStateOf(false) }
+    var flagggg4 by remember { mutableStateOf(true) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF181F26))
     )
     {
+        Text(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 5.dp),
+            text = "PROJECT FITNESS",
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+            color = Color(0xFFF1C40F),
+            style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
+        )
+        
         Text(
             text = "SOON",
             modifier = Modifier.align(Alignment.Center),
@@ -47,6 +66,8 @@ fun Meal(navController: NavController)
             )
         )
     }
+    var indexs = 3
+    NavigationBar(navController = navController, indexs,flagggg,flagggg2,flagggg3,flagggg4)
 }
 
 @Preview(showSystemUi = true)

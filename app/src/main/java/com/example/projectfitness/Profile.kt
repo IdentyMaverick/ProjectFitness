@@ -100,7 +100,8 @@ fun Profile(navController: NavController) {
                     interactionSource = MutableInteractionSource(),
                     indication = null,
                     onClick = { navController.navigate(Screens.Home.route) })
-                .padding(top = (screenheightDp / 10).dp)
+                .size(30.dp)
+                .padding(top = 5.dp)
         )
         Text(
             text = "Profile",

@@ -1,4 +1,4 @@
-
+package openscreen
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Canvas
@@ -35,6 +35,7 @@ import com.example.projectfitness.Show
 
 @Composable
 fun Info(navController: NavController) {
+
         var show : Show = Show()
         var context : Context = LocalContext.current
 
@@ -61,7 +62,7 @@ fun Info(navController: NavController) {
                         )
                         .padding(top = 125.dp, start = 70.dp, end = 70.dp),
                     fontSize = 35.sp,
-                    fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                     textAlign = TextAlign.Center
                 )
                 Text(
@@ -73,7 +74,7 @@ fun Info(navController: NavController) {
                         )
                         .padding(top = 330.dp, start = 55.dp, end = 55.dp),
                     fontSize = 20.sp,
-                    fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                     textAlign = TextAlign.Center
                 )
                 Canvas(modifier = Modifier
@@ -91,11 +92,12 @@ fun Info(navController: NavController) {
                         .clickable(
                             interactionSource = MutableInteractionSource(),
                             indication = null
-                        ) { show.setPageShownFlag(context,true)
+                        ) {
                             navController.navigate(Screens.SecondInfoScreen.route) },
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center,
-                    color = Color(0xFFF1C40F)
+                    color = Color(0xFFF1C40F),
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
                 )
             }
 
