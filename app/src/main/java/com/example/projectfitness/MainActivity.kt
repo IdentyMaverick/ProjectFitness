@@ -9,16 +9,20 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
+    private lateinit var auth : FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
+        val context = applicationContext
         super.onCreate(savedInstanceState)
         //installSplashScreen()
         setContent {
+
             val systemUiController = rememberSystemUiController()
             SideEffect {
-                systemUiController.setStatusBarColor(Color.Black)
-                systemUiController.setSystemBarsColor(Color.Black)
+                systemUiController.setStatusBarColor(Color(0xFF181F26))
+                systemUiController.setSystemBarsColor(Color(0xFF181F26))
             }
             Main()
 

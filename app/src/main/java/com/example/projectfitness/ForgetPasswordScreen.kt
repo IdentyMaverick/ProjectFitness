@@ -1,19 +1,27 @@
 package com.example.projectfitness
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -37,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun ForgetPasswordScreen(navController: NavController) {
@@ -113,19 +124,52 @@ fun ForgetPasswordScreen(navController: NavController) {
                     modifier = Modifier.padding(top = 30.dp, end = 100.dp)
                 )
                 Spacer(modifier = Modifier.size(10.dp))
-                OutlinedTextField(
-                    value = emailText.value, onValueChange = { emailText.value = it }, maxLines = 1,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(
-                            0xFF2C3E50
-                        ), unfocusedContainerColor = Color(0xFF2C3E50)
+                BasicTextField(
+                    value = emailText.value,
+                    onValueChange = { emailText.value = it },
+                    modifier = Modifier
+                        .height(40.dp)
+                        .width(270.dp)
+                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
+                    maxLines = 1,
+                    textStyle = TextStyle(
+                        fontSize = 12.sp,
+                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                        color = Color.White
                     ),
-                    modifier = Modifier, shape = RoundedCornerShape(10.dp)
+                    decorationBox = { innerTextField ->
+                        Row(
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp)
+                                .fillMaxWidth()
+                                .background(
+                                    color = Color(0xFF2C3E50),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = Color(0xFF2C3E50),
+                                    shape = RoundedCornerShape(10.dp)
+                                ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = "Favorite icon",
+                                tint = Color.Black
+                            )
+                            Spacer(modifier = Modifier.width(width = 10.dp))
+                            innerTextField()
+
+                        }
+                    }
+
                 )
                 Spacer(modifier = Modifier.size(15.dp))
                 //Checkbox(checked = false, onCheckedChange = { check(true) }, modifier = Modifier.scale(scaleMultiplier).padding(end = 320.dp))
                 Button(
-                    onClick = { },
+                    onClick = { PasswordReset(email = emailText.value)
+                                navController.navigate(Screens.LoginScreen.route)},
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF2C3E50),
                         contentColor = Color(0xFFF1C40F)
@@ -150,6 +194,14 @@ fun ForgetPasswordScreen(navController: NavController) {
         }
 
     }
+}
+
+
+fun PasswordReset(email:String){
+    val emails = email
+
+    Firebase.auth.sendPasswordResetEmail(emails).addOnCompleteListener({task -> if (task.isSuccessful){ Log.d("Reset","Reset email sent") }  })
+
 }
 
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")

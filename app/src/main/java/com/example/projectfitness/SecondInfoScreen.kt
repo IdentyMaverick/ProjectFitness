@@ -1,7 +1,9 @@
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -25,9 +28,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
 import com.example.projectfitness.Screens
+import com.example.projectfitness.Show
 
 @Composable
 fun SecondInfo(navController: NavController){
+
+    var show2 : Show = Show()
+    var context2 : Context = LocalContext.current
+
     Box(
         Modifier
             .fillMaxSize()
@@ -53,11 +61,11 @@ fun SecondInfo(navController: NavController){
             drawCircle(color = Color.White, radius = 10f,center = Offset(size.width/2+40,size.height-220))
         }
         Text(
-            text = "Next ->",
+            text = "Next",
             Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 45.dp, end = 40.dp)
-                .clickable { navController.navigate(Screens.ThirdInfoScreen.route) },
+                .clickable(interactionSource = MutableInteractionSource(),indication = null) { navController.navigate(Screens.ThirdInfoScreen.route) },
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
             color = Color(0xFFF1C40F)

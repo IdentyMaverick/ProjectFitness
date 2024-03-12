@@ -1,10 +1,11 @@
 package com.example.projectfitness
 
 import Info
-import LoginScreen
-import RegisterScreen
+import Login
 import SecondInfo
 import ThirdInfo
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,17 +20,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
+@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Navigation() {
+    val viewModel : ViewModelSave = viewModel() // For holding list of exercise , preserve every class
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screens.FirstInfoScreen.route) {
         composable(route = Screens.FirstInfoScreen.route) {
+            //DataScreen()
             Info(navController = navController)
         }
         composable(route = Screens.SecondInfoScreen.route) {
@@ -39,19 +46,19 @@ fun Navigation() {
             ThirdInfo(navController = navController)
         }
         composable(route = Screens.LoginScreen.route) {
-            LoginScreen(navController = navController)
+            Login().LoginScreen(navController = navController)
         }
         composable(route = Screens.LoginScreen.ForgetPasswordScreen.route) {
             ForgetPasswordScreen(navController = navController)
         }
         composable(route = Screens.LoginScreen.RegisterScreen.route) {
-            RegisterScreen(navController = navController)
+            Register().RegisterScreen(navController = navController)
         }
         composable(route = Screens.Home.route) {
-            Home(navController = navController)
+            Homes().Home(navController = navController,viewModel)
         }
         composable(route = Screens.Activity.route) {
-            Activity(navController = navController)
+            Activity(navController = navController, viewModelSave = viewModel)
         }
         composable(route = Screens.Home.Profile.route) {
             Profile(navController = navController)
@@ -59,15 +66,37 @@ fun Navigation() {
         composable(route = Screens.Home.Profile.ProfileEdit.route) {
             ProfileEdit()
         }
-        composable(route = Screens.LeaderBoard.route){
+        composable(route = Screens.LeaderBoard.route) {
             LeaderBoard(navController = navController)
         }
-        composable(route = Screens.Activity.CreateWorkout.route){
-            CreateWorkout(navController = navController)
+        composable(route = Screens.CreateWorkout.route) {
+            CreateWorkout(navController = navController, viewModelSave = viewModel)
+        }
+        composable(route = Screens.ChooseExercises.route, arguments = listOf(navArgument("name"){type = NavType.StringType})){
+            val arg = it.arguments?.getString("name")
+            ChooseExercises(navController = navController,arg, viewModel = viewModel)}
+        composable(route = Screens.WorkoutSettingScreen.route)
+        { WorkoutSettingScreen(navController = navController,viewModelSave = viewModel)}
+        composable(route = Screens.WorkoutDetails.route)
+        {
+            WorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(),viewModelSave = viewModel )
+        }
+        composable(route = Screens.WorkoutSettingScreenWorkoutDetails.route)
+        {
+            WorkoutSettingScreenWorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(), viewModelSave = viewModel)
+        }
+        composable(route = Screens.WorkoutLog.route)
+        {
+            WorkoutLog(navController = navController, viewModelSave = viewModel)
+        }
+        composable(route = Screens.Meal.route)
+        {
+            Meal(navController = navController)
         }
     }
 
-}
+    }
+
 
 /*@OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -106,7 +135,7 @@ fun HorizontalPagers(){
 }
 */
 @Composable
-fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 : Boolean) {
+fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag2: Boolean,flag3: Boolean,flag4 : Boolean) {
 
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
     androidx.compose.material3.NavigationBar(
@@ -118,14 +147,23 @@ fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 
 
         var flag = flag
         var flag2 = flag2
+        var flag3 = flag3
+        var flag4 = flag4
 
-        var color = if (flag){
+
+        var color = if (flag) {
+            Color(0xFFF1C40F)
+        } else Color.Black
+
+        var color2 = if (flag2) {
             Color(0xFFF1C40F)
         }else Color.Black
-
-        var color2 = if (flag2){
+        var color3 = if (flag3) {
             Color(0xFFF1C40F)
-        }else{ Color.Black  }
+        }else Color.Black
+        var color4 = if (flag4) {
+            Color(0xFFF1C40F)
+        }else Color.Black
 
         items.forEachIndexed { index, item ->
             if (index == 0) { // Click Home Button
@@ -137,15 +175,21 @@ fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 
                         } else if (indexs == 1) {
                             flag = true
                             flag2 = false
+                            flag3 = false
+                            flag4 = false
                             navController.navigate(Screens.Home.route)
 
                         } else if (indexs == 2) {
                             flag = true
                             flag2 = false
+                            flag3 = false
+                            flag4 = false
                             navController.navigate(Screens.Home.route)
                         } else if (indexs == 3) {
                             flag = true
                             flag2 = false
+                            flag3 = false
+                            flag4 = false
                         }
                     },
                     icon = {
@@ -170,16 +214,22 @@ fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 
                         if (indexs == 0) {
                             flag = false
                             flag2 = true
+                            flag3 = false
+                            flag4 = false
                             navController.navigate(Screens.Activity.route)
                         } else if (indexs == 1) {
                             // Do nothing
                         } else if (indexs == 2) {
                             flag = false
                             flag2 = true
+                            flag3 = false
+                            flag4 = false
                             navController.navigate(Screens.Activity.route)
                         } else if (indexs == 3) {
                             flag = false
                             flag2 = true
+                            flag3 = false
+                            flag4 = false
                         }
                     },
                     icon = {
@@ -199,20 +249,24 @@ fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 
                 )
             } else if (index == 2) {
                 NavigationBarItem(
-                    selected = true,
-                    onClick = { if (indexs == 0) {
-                        navController.navigate(Screens.LeaderBoard.route)
-                        //flag = false
-                       //flag2 = true
-                    } else if (indexs == 1) {
-                        navController.navigate(Screens.LeaderBoard.route)
-                    } else if (indexs == 2) {
-                        //flag = false
-                        //flag2 = true
-                    } else if (indexs == 3) {
-                        //flag = false
-                        //flag2 = true
-                    }},
+                    selected = flag3,
+                    onClick = {
+                        if (indexs == 0) {
+                            navController.navigate(Screens.LeaderBoard.route)
+                            flag = false
+                            flag2 = false
+                            flag3 = true
+                            flag4 = false
+                        } else if (indexs == 1) {
+                            navController.navigate(Screens.LeaderBoard.route)
+                        } else if (indexs == 2) {
+                            //flag = false
+                            //flag2 = true
+                        } else if (indexs == 3) {
+                            //flag = false
+                            //flag2 = true
+                        }
+                    },
                     icon = {
                         Icon(
                             painterResource(id = R.drawable.leaderboard),
@@ -224,14 +278,31 @@ fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 
                     Modifier.background(Color(0xFF181F26)),
                     colors = NavigationBarItemDefaults.colors(
                         indicatorColor = Color(0xFF181F26),
-                        unselectedIconColor = Color.Black,
-                        selectedIconColor = Color.Black
+                        unselectedIconColor = color3,
+                        selectedIconColor = color3
                     ),
                 )
             } else if (index == 3) {
                 NavigationBarItem(
-                    selected = true,
-                    onClick = { },
+                    selected = flag4,
+                    onClick = {
+                        if (indexs == 0) {
+                            navController.navigate(Screens.Meal.route)
+                            flag = false
+                            flag2 = false
+                            flag3 = false
+                            flag4 = true
+                        } else if (indexs == 1) {
+                            navController.navigate(Screens.Meal.route)
+                        } else if (indexs == 2) {
+                            navController.navigate(Screens.Meal.route)
+                            //flag = false
+                            //flag2 = true
+                        } else if (indexs == 3) {
+                            //flag = false
+                            //flag2 = true
+                        }
+                    },
                     icon = {
                         Icon(
                             painterResource(id = R.drawable.meal),
@@ -243,8 +314,8 @@ fun NavigationBar(navController: NavController, indexs: Int,flag: Boolean,flag2 
                     Modifier.background(Color(0xFF181F26)),
                     colors = NavigationBarItemDefaults.colors(
                         indicatorColor = Color(0xFF181F26),
-                        unselectedIconColor = Color.Black,
-                        selectedIconColor = Color.Black
+                        unselectedIconColor = color4,
+                        selectedIconColor = color4
                     ),
                 )
             }

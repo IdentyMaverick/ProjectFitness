@@ -30,11 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +52,11 @@ fun LeaderBoard(navController: NavController) {
     var flag3 by remember { mutableStateOf(true) }
     var flag4 by remember { mutableStateOf(true) }
 
+    var flaggg by remember { mutableStateOf(false) }
+    var flaggg2 by remember { mutableStateOf(false) }
+    var flaggg3 by remember { mutableStateOf(true) }
+    var flaggg4 by remember { mutableStateOf(false) }
+
     val exercises = arrayOf("Chest Press", "Bench Press")
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionTest by remember { mutableStateOf(exercises[0]) }
@@ -66,19 +70,19 @@ fun LeaderBoard(navController: NavController) {
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 5.dp),
-            text = "Project Fitness",
-            fontFamily = FontFamily(Font(R.font.poppinsboldtext)),
+            text = "PROJECT FITNESS",
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             color = Color(0xFFF1C40F),
-            fontSize = 20.sp
+            style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
         )
         Text(
-            text = "Leader Board",
-            color = Color.White,
+            text = "Leaderboard",
+            color = Color(0xFFD9D9D9),
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 60.dp, end = 170.dp),
             fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.poppinslighttext))
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
         )
 
         ExposedDropdownMenuBox(
@@ -107,10 +111,11 @@ fun LeaderBoard(navController: NavController) {
                     Icon(
                         painterResource(id = R.drawable.down),
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = Color(0xFFD9D9D9),
                         modifier = Modifier.size(20.dp)
                     )
                 }
+                , textStyle = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), letterSpacing = 1.sp)
             )
 
             ExposedDropdownMenu(
@@ -120,7 +125,7 @@ fun LeaderBoard(navController: NavController) {
                 ) {
                 exercises.forEach { selectionOption ->
                     DropdownMenuItem(
-                        text = { Text(text = selectionOption) },
+                        text = { Text(text = selectionOption,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))) },
                         onClick = {
                             selectedOptionTest = selectionOption
                             expanded = false
@@ -200,7 +205,7 @@ fun LeaderBoard(navController: NavController) {
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
                             fontFamily = FontFamily(
-                                Font(R.font.poppinslighttext)
+                                Font(R.font.postnobillscolombosemibold)
                             )
                         )
                     }
@@ -225,7 +230,7 @@ fun LeaderBoard(navController: NavController) {
                         contentPadding = PaddingValues(0.dp)
 
                     ) {
-                        Text(text = "6 Months", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(text = "6 Months", fontSize = 12.sp, textAlign = TextAlign.Center,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 } else if (index == 2) {
@@ -248,7 +253,7 @@ fun LeaderBoard(navController: NavController) {
                         contentPadding = PaddingValues(0.dp)
 
                     ) {
-                        Text(text = "3 Months", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(text = "3 Months", fontSize = 12.sp, textAlign = TextAlign.Center,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 } else if (index == 3) {
@@ -271,18 +276,15 @@ fun LeaderBoard(navController: NavController) {
                         contentPadding = PaddingValues(0.dp)
 
                     ) {
-                        Text(text = "1 Months", fontSize = 12.sp, textAlign = TextAlign.Center)
+                        Text(text = "1 Months", fontSize = 12.sp, textAlign = TextAlign.Center,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
                     }
                     Spacer(modifier = Modifier.size(10.dp))
                 }
             }
         }
-        Canvas(modifier = Modifier.size(100.dp).align(Alignment.TopStart).padding(top = 170.dp)){
-            drawRoundRect(color = Color(0xFFF1C40F), cornerRadius = CornerRadius(40f), size = Size(600f,150f))
-
-        }
     }
-    //NavigationBar(navController = navController, indexs = 2, flag = , flag2 = )
+    val indexs = 2
+    NavigationBar(navController = navController, indexs,flaggg,flaggg2,flaggg3,flaggg4)
 }
 
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")

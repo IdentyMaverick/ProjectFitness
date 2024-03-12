@@ -1,16 +1,17 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.example.projectfitness"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.projectfitness"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -52,11 +53,16 @@ android {
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation("com.google.firebase:firebase-database-ktx:20.2.2")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
     val nav_version = "2.6.0"
 
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.activity:activity-compose:1.7.2")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
@@ -79,7 +85,19 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.31.1-alpha")
-    implementation ("androidx.compose.material3:material3-window-size-class:1.1.0")
+    implementation ("androidx.compose.material3:material3-window-size-class:1.1.1")
     implementation("androidx.navigation:navigation-compose:$nav_version")
-
+    implementation(platform("com.google.firebase:firebase-bom:32.2.2"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:32.2.2"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
+    implementation ("com.google.firebase:firebase-firestore-ktx:24.7.0")
+    implementation ("androidx.compose.ui:ui-tooling:1.3.3")
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+    implementation ("androidx.room:room-runtime:2.4.0")
+    implementation ("androidx.room:room-ktx:2.4.0")
+    annotationProcessor ("androidx.room:room-compiler:2.4.0")
 }

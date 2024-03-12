@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -80,7 +81,8 @@ fun ThirdInfo(navController: NavController) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 40.dp, bottom = 40.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
+            shape = RoundedCornerShape(10.dp)
         ) {
             Text(text = "GO", color = Color.Black)
         }

@@ -13,9 +13,13 @@ sealed class Screens(val route: String) {
             object ProfileEdit : Screens("profileedit")
         }
     }
-    object Activity : Screens("activity"){
-        object CreateWorkout : Screens(route = "createworkout")
-    }
+    object Activity : Screens("activity")
+    object ChooseExercises : Screens(route = "chooseexercises/{name}")
+    object CreateWorkout : Screens(route = "createworkout")
     object LeaderBoard : Screens("leaderboard")
-
+    object WorkoutSettingScreen : Screens(route = "workoutsettingscreen")
+    object WorkoutDetails : Screens(route = "workoutdetails" )
+    object WorkoutSettingScreenWorkoutDetails : Screens(route = "workoutsettingscreenworkoutdetails")
+    object WorkoutLog : Screens(route = "workoutlog")
+    object Meal : Screens(route = "meal")
 }
