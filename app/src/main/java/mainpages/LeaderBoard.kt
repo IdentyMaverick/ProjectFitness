@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package mainpages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.NavigationBar
+import com.example.projectfitness.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -29,6 +29,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import loginscreens.ForgetPasswordScreen
 import loginscreens.Register
+import mainpages.Activity
+import mainpages.Homes
+import mainpages.LeaderBoard
+import mainpages.Meal
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalFoundationApi::class)

@@ -1,26 +1,23 @@
-package com.example.projectfitness
+package mainpages
 
+import android.content.res.Resources
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,22 +25,77 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.NavigationBar
+import com.example.projectfitness.R
+import com.example.projectfitness.Screens
+import com.example.projectfitness.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
+
+    val screen1 = 800
+    val screen2 = 900
+    val screen3 = 400
+    val screen4 = 450
+    val configuration = LocalConfiguration.current
+    val screenheightDp = configuration.screenHeightDp
+    val screenwidthDp = configuration.screenWidthDp
+
+    val useDiffrentValue1 = screenheightDp in screen1..screen2
+    val useDiffrentValue2 = screenheightDp >= screen2
+
+    val useDiffrentValue3 = screenwidthDp in screen3..screen4
+    val useDiffrentValue4 = screenwidthDp >= screen4
+
+
+    val marginTopDpPJWorkoutsText = if (useDiffrentValue1)
+    { 60.dp }
+    else if (useDiffrentValue2)
+    { 60.dp }
+    else
+    {
+        60.dp
+    }
+
+    val marginStartDpPJWorkoutsText = if (useDiffrentValue3)
+    { 40.dp }
+    else if (useDiffrentValue4)
+    { 60.dp }
+    else
+    {
+        20.dp
+    }
+
+    val marginTopDpCanvas = if (useDiffrentValue1)
+    { 20.dp }
+    else if (useDiffrentValue2)
+    { 30.dp }
+    else
+    {
+        10.dp
+    }
+
+    val marginTopDp = 16f
+    val density = Resources.getSystem().displayMetrics.density
+    val marginPx = (marginTopDp*density).toInt()
+    val screenWidthPx = Resources.getSystem().displayMetrics.widthPixels
+
+    var expanded2 by remember { mutableStateOf(false) }
+    val selectedOptionsText2 by remember { mutableStateOf("Chest") }
 
         var exercises = viewModelSave.exercises
         var name = viewModelSave.name // Inside of ViewModelSave.kt file , change mutable state of name value for clear name place.
@@ -79,14 +131,53 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                 style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
             )
             Text(
-                text = "WORKOUTS",
+                text = "PJ Workouts",
                 color = Color(0xFFD9D9D9),
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 60.dp),
+                    .align(Alignment.TopStart)
+                    .padding(top = marginTopDpPJWorkoutsText, start = marginStartDpPJWorkoutsText),
                 fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                style = TextStyle(fontSize = 30.sp,letterSpacing = 5.sp)
+                style = TextStyle(fontSize = 25.sp,letterSpacing = 5.sp)
             )
+
+            ExposedDropdownMenuBox(expanded = expanded2, onExpandedChange ={expanded2 = !expanded2},
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 45.dp, end = 30.dp) ) {
+                TextField(value = selectedOptionsText2, onValueChange = {},
+                    Modifier
+                        .menuAnchor()
+                        .height(60.dp)
+                        .width(130.dp)
+                        .padding(top = 5.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color(0xFF181F26),
+                        unfocusedTextColor = Color(0xFFF1C40F),
+                        focusedTextColor = (Color(0xFFF1C40F)),
+                        unfocusedIndicatorColor = Color(0xFF181F26),
+                        focusedIndicatorColor = Color(0xFF181F26)),
+                    readOnly = true,
+                    trailingIcon = {
+                        Icon(
+                            painterResource(id = R.drawable.down),
+                            contentDescription = null,
+                            tint = Color(0xFFD9D9D9),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    textStyle = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), letterSpacing = 1.sp))
+            }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = marginTopDpCanvas)
+            ) {
+                drawLine(
+                    color = Color.White,
+                    start = Offset(marginPx.toFloat(), 250f),
+                    end = Offset((screenWidthPx-marginPx).toFloat(), 250f)
+                )
+            }
 
 
             Box(  modifier = Modifier.align(Alignment.TopEnd) ){IconButton(
@@ -110,7 +201,8 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                     onDismissRequest = { expanded = !expanded },
                     modifier = Modifier
                 ) {
-                    DropdownMenuItem(text = { Text(text = "Create Workout") }, onClick = { navController.navigate(Screens.ChooseExercises.route)
+                    DropdownMenuItem(text = { Text(text = "Create Workout") }, onClick = { navController.navigate(
+                        Screens.ChooseExercises.route)
                         fl.value = true
                         name.value = ""
                         exercises.clear()
@@ -131,6 +223,7 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                 )
             }*/
             //val itemsList = (0..2).toList()
+            /*
             val itemIndexedList = listOf("A", "B", "C", "D")
             val state = rememberLazyListState()
             LazyRow(
@@ -182,7 +275,9 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             colors = ButtonDefaults.buttonColors(containerColor = color),
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Text(text = "All", textAlign = TextAlign.Center, style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
+                            Text(text = "All", textAlign = TextAlign.Center, style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), fontFamily = FontFamily(Font(
+                                R.font.postnobillscolombosemibold
+                            )))
                         }
                         Spacer(modifier = Modifier.size(10.dp))
                     } else if (index == 1) {
@@ -205,7 +300,9 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             contentPadding = PaddingValues(0.dp)
 
                         ) {
-                            Text(text = "UpperBody", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
+                            Text(text = "UpperBody", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
+                                R.font.postnobillscolombosemibold
+                            )))
                         }
                         Spacer(modifier = Modifier.size(10.dp))
                     } else if (index == 2) {
@@ -228,7 +325,9 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             contentPadding = PaddingValues(0.dp)
 
                         ) {
-                            Text(text = "LowerBody", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
+                            Text(text = "LowerBody", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
+                                R.font.postnobillscolombosemibold
+                            )))
                         }
                         Spacer(modifier = Modifier.size(10.dp))
                     } else if (index == 3) {
@@ -251,12 +350,15 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             contentPadding = PaddingValues(0.dp)
 
                         ) {
-                            Text(text = "Chest", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)))
+                            Text(text = "Chest", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
+                                R.font.postnobillscolombosemibold
+                            )))
                         }
                         Spacer(modifier = Modifier.size(10.dp))
                     }
                 }
             }
+            */
             val indexs = 1
             NavigationBar(navController = navController, indexs, flagg, flagg2,flagg3,flagg4)
         }

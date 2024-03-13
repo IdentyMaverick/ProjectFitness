@@ -1,5 +1,6 @@
-package com.example.projectfitness
+package mainpages
 
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -54,6 +55,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.NavigationBar
+import com.example.projectfitness.ProjectFitnessViewModel
+import com.example.projectfitness.R
+import com.example.projectfitness.Screens
+import com.example.projectfitness.ViewModelSave
 
 class Homes : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,12 +71,35 @@ class Homes : ComponentActivity() {
     @Composable
     fun Home(navController: NavController,viewModelSave: ViewModelSave) {
 
-        var selectedWorkoutName = viewModelSave.selectedWorkoutName
-        var backgroundImage : Painter = painterResource(id = R.drawable.secondinfo)
-
+        val screen1 = 800
+        val screen2 = 900
+        val thresholdWidthDp = 360
         var configuration = LocalConfiguration.current
         var screenheightDp = configuration.screenHeightDp
         var screenwidthDp = configuration.screenWidthDp
+
+        val useDiffrentValue1 = screenheightDp in screen1..screen2
+        val useDiffrentValue2 = screenheightDp >= screen2
+
+        val marginTopDp = if (useDiffrentValue1)
+        { 150.dp }
+        else if (useDiffrentValue2)
+        { 200.dp }
+        else
+        {
+            100.dp
+        }
+
+        var selectedWorkoutName = viewModelSave.selectedWorkoutName
+        var backgroundImage : Painter = painterResource(id = R.drawable.secondinfo)
+
+        val marginDp = 16f
+
+        val density = Resources.getSystem().displayMetrics.density
+        val marginPx = (marginDp*density).toInt()
+        val screenWidthPx = Resources.getSystem().displayMetrics.widthPixels
+        val screenHeightPx = Resources.getSystem().displayMetrics.heightPixels
+
 
         var list = viewModelSave.workouts()
         var selectedIndexWorkoutinList = viewModelSave.selectedIndexWorkoutinList
@@ -155,17 +184,7 @@ class Homes : ComponentActivity() {
                         onClick = { navController.navigate(Screens.LoginScreen.route) })
                 }
             }
-            /*Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 40.dp)
-        ) {
-            drawLine(
-                color = Color(0xFF516273),
-                start = Offset(100f, 250f),
-                end = Offset(800f, 250f)
-            )
-        }*/
+
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
@@ -185,6 +204,17 @@ class Homes : ComponentActivity() {
                     color = Color(0xFFD9D9D9),
                     fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                     style = TextStyle(fontSize = 15.sp,letterSpacing = 1.sp)
+                )
+            }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = marginTopDp)
+            ) {
+                drawLine(
+                    color = Color.White,
+                    start = Offset(marginPx.toFloat(), 250f),
+                    end = Offset((screenWidthPx-marginPx).toFloat(), 250f)
                 )
             }
             Box(

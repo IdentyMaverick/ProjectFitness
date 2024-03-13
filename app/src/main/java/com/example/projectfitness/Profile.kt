@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -86,10 +87,10 @@ fun Profile(navController: NavController) {
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 5.dp),
-            text = "Project Fitness",
-            fontFamily = FontFamily(Font(R.font.poppinsboldtext)),
+            text = "PROJECT FITNESS",
+            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             color = Color(0xFFF1C40F),
-            fontSize = 20.sp
+            style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
         )
         Icon(
             painterResource(id = R.drawable.left),
@@ -103,84 +104,91 @@ fun Profile(navController: NavController) {
                 .size(30.dp)
                 .padding(top = 5.dp)
         )
-        Text(
-            text = "Profile",
-            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-            fontSize = 17.sp,
-            color = Color(0xFFD9D9D9),
-            modifier = Modifier
-                .padding(top = (screenheightDp / 9).dp)
-                .align(Alignment.TopCenter)
-        )
-        Column(modifier = Modifier
-            .align(Alignment.Center)
-            .padding(bottom = 300.dp)) {
-            Canvas(
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(550.dp)
+            .background(Color(0xFF181F26))
+            .align(Alignment.Center))
+        {
+            Text(
+                text = "Profile",
+                fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                fontSize = 17.sp,
+                color = Color(0xFFD9D9D9),
                 modifier = Modifier
-                    .size(170.dp)
-                    .background(Color.Transparent, shape = CircleShape)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = LocalIndication.current,
-                        onClick = { isdialogVisible = true },
-                        enabled = true
-                    )
-            ) {
-                if (updatedImageBitmap.value != null){
-                    drawImage(image = updatedImageBitmap.value!!, dstOffset = IntOffset.Zero)
+                    .padding(bottom = 10.dp)
+                    .align(Alignment.TopCenter)
+            )
+            Column(modifier = Modifier
+                .align(Alignment.Center)
+                .padding(bottom = 300.dp)
+                .fillMaxWidth()) {
+                Canvas(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(170.dp)
+                        .background(Color.Transparent, shape = CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = { isdialogVisible = true },
+                            enabled = true
+                        )
+                ) {
+                    if (updatedImageBitmap.value != null){
+                        drawImage(image = updatedImageBitmap.value!!, dstOffset = IntOffset.Zero)
+                    }
+                    else{drawCircle(Color.Black,200f)}
                 }
-                else{drawCircle(Color.Black,200f)}
+
             }
-            //imageBitmap = painterResource(id = R.drawable.ic_launcher_background) as ImageBitmap
-        }
-
-        Text(
-            text = "Osman Deniz Savaş",
-            modifier = Modifier
+            Text(
+                text = "Osman Deniz Savaş",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 70.dp),
+                color = Color(0xFFD9D9D9),
+                fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                fontSize = 17.sp,
+            )
+            Text(
+                text = "@maverick",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 20.dp),
+                color = Color(0xFFD9D9D9),
+                fontFamily = FontFamily(Font(R.font.poppinsextralighttext)),
+                fontSize = 15.sp,
+            )
+            Text(
+                text = "Friends \n     0 ",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(top = 60.dp, end = (screenwidthDp / 2).dp),
+                color = Color(0xFFD9D9D9),
+                fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                fontSize = 15.sp,
+            )
+            Canvas(modifier = Modifier.align(Alignment.Center)) {
+                drawLine(color = (Color(0xFFF1C40F)), start = Offset(0f, 20f), end = Offset(0f, 100f))
+            }
+            Text(
+                text = "Workouts \n        0 ",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(top = 60.dp, start = (screenwidthDp / 2).dp),
+                color = Color(0xFFD9D9D9),
+                fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                fontSize = 15.sp,
+            )
+            Canvas(modifier = Modifier.padding(top = 270.dp)) {
+                drawLine(color = Color(0xFFF1C40F), start = Offset(0f, 170f), end = Offset(screenwidthDp*3.toFloat(), 170f))
+            }
+            OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier
                 .align(Alignment.Center)
-                .padding(bottom = 70.dp),
-            color = Color(0xFFD9D9D9),
-            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-            fontSize = 17.sp,
-        )
-        Text(
-            text = "@maverick",
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(bottom = 20.dp),
-            color = Color(0xFFD9D9D9),
-            fontFamily = FontFamily(Font(R.font.poppinsextralighttext)),
-            fontSize = 15.sp,
-        )
-
-        Text(
-            text = "Friends \n     0 ",
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = 60.dp, end = (screenwidthDp / 2).dp),
-            color = Color(0xFFD9D9D9),
-            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-            fontSize = 15.sp,
-        )
-        Canvas(modifier = Modifier.align(Alignment.Center)) {
-            drawLine(color = Color.Black, start = Offset(0f, 20f), end = Offset(0f, 100f))
-        }
-        Text(
-            text = "Workouts \n        0 ",
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = 60.dp, start = (screenwidthDp / 2).dp),
-            color = Color(0xFFD9D9D9),
-            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-            fontSize = 15.sp,
-        )
-        Canvas(modifier = Modifier.align(Alignment.Center)) {
-            drawLine(color = Color.Black, start = Offset(-350f, 170f), end = Offset(350f, 170f))
-        }
-        OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier
-            .align(Alignment.Center)
-            .padding(top = 200.dp), shape = RoundedCornerShape(15.dp)) {
-            Text(text = "Edit Profile", color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(R.font.poppinslighttext)))
+                .padding(top = 200.dp), shape = RoundedCornerShape(15.dp)) {
+                Text(text = "Edit Profile", color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(R.font.poppinslighttext)))
+            }
         }
     }
 }
@@ -192,7 +200,7 @@ fun CustomDialogScreen(onDismiss : () -> Unit,launcher : ManagedActivityResultLa
         Box(modifier = Modifier
             .padding(top = 300.dp)
             .background(
-                Color(0xD9D9D9).copy(alpha = 0.4f),
+                Color(0xFFD9D9D9).copy(alpha = 0.4f),
                 shape = RoundedCornerShape(10.dp)
             )
             .fillMaxWidth()
@@ -226,7 +234,7 @@ fun loadbitmapfromUri(uri:Uri,context:Context) : ImageBitmap?{
     }
 }
 
-@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
+@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=900,unit=dp,dpi=402")
 @Composable
 fun PreviewProfile() {
     Profile(navController = rememberNavController())

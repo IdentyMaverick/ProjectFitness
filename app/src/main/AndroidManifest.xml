@@ -20,7 +20,7 @@
             android:label="@string/title_activity_register"
             android:theme="@style/Theme.ProjectFitness" />
         <activity
-            android:name=".Homes"
+            android:name="mainpages.Homes"
             android:exported="true"
             android:label="@string/title_activity_"
             android:theme="@style/Theme.ProjectFitness" />
