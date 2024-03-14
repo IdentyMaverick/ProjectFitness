@@ -1,8 +1,10 @@
-package com.example.projectfitness
+package viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import database.Exercise
+import database.Workout
 
 // Kotlin class that creates viewmodel and saving create workout list in any class without loss.
 class ViewModelSave : ViewModel(){

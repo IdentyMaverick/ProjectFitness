@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package activity.inside
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -58,6 +58,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import viewmodel.ProjectFitnessViewModel
+import com.example.projectfitness.R
+import viewmodel.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,7 +160,9 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                 ) {
                                 exercises.forEach { selectionOption ->
                                     DropdownMenuItem(
-                                        text = { Text(text = selectionOption, fontFamily = FontFamily(Font(R.font.postnobillscolombomedium))) },
+                                        text = { Text(text = selectionOption, fontFamily = FontFamily(Font(
+                                            R.font.postnobillscolombomedium
+                                        ))) },
                                         onClick = {
                                             selectedOptionTest = selectionOption
                                             expanded = false

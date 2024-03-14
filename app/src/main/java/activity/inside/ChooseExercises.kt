@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package activity.inside
 
 import android.annotation.SuppressLint
 import android.os.Build
@@ -58,6 +58,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import viewmodel.ProjectFitnessViewModel
+import com.example.projectfitness.R
+import viewmodel.ViewModelSave
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,6 +72,55 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewModelSave) {
 
+    val screen1 = 750
+    val screen2 = 800
+    val screen3 = 900
+    val screen4 = 380
+    val screen5 = 400
+    val screen6 = 420
+
+    var configuration = LocalConfiguration.current
+    var screenheightDp = configuration.screenHeightDp
+    var screenwidthDp = configuration.screenWidthDp
+
+    val useDiffrentValue1 = screenheightDp in screen1..screen2
+    val useDiffrentValue2 = screenheightDp in screen2..screen3
+    val useDiffrentValue3 = screenheightDp >= screen3
+
+
+    val useDiffrentValue4 = screenwidthDp in screen4..screen5
+    val useDiffrentValue5 = screenwidthDp in screen5..screen6
+    val useDiffrentValue6 = screenwidthDp >= screen6
+    val useDiffrentValue7 = screenwidthDp <= screen4
+    Log.d("SCREEN","Screen Width is : $screenwidthDp")
+
+    val marginTopDp = if (useDiffrentValue1)
+    { 20.dp }
+    else if (useDiffrentValue2)
+    { 40.dp }
+    else if (useDiffrentValue3)
+    { 60.dp }
+    else
+    { 30.dp }
+
+    val marginLazyColumnTopDp = if (useDiffrentValue1)
+    { 50.dp } // 750-800 dp
+    else if (useDiffrentValue2)
+    { 40.dp } // 800-900 dp
+    else if (useDiffrentValue3)
+    { 60.dp } // >= 900 dp
+    else
+    { 60.dp } // <= 750 dp
+
+    val marginWidthDp = if (useDiffrentValue4)
+    { 500.dp }
+    else if (useDiffrentValue5)
+    { 10.dp }
+    else if (useDiffrentValue6)
+    { 10.dp }
+    else
+    { 200.dp }
+
     // Set and Reps input placeholder settings
     var reps = viewModel.reps
     var set = viewModel.set
@@ -79,9 +131,6 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
 
     val viewModels: ProjectFitnessViewModel = viewModel()
     val firestoreItems = viewModels.firestoreItems.value
-    val configuration = LocalConfiguration.current
-    val screenwidthDp = configuration.screenWidthDp.dp
-    val screenheightDp = configuration.screenHeightDp.dp
     var context = LocalContext.current
 
     var list =
@@ -117,15 +166,15 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .width(screenwidthDp)
+                .width(screenwidthDp.dp)
                 .height(700.dp)
-                .padding(top = screenheightDp/3)
+                .padding(top = screenheightDp.dp/3)
                 .background(
                     Color(0xFF181F26)
                 )
         )
         {
-            Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(top = marginTopDp)) {
                 Text(text = "Overview", fontSize = 15.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), style = TextStyle(letterSpacing = 3.sp), color = Color.White, modifier = Modifier.padding(start = 30.dp))
                 Text(text = "Set x Reps", fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),style = TextStyle(letterSpacing = 3.sp),color = Color.White,modifier = Modifier.padding(end = 30.dp))
             }
@@ -134,7 +183,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 modifier = Modifier
                     .fillMaxSize()
                     .align(Alignment.TopCenter)
-                    .padding(top = 20.dp, bottom = 20.dp, start = 20.dp, end = 20.dp),
+                    .padding(top = marginLazyColumnTopDp, bottom = 20.dp, start = 20.dp, end = 20.dp),
                 state = LazyListState()
             )
             {
@@ -325,7 +374,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
         }
         Box(modifier = Modifier
             .fillMaxWidth()
-            .height(screenheightDp / 10)
+            .height(screenheightDp.dp / 10)
             .paint(
                 painter = painterResource(id = R.drawable.cablecrossover),
                 contentScale = ContentScale.Crop,
@@ -351,7 +400,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 .align(
                     Alignment.TopCenter
                 )
-                .padding(top = screenheightDp / 10),
+                .padding(top = screenheightDp.dp / 10),
             fontFamily = FontFamily(Font(R.font.postnobillscolombo)),
             textAlign = TextAlign.Center,
             style = TextStyle(letterSpacing = 3.sp),
@@ -362,7 +411,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
             text = "Enter Workout Name",
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = screenheightDp / 6.5f),
+                .padding(top = screenheightDp.dp / 6.5f),
             color = Color(0xFFD9D9D9),
             fontSize = 20.sp,
             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
@@ -376,7 +425,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
             },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = screenheightDp / 5)
+                .padding(top = screenheightDp.dp / 5)
                 .height(40.dp)
                 .width(270.dp)
                 .background(Color.Transparent, shape = RoundedCornerShape(10.dp)),
@@ -418,7 +467,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
         Row {
             Button(onClick = {navController.navigate(route = "createworkout")},
                 modifier = Modifier
-                    .padding(top = screenheightDp / 3.5f, start = screenwidthDp / 20)
+                    .padding(top = screenheightDp.dp / 3.5f, start = screenwidthDp.dp / 20)
                     .width(220.dp)
                     .height(35.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
@@ -444,9 +493,9 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 }
             },
                 modifier = Modifier
-                    .padding(top = screenheightDp / 3.4f, start = screenwidthDp / 20)
-                    .width(125.dp)
-                    .height(19.dp),
+                    .padding(top = screenheightDp.dp / 3.4f, start = marginWidthDp/ 20)
+                    .width(100.dp)
+                    .height(25.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
                 contentPadding = PaddingValues(0.dp),
                 shape = RoundedCornerShape(5.dp)
@@ -465,7 +514,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 text = "Add Exercises",
                 Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = screenheightDp / 2.2f)
+                    .padding(top = screenheightDp.dp / 2.2f)
                     .clickable { },
                 fontSize = 30.sp, color = Color(0xFFD9D9D9),
                 fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),

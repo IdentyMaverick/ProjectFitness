@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
+import navigation.Navigation
 
 class MainActivity : ComponentActivity() {
     private lateinit var auth : FirebaseAuth

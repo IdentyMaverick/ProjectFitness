@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package viewmodel
 
 import android.service.controls.ControlsProviderService.TAG
 import android.util.Log
@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import database.Exercises
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.projectfitness.NavigationBar
+import navigation.NavigationBar
 import com.example.projectfitness.R
 
 @Composable

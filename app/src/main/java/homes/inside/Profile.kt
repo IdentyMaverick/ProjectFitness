@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package homes.inside
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.R
+import navigation.Screens
 
 @Composable
 fun Profile(navController: NavController) {
@@ -187,7 +189,9 @@ fun Profile(navController: NavController) {
             OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier
                 .align(Alignment.Center)
                 .padding(top = 200.dp), shape = RoundedCornerShape(15.dp)) {
-                Text(text = "Edit Profile", color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(R.font.poppinslighttext)))
+                Text(text = "Edit Profile", color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(
+                    R.font.poppinslighttext
+                )))
             }
         }
     }

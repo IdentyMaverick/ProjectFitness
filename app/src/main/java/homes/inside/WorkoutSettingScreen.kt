@@ -1,6 +1,7 @@
-package com.example.projectfitness
+package homes.inside
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -48,12 +50,57 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import database.Exercise
+import com.example.projectfitness.R
+import viewmodel.ViewModelSave
+import database.Workout
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
 @Composable
 fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSave){
+
+    val screen1 = 750
+    val screen2 = 800
+    val screen3 = 900
+    val screen4 = 380
+    val screen5 = 400
+    val screen6 = 420
+
+    var configuration = LocalConfiguration.current
+    var screenheightDp = configuration.screenHeightDp
+    var screenwidthDp = configuration.screenWidthDp
+
+    val useDiffrentValue1 = screenheightDp in screen1..screen2
+    val useDiffrentValue2 = screenheightDp in screen2..screen3
+    val useDiffrentValue3 = screenheightDp >= screen3
+
+
+    val useDiffrentValue4 = screenwidthDp in screen4..screen5
+    val useDiffrentValue5 = screenwidthDp in screen5..screen6
+    val useDiffrentValue6 = screenwidthDp >= screen6
+    val useDiffrentValue7 = screenwidthDp <= screen4
+    Log.d("SCREEN","Screen Width is : $screenwidthDp")
+
+    val marginWorkoutSettingsTextTopDp = if (useDiffrentValue1)
+    { 20.dp }
+    else if (useDiffrentValue2)
+    { 40.dp }
+    else if (useDiffrentValue3)
+    { 60.dp }
+    else
+    { 30.dp }
+
+
+    val marginWorkoutSettingsTextWidthDp = if (useDiffrentValue4)
+    { 300.dp }
+    else if (useDiffrentValue5)
+    { 10.dp }
+    else if (useDiffrentValue6)
+    { 10.dp }
+    else
+    { 400.dp }
 
     var showDialog by remember { mutableStateOf(false) }
 
@@ -65,9 +112,6 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
 
     val data = remember { mutableStateOf(  selectedworkoutList.exercises ) }
 
-    val config = LocalConfiguration.current
-    val screenwidthDp = config.screenWidthDp.dp
-    val screenheightDp = config.screenHeightDp.dp
 
     //var selectedListWorkoutIndex = viewModelSave.selectedListWorkoutIndex
     Box(modifier = Modifier
@@ -78,7 +122,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
             .fillMaxWidth()
             .fillMaxHeight()
             .background(Color(0xFF181F26))
-            .padding(top = screenheightDp/3)
+            .padding(top = screenheightDp.dp/3)
             ) {
             VerticalReorderList(data,viewModelSave,selectedworkoutList)
             Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -90,12 +134,21 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
         }
         Box(modifier = Modifier
             .fillMaxWidth()
-            .height(screenheightDp / 25)
+            .height(screenheightDp.dp / 25)
             .paint(
                 painter = painterResource(id = R.drawable.cablecrossover),
                 contentScale = ContentScale.Crop,
                 alpha = 0.3f
             ))
+        Icon(
+            painter = painterResource(id = R.drawable.left),
+            contentDescription = null,
+            modifier = Modifier
+                .clickable(onClick = { navController.navigate("home") })
+                .size(30.dp)
+                .padding(top = 13.dp),
+            tint = Color(0xFFD9D9D9)
+        )
         Text(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -111,12 +164,12 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                 style = TextStyle(fontSize = 40.sp,letterSpacing = 3.sp),
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = screenheightDp / 10)
+                    .padding(top = screenheightDp.dp / 10)
             )
         Row {
             Button(onClick = {navController.navigate("workoutlog")},
                 modifier = Modifier
-                    .padding(top = screenheightDp / 3.9f, start = screenwidthDp / 20)
+                    .padding(top = screenheightDp.dp / 3.9f, start = screenwidthDp.dp / 20)
                     .width(220.dp)
                     .height(35.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
@@ -131,7 +184,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
             }
             Button(onClick = {},
                 modifier = Modifier
-                    .padding(top = screenheightDp / 3.75f, start = screenwidthDp / 20)
+                    .padding(top = screenheightDp.dp / 3.75f, start = marginWorkoutSettingsTextWidthDp / 20)
                     .width(125.dp)
                     .height(19.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
@@ -156,7 +209,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
 }
 
 @Composable
-fun popUpScreen(onDismiss : () -> Unit,viewModelSave: ViewModelSave,navController: NavController)
+fun popUpScreen(onDismiss : () -> Unit, viewModelSave: ViewModelSave, navController: NavController)
 {
     Dialog(
         onDismissRequest = {onDismiss()},
@@ -214,7 +267,7 @@ fun popUpScreen(onDismiss : () -> Unit,viewModelSave: ViewModelSave,navControlle
 }
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun VerticalReorderList(list : MutableState<List<Exercise>>,viewModelSave: ViewModelSave,selectedWorkoutList : Workout) {
+fun VerticalReorderList(list : MutableState<List<Exercise>>, viewModelSave: ViewModelSave, selectedWorkoutList : Workout) {
     var data = list
     //var selectedReps = selectedWorkoutList.exercises.reps
     //var selectedSets = selectedWorkoutList.exercises[0].sets

@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package database
 
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG

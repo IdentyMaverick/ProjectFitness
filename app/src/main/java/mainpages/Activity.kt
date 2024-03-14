@@ -38,10 +38,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.projectfitness.NavigationBar
+import navigation.NavigationBar
 import com.example.projectfitness.R
-import com.example.projectfitness.Screens
-import com.example.projectfitness.ViewModelSave
+import navigation.Screens
+import viewmodel.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
-import com.example.projectfitness.Screens
+import navigation.Screens
 import com.example.projectfitness.Show
 
 @Composable
@@ -65,7 +65,8 @@ fun SecondInfo(navController: NavController){
             Modifier
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 45.dp, end = 40.dp)
-                .clickable(interactionSource = MutableInteractionSource(),indication = null) { navController.navigate(Screens.ThirdInfoScreen.route) },
+                .clickable(interactionSource = MutableInteractionSource(),indication = null) { navController.navigate(
+                    Screens.ThirdInfoScreen.route) },
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
             color = Color(0xFFF1C40F),

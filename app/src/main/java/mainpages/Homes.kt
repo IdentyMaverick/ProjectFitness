@@ -55,11 +55,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.projectfitness.NavigationBar
-import com.example.projectfitness.ProjectFitnessViewModel
+import navigation.NavigationBar
+import viewmodel.ProjectFitnessViewModel
 import com.example.projectfitness.R
-import com.example.projectfitness.Screens
-import com.example.projectfitness.ViewModelSave
+import navigation.Screens
+import viewmodel.ViewModelSave
 
 class Homes : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +73,6 @@ class Homes : ComponentActivity() {
 
         val screen1 = 800
         val screen2 = 900
-        val thresholdWidthDp = 360
         var configuration = LocalConfiguration.current
         var screenheightDp = configuration.screenHeightDp
         var screenwidthDp = configuration.screenWidthDp

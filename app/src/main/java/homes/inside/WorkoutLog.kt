@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package homes.inside
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -59,7 +59,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.projectfitness.R
+import database.Exercise
+import database.Workout
+import database.gymDataClass
 import kotlinx.coroutines.delay
+import viewmodel.ViewModelSave
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
@@ -107,12 +112,14 @@ fun WorkoutLog(navController: NavController,viewModelSave: ViewModelSave){
                     .height(150.dp)
                     .background(Color(0xFF181F26), shape = RoundedCornerShape(15.dp))
                     .border(
-                        width = 5.dp,
+                        width = 1.dp,
                         color = Color(0xFFF1C40F),
                         shape = RoundedCornerShape(15.dp)
                     ))
                 {
-                    Text(text = "Do you want to finish your workout without saving ? ", style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), textAlign = TextAlign.Center, letterSpacing = 1.sp), modifier = Modifier.padding(10.dp), color = Color.White)
+                    Text(text = "Do you want to finish your workout without saving ? ", style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(
+                        R.font.postnobillscolombosemibold
+                    )), textAlign = TextAlign.Center, letterSpacing = 1.sp), modifier = Modifier.padding(10.dp), color = Color.White)
                     Button(onClick = {navController.navigate("home") },modifier = Modifier.align(Alignment.BottomStart), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent))
                     {
                         Text(text = "Yes",color = Color(0xFFF1C40F))
@@ -128,14 +135,22 @@ fun WorkoutLog(navController: NavController,viewModelSave: ViewModelSave){
                 .background(Color(0xFF181F26)),
             horizontalArrangement = Arrangement.SpaceBetween )
         {
-            Icon(painter = painterResource(id = R.drawable.left), contentDescription = null, tint = Color.White,modifier = Modifier.clickable (
-                onClick = { showDialog = true
-                            Log.d("CLICK","CLICKED $showDialog")} ) )
+
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .align(CenterVertically))
             {
-                Text(text = "Select Exercises", style = TextStyle(fontSize = 25.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombo)), color = Color.White, textAlign = TextAlign.Right, fontWeight = FontWeight.Bold), modifier = Modifier
+
+                Icon(painter = painterResource(id = R.drawable.left), contentDescription = null, tint = Color.White,modifier = Modifier.clickable (
+                    onClick = { showDialog = true
+                        Log.d("CLICK","CLICKED $showDialog")} )
+                    .padding(top = 10.dp)
+                    .size(30.dp)
+                )
+
+                Text(text = "Select Exercises", style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(
+                    R.font.postnobillscolombo
+                )), color = Color.White, textAlign = TextAlign.Right, fontWeight = FontWeight.Bold), modifier = Modifier
                     .align(
                         CenterEnd
                     )
@@ -155,20 +170,22 @@ fun WorkoutLog(navController: NavController,viewModelSave: ViewModelSave){
                 horizontalArrangement = Arrangement.SpaceBetween )
         {
             Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Favorite icon", tint = Color.White, modifier = Modifier
-                .padding(start = 15.dp)
+                .padding(start = 15.dp, top = 15.dp)
                 .clickable(onClick = {
                     if (counter > 0) counter--
                     Log.d("MAP2", "$counter")
                 }))
             Text(text = ""+ exercisename,
-                style = TextStyle(fontSize = 35.sp, color = Color(0xFFF1C40F), fontFamily = FontFamily(Font(R.font.postnobillscolombo)), letterSpacing = 1.sp),
+                style = TextStyle(fontSize = 35.sp, color = Color(0xFFF1C40F), fontFamily = FontFamily(Font(
+                    R.font.postnobillscolombo
+                )), letterSpacing = 1.sp),
                 modifier = Modifier)
             Icon(
                 imageVector = Icons.Filled.ArrowForward,
                 contentDescription = "Favorite icon",
                 tint = Color.White,
                 modifier = Modifier
-                    .padding(end = 15.dp)
+                    .padding(end = 15.dp, top = 15.dp)
                     .clickable(onClick = {
                         if (counter + 2 <= selectedworkoutList.exercises.size) {
                             counter++
@@ -264,18 +281,24 @@ fun WorkoutLog(navController: NavController,viewModelSave: ViewModelSave){
                 }
             }
         }
-        Text(text = "Finish Workout", style = TextStyle(fontSize = 25.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombo)), color = Color.White, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+        Text(text = "Finish Workout", style = TextStyle(fontSize = 25.sp, fontFamily = FontFamily(Font(
+            R.font.postnobillscolombo
+        )), color = Color.White, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .padding(bottom = screenwheight / 11)
                 .clickable(onClick = { }))
-        Text(text = "Workout Time " + timerWorkout(), style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombo)), color = Color.White, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold),
+        Text(text = "Workout Time " + timerWorkout(), style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(
+            R.font.postnobillscolombo
+        )), color = Color.White, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold),
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .padding(bottom = screenwheight / 20))
-        Text(text = "Rest " + "x" + " seconds", style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombo)), color = Color.Black, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold),
+        Text(text = "Rest " + "x" + " seconds", style = TextStyle(fontSize = 20.sp, fontFamily = FontFamily(Font(
+            R.font.postnobillscolombo
+        )), color = Color.Black, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold),
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
@@ -284,7 +307,7 @@ fun WorkoutLog(navController: NavController,viewModelSave: ViewModelSave){
 
     }
 
-fun returnNextExerciseName(selectedworkoutList : Workout,i : Int) : String
+fun returnNextExerciseName(selectedworkoutList : Workout, i : Int) : String
 {
     if(i+1<=selectedworkoutList.exercises.size)
     {

@@ -1,9 +1,7 @@
-package com.example.projectfitness
+package navigation
 
-import openscreen.Info
-import loginscreens.Login
-import openscreen.SecondInfo
-import openscreen.ThirdInfo
+import activity.inside.ChooseExercises
+import activity.inside.CreateWorkout
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -27,12 +25,25 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import homes.inside.Profile
+import homes.inside.ProfileEdit
+import viewmodel.ProjectFitnessViewModel
+import com.example.projectfitness.R
+import viewmodel.ViewModelSave
+import com.example.projectfitness.WorkoutDetails
+import com.example.projectfitness.WorkoutSettingScreenWorkoutDetails
+import homes.inside.WorkoutLog
+import homes.inside.WorkoutSettingScreen
 import loginscreens.ForgetPasswordScreen
+import loginscreens.Login
 import loginscreens.Register
 import mainpages.Activity
 import mainpages.Homes
 import mainpages.LeaderBoard
 import mainpages.Meal
+import openscreen.Info
+import openscreen.SecondInfo
+import openscreen.ThirdInfo
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalFoundationApi::class)
@@ -80,9 +91,10 @@ fun Navigation() {
         }
         composable(route = Screens.ChooseExercises.route, arguments = listOf(navArgument("name"){type = NavType.StringType})){
             val arg = it.arguments?.getString("name")
-            ChooseExercises(navController = navController,arg, viewModel = viewModel)}
+            ChooseExercises(navController = navController, arg, viewModel = viewModel)
+        }
         composable(route = Screens.WorkoutSettingScreen.route)
-        { WorkoutSettingScreen(navController = navController,viewModelSave = viewModel)}
+        { WorkoutSettingScreen(navController = navController,viewModelSave = viewModel) }
         composable(route = Screens.WorkoutDetails.route)
         {
             WorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(),viewModelSave = viewModel )
@@ -159,17 +171,17 @@ fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag
 
         var color = if (flag) {
             Color(0xFFF1C40F)
-        } else Color.Black
+        } else Color(0xFFB5B5B5)
 
         var color2 = if (flag2) {
             Color(0xFFF1C40F)
-        }else Color.Black
+        }else Color(0xFFB5B5B5)
         var color3 = if (flag3) {
             Color(0xFFF1C40F)
-        }else Color.Black
+        }else Color(0xFFB5B5B5)
         var color4 = if (flag4) {
             Color(0xFFF1C40F)
-        }else Color.Black
+        }else Color(0xFFB5B5B5)
 
         items.forEachIndexed { index, item ->
             if (index == 0) { // Click Home Button

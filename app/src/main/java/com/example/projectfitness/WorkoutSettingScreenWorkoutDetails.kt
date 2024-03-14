@@ -23,9 +23,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import database.Exercises
+import viewmodel.ProjectFitnessViewModel
+import viewmodel.ViewModelSave
 
 @Composable
-fun WorkoutSettingScreenWorkoutDetails(navController: NavController,projectFitnessViewModel: ProjectFitnessViewModel, viewModelSave: ViewModelSave) {
+fun WorkoutSettingScreenWorkoutDetails(navController: NavController, projectFitnessViewModel: ProjectFitnessViewModel, viewModelSave: ViewModelSave) {
     // Use the provided viewModel instance for ViewModelSave
 
     var config = LocalConfiguration.current
@@ -113,7 +116,7 @@ fun WorkoutSettingScreenWorkoutDetails(navController: NavController,projectFitne
     }
 }
 @Composable
-fun returnListMainMuscleItems2(projectFitnessViewList: List<Exercises>,selectedItemName : String?) : String?{
+fun returnListMainMuscleItems2(projectFitnessViewList: List<Exercises>, selectedItemName : String?) : String?{
     for (i in projectFitnessViewList)
     {
         if (i.name.equals(selectedItemName))
@@ -124,7 +127,7 @@ fun returnListMainMuscleItems2(projectFitnessViewList: List<Exercises>,selectedI
     return null
 }
 @Composable
-fun returnListSecondaryMuscleItems2(projectFitnessViewList: List<Exercises>,selectedItemName : String?) : String?{
+fun returnListSecondaryMuscleItems2(projectFitnessViewList: List<Exercises>, selectedItemName : String?) : String?{
     for (i in projectFitnessViewList)
     {
         if (i.name.equals(selectedItemName))

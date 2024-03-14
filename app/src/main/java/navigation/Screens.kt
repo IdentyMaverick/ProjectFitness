@@ -1,4 +1,4 @@
-package com.example.projectfitness
+package navigation
 
 sealed class Screens(val route: String) {
     object FirstInfoScreen : Screens("fis")

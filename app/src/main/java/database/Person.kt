@@ -1,2 +1,2 @@
-package com.example.projectfitness
+package database
 data class Person(var username:String? = "")

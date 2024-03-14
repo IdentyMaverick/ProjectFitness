@@ -1,4 +1,6 @@
-package com.example.projectfitness
+package database
+
+import com.example.projectfitness.R
 
 data class GymDataClass(val name:String,val image : Int)
 
