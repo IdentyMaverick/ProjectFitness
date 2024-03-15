@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Theme.SplashScreen.ProjectFitnessSplashScreen" parent="Theme.SplashScreen.IconBackground">
         <item name="windowSplashScreenBackground">@color/projectfitnessblue</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/projectfitnesssplashscreenlogonew</item>
-        <item name="android:windowSplashScreenBrandingImage">@drawable/projectfitnesssplashscreenbrandlogonew</item>
         <item name="postSplashScreenTheme">@null</item>
     </style>
 </resources>
