@@ -2,10 +2,12 @@ package homes.inside
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,18 +24,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -50,13 +58,15 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import database.Exercise
+import com.chargemap.compose.numberpicker.NumberPicker
 import com.example.projectfitness.R
-import viewmodel.ViewModelSave
+import database.Exercise
 import database.Workout
+import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
+import viewmodel.ViewModelSave
 
 @Composable
 fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSave){
@@ -122,7 +132,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
             .fillMaxWidth()
             .fillMaxHeight()
             .background(Color(0xFF181F26))
-            .padding(top = screenheightDp.dp/3)
+            .padding(top = screenheightDp.dp / 3)
             ) {
             VerticalReorderList(data,viewModelSave,selectedworkoutList)
             Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -184,7 +194,10 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
             }
             Button(onClick = {},
                 modifier = Modifier
-                    .padding(top = screenheightDp.dp / 3.75f, start = marginWorkoutSettingsTextWidthDp / 20)
+                    .padding(
+                        top = screenheightDp.dp / 3.75f,
+                        start = marginWorkoutSettingsTextWidthDp / 20
+                    )
                     .width(125.dp)
                     .height(19.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
@@ -265,9 +278,19 @@ fun popUpScreen(onDismiss : () -> Unit, viewModelSave: ViewModelSave, navControl
             }
         }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SuspiciousIndentation")
 @Composable
 fun VerticalReorderList(list : MutableState<List<Exercise>>, viewModelSave: ViewModelSave, selectedWorkoutList : Workout) {
+
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var indx by remember { mutableStateOf(0) }
+
+    var selectedIndex by remember { mutableStateOf(-1) }
+
+
     var data = list
     //var selectedReps = selectedWorkoutList.exercises.reps
     //var selectedSets = selectedWorkoutList.exercises[0].sets
@@ -283,48 +306,125 @@ fun VerticalReorderList(list : MutableState<List<Exercise>>, viewModelSave: View
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .padding(start = 20.dp,end = 20.dp, top = 30.dp)
+            .padding(start = 20.dp, end = 20.dp, top = 30.dp)
             .reorderable(state)
             .detectReorderAfterLongPress(state),
-
     ) {
-        itemsIndexed(data.value) {index,item ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                            .background(
-                                Color(0xFF21282F), shape = RoundedCornerShape(15.dp)
-                            )
-                            .clickable(onClick = { /*navController.navigate("workoutsettingscreenworkoutdetails")*/ })
+        itemsIndexed(data.value) { index, item ->
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(
+                        Color(0xFF21282F), shape = RoundedCornerShape(15.dp)
                     )
-                    {
-                        Text(
-                            text = "" + item.name,
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .padding(start = 20.dp),
-                            fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                            textAlign = TextAlign.Center,
-                            color = Color(0xFFD9D9D9),
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "${item.sets} x ${item.reps}",
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 15.dp),
-                            fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                            textAlign = TextAlign.Center,
-                            color = Color(0xFFD9D9D9),
-                            fontWeight = FontWeight.Bold
-                        )
+                    .clickable {
+                        selectedIndex = index
+                        showBottomSheet = true
                     }
+            )
+            {
+                Text(
+                    text = "" + item.name,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 20.dp),
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFFD9D9D9),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${item.sets} x ${item.reps}",
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 35.dp),
+                    color = Color(0xFFD9D9D9)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.down),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(30.dp)
+                        .clickable(onClick = {
+                            showBottomSheet = true
+                            selectedIndex = index
+                            Log.d("CLICKED", indx.toString())
+                        }),
+                    colorFilter = (ColorFilter.tint(Color(0xFFF1C40F)))
+                )
+
+                if (showBottomSheet)
+                {
+                    ModalBottomSheet(onDismissRequest = { showBottomSheet = false }, sheetState = sheetState)
+                    {
+                        LaunchedEffect(Unit) {
+                            scope.launch { sheetState.expand() }.invokeOnCompletion { if (!sheetState.isVisible){showBottomSheet = false} }
+                        }
+                        Box(modifier = Modifier
+                            .height(200.dp)
+                            .width(400.dp)
+                            .align(Alignment.CenterHorizontally))
+                        {
+                            var selectedSets by remember { mutableStateOf(data.value[selectedIndex].sets) }
+                            var selectedReps by remember { mutableStateOf(data.value[selectedIndex].reps) }
+                            Column(modifier = Modifier.padding(start = 120.dp)) {
+                                Text(text = "Set", modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(start = 10.dp), color = Color(0xFF21282F),
+                                    style = TextStyle(fontSize = 20.sp))
+                                NumberPicker(
+                                    value = selectedSets,
+                                    onValueChange = { selectedSets = it },
+                                    range = 0..20,
+                                    dividersColor = Color(0xFFF1C40F)
+                                )
+                                data.value[selectedIndex].sets = selectedSets
+                            }
+                            Column(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(end = 120.dp)) {
+                                Text(text = "Rep", modifier = Modifier
+                                    .align(Alignment.CenterHorizontally), color = Color(0xFF21282F),
+                                    style = TextStyle(fontSize = 20.sp))
+                                NumberPicker(
+                                    value = selectedReps,
+                                    onValueChange = { selectedReps = it
+                                                    },
+                                    range = 0..20,
+                                    dividersColor = Color(0xFFF1C40F)
+                                )
+                                data.value[selectedIndex].reps = selectedReps
+                            }
+
+                            Button(onClick = { showBottomSheet = false },modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .width(70.dp)
+                                .height(40.dp)
+                                .padding(end = 10.dp,),
+                                contentPadding = PaddingValues(0.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
+                                shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text(text = "Change",
+                                        style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                        color = Color(0xFF21282F))
+                            }
+                        }
+                    }
+                }
+            }
             Spacer(modifier = Modifier.size(10.dp))
+        }
     }
-}
+
     loopSet(data)
 }
 fun loopSet(mutableList: MutableState<List<Exercise>>)

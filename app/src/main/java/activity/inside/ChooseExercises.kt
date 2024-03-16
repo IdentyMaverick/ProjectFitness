@@ -5,11 +5,13 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,7 +27,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
@@ -34,14 +35,23 @@ import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -50,7 +60,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,19 +67,29 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import viewmodel.ProjectFitnessViewModel
+import com.chargemap.compose.numberpicker.NumberPicker
 import com.example.projectfitness.R
-import viewmodel.ViewModelSave
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import viewmodel.ProjectFitnessViewModel
+import viewmodel.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewModelSave) {
+
+    var pickerValueSet by remember { mutableStateOf(0) }
+    var pickerValueRep by remember { mutableStateOf(0) }
+    var indx by remember { mutableStateOf(0) }
+
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
 
     val screen1 = 750
     val screen2 = 800
@@ -149,6 +168,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
         }
     }
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -168,13 +188,15 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 .align(Alignment.Center)
                 .width(screenwidthDp.dp)
                 .height(700.dp)
-                .padding(top = screenheightDp.dp/3)
+                .padding(top = screenheightDp.dp / 3)
                 .background(
                     Color(0xFF181F26)
                 )
         )
         {
-            Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(top = marginTopDp)) {
+            Row (horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = marginTopDp)) {
                 Text(text = "Overview", fontSize = 15.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), style = TextStyle(letterSpacing = 3.sp), color = Color.White, modifier = Modifier.padding(start = 30.dp))
                 Text(text = "Set x Reps", fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),style = TextStyle(letterSpacing = 3.sp),color = Color.White,modifier = Modifier.padding(end = 30.dp))
             }
@@ -183,11 +205,18 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 modifier = Modifier
                     .fillMaxSize()
                     .align(Alignment.TopCenter)
-                    .padding(top = marginLazyColumnTopDp, bottom = 20.dp, start = 20.dp, end = 20.dp),
+                    .padding(
+                        top = marginLazyColumnTopDp,
+                        bottom = 20.dp,
+                        start = 20.dp,
+                        end = 20.dp
+                    ),
                 state = LazyListState()
             )
             {
                 itemsIndexed(list) { index, item ->
+
+
                     val dismissState = rememberDismissState(confirmValueChange = {
                         if (it == DismissValue.DismissedToStart) {
                             CoroutineScope(Dispatchers.Main).launch {
@@ -230,6 +259,8 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                                         Color(0xFF21282F),
                                         shape = RoundedCornerShape(15.dp)
                                     )
+                                    .clickable  (onClick = {showBottomSheet = true
+                                                            indx = index})
 
                             ) {
                                 Text(
@@ -244,115 +275,79 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                                     color = Color(0xFFD9D9D9),
                                     style = TextStyle(letterSpacing = 1.sp)
                                 )
-                                /*Canvas(modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .padding(top = 10.dp)) {
-                                    drawLine(color = Color(0xFFD9D9D9), start = Offset(60f, 10f), end = Offset(60f, 110f), strokeWidth = 4f)
-                                }*/
-                                BasicTextField(
-                                    value = set[index],
-                                    onValueChange = { set[index] = it.filter { it.isDigit() } },
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .padding(end = 110.dp)
-                                        .height(30.dp)
-                                        .width(37.dp)
-                                        .background(
-                                            Color(0xFF2C3E50),
-                                            shape = RoundedCornerShape(10.dp)
-                                        ),
-                                    keyboardOptions = KeyboardOptions.Default.copy(
-                                        keyboardType = KeyboardType.Number
-                                    ),
-                                    maxLines = 1,
-                                    textStyle = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-                                        color = Color(0xFFD9D9D9)
-                                    ),
-                                    decorationBox = { innerTextField ->
-                                        Row(
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .padding(horizontal = 10.dp)
-                                                .fillMaxWidth()
-                                                .background(
-                                                    color = Color(0xFF2C3E50),
-                                                    shape = RoundedCornerShape(10.dp)
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = Color(0xFF2C3E50),
-                                                    shape = RoundedCornerShape(10.dp)
-                                                ),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            innerTextField()
-                                        }
-                                    },
-
-                                    )
                                 Text(
-                                    text = "Set",
+                                    text = "${set[index]} x ${reps[index]}",
                                     fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                    fontSize = 15.sp,
+                                    fontSize = 20.sp,
                                     modifier = Modifier
                                         .align(Alignment.CenterEnd)
-                                        .padding(end = 85.dp),
+                                        .padding(end = 35.dp)
+                                        .clickable(onClick = { showBottomSheet = true }),
                                     color = Color(0xFFD9D9D9)
                                 )
-                                BasicTextField(
-                                    value = reps[index],
-                                    onValueChange = { reps[index] = it.filter { it.isDigit() } },
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .padding(end = 45.dp)
-                                        .height(30.dp)
-                                        .width(37.dp)
-                                        .background(
-                                            Color(0xFF2C3E50),
-                                            shape = RoundedCornerShape(10.dp)
-                                        ),
-                                    keyboardOptions = KeyboardOptions.Default.copy(
-                                        keyboardType = KeyboardType.Number
-                                    ),
-                                    maxLines = 1,
-                                    textStyle = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontFamily = FontFamily(Font(R.font.poppinslighttext)),
-                                        color = Color(0xFFD9D9D9)
-                                    ),
-                                    decorationBox = { innerTextField ->
-                                        Row(
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .padding(horizontal = 10.dp)
-                                                .fillMaxWidth()
-                                                .background(
-                                                    color = Color(0xFF2C3E50),
-                                                    shape = RoundedCornerShape(10.dp)
-                                                )
-                                                .border(
-                                                    width = 1.dp,
-                                                    color = Color(0xFF2C3E50),
-                                                    shape = RoundedCornerShape(10.dp)
-                                                ),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            innerTextField()
-                                        }
-                                    },
+                                Image(painter = painterResource(id = R.drawable.down), contentDescription = null,modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .size(30.dp)
+                                    .clickable(onClick = {showBottomSheet = true
+                                                          indx = index} ),
+                                    colorFilter = (ColorFilter.tint(Color(0xFFF1C40F))))
 
-                                    )
-                                Text(
-                                    text = "Rep",
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                    fontSize = 15.sp,
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .padding(end = 15.dp),
-                                    color = Color(0xFFD9D9D9)
-                                )
+                                if (showBottomSheet)
+                                {
+                                    ModalBottomSheet(onDismissRequest = { showBottomSheet = false }, sheetState = sheetState)
+                                    {
+                                        LaunchedEffect(Unit) {
+                                            scope.launch { sheetState.expand() }.invokeOnCompletion { if (!sheetState.isVisible){showBottomSheet = false} }
+                                        }
+                                        Box(modifier = Modifier
+                                            .height(200.dp)
+                                            .width(100.dp)
+                                            .align(Alignment.CenterHorizontally))
+                                        {
+                                            Column() {
+                                                Text(text = "Set", modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .align(Alignment.CenterHorizontally), color = Color(0xFF21282F),
+                                                    style = TextStyle(fontSize = 20.sp))
+                                                NumberPicker(
+                                                    value = set[indx].toInt(),
+                                                    onValueChange = { set[indx] = it.toString() },
+                                                    range = 0..20,
+                                                    dividersColor = Color(0xFFF1C40F)
+                                                )
+                                            }
+                                            Column(Modifier.align(Alignment.TopEnd)) {
+                                                Text(text = "Rep", modifier = Modifier
+                                                    .align(Alignment.CenterHorizontally), color = Color(0xFF21282F),
+                                                    style = TextStyle(fontSize = 20.sp))
+                                                NumberPicker(
+                                                    value = reps[indx].toInt(),
+                                                    onValueChange = { reps[indx] = it.toString() },
+                                                    range = 0..20,
+                                                    dividersColor = Color(0xFFF1C40F)
+                                                )
+                                            }
+                                            Button(onClick = { showBottomSheet = false },modifier = Modifier
+                                                .align(Alignment.CenterEnd)
+                                                .width(70.dp)
+                                                .height(40.dp)
+                                                .padding(end = 10.dp,),
+                                                contentPadding = PaddingValues(0.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
+                                                shape = RoundedCornerShape(10.dp)
+                                            ) {
+                                                Text(text = "Change",
+                                                    style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                                    color = Color(0xFF21282F))
+                                            }
+
+                                        }
+                                    }
+
+
+
+                                }
+
                             }
                         }, directions = setOf(DismissDirection.EndToStart))
 
@@ -493,7 +488,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                 }
             },
                 modifier = Modifier
-                    .padding(top = screenheightDp.dp / 3.4f, start = marginWidthDp/ 20)
+                    .padding(top = screenheightDp.dp / 3.4f, start = marginWidthDp / 20)
                     .width(100.dp)
                     .height(25.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
@@ -523,7 +518,9 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
         }
     }
 
-}
+
+    }
+
 
 
 @RequiresApi(Build.VERSION_CODES.R)

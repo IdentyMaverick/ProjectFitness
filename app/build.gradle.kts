@@ -100,4 +100,5 @@ dependencies {
     implementation ("androidx.room:room-runtime:2.4.0")
     implementation ("androidx.room:room-ktx:2.4.0")
     annotationProcessor ("androidx.room:room-compiler:2.4.0")
+    implementation ("com.chargemap.compose:numberpicker:1.0.3")
 }

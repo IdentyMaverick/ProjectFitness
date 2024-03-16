@@ -57,13 +57,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import database.Database
 import com.example.projectfitness.R
-import navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import database.Database
+import navigation.Screens
 
 class Register : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
@@ -107,6 +107,14 @@ class Register : ComponentActivity() {
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier.size(800.dp)
             )
+            Image(
+                painter = painterResource(id = R.drawable.projectfitnesslogologin) ,
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 420.dp, end = 235.dp)
+                    .size(50.dp)
+            )
             Text(
                 text = "PROJECT FITNESS",
                 color = colorResource(id = R.color.projectfitnessyellow),
@@ -114,12 +122,12 @@ class Register : ComponentActivity() {
                     .align(
                         Alignment.Center
                     )
-                    .padding(bottom = 400.dp, start = 20.dp, end = 20.dp),
+                    .padding(bottom = 400.dp, start = 70.dp, end = 20.dp),
                 fontFamily = FontFamily(
                     Font(R.font.postnobillscolombosemibold)
                 ),
                 textAlign = TextAlign.Center,
-                style = TextStyle(fontSize = 35.sp, letterSpacing = 5.sp)
+                style = TextStyle(fontSize = 25.sp, letterSpacing = 5.sp)
             )
             Row(
                 Modifier

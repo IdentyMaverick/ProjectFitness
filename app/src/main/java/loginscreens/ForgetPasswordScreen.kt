@@ -47,9 +47,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
-import navigation.Screens
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import navigation.Screens
 
 @Composable
 fun ForgetPasswordScreen(navController: NavController) {
@@ -65,6 +65,14 @@ fun ForgetPasswordScreen(navController: NavController) {
             contentScale = ContentScale.FillHeight,
             modifier = Modifier.size(800.dp)
         )
+        Image(
+            painter = painterResource(id = R.drawable.projectfitnesslogologin) ,
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(bottom = 420.dp, end = 235.dp)
+                .size(50.dp)
+        )
         Text(
             text = "PROJECT FITNESS",
             color = colorResource(id = R.color.projectfitnessyellow),
@@ -72,11 +80,12 @@ fun ForgetPasswordScreen(navController: NavController) {
                 .align(
                     Alignment.Center
                 )
-                .padding(bottom = 400.dp, start = 20.dp, end = 20.dp),
-            fontSize = 35.sp,
-            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                .padding(bottom = 400.dp, start = 70.dp, end = 20.dp),
+            fontFamily = FontFamily(
+                Font(R.font.postnobillscolombosemibold)
+            ),
             textAlign = TextAlign.Center,
-            style = TextStyle(fontSize = 35.sp, letterSpacing = 5.sp)
+            style = TextStyle(fontSize = 25.sp, letterSpacing = 5.sp)
         )
         Text(
             text = "Forget Password ?",

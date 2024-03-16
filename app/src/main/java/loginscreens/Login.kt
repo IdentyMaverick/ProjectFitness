@@ -62,7 +62,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
-import navigation.Screens
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -71,6 +70,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import navigation.Screens
 
 class Login : ComponentActivity() {
 
@@ -113,6 +113,14 @@ class Login : ComponentActivity() {
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier.size(800.dp)
             )
+            Image(
+                painter = painterResource(id = R.drawable.projectfitnesslogologin) ,
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 420.dp, end = 235.dp)
+                    .size(50.dp)
+            )
             Text(
                 text = "PROJECT FITNESS",
                 color = colorResource(id = R.color.projectfitnessyellow),
@@ -120,12 +128,12 @@ class Login : ComponentActivity() {
                     .align(
                         Alignment.Center
                     )
-                    .padding(bottom = 400.dp, start = 20.dp, end = 20.dp),
+                    .padding(bottom = 400.dp, start = 70.dp, end = 20.dp),
                 fontFamily = FontFamily(
                     Font(R.font.postnobillscolombosemibold)
                 ),
                 textAlign = TextAlign.Center,
-                style = TextStyle(fontSize = 35.sp, letterSpacing = 5.sp)
+                style = TextStyle(fontSize = 25.sp, letterSpacing = 5.sp)
             )
             Row(
                 Modifier
@@ -269,7 +277,10 @@ class Login : ComponentActivity() {
 
 
 
-                    Box(Modifier.fillMaxWidth().height(40.dp)){
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)){
                         Checkbox(checked = checkedState.value, onCheckedChange = { checkedState.value = it } ,
                             Modifier
                                 .align(Alignment.TopEnd)
@@ -277,7 +288,7 @@ class Login : ComponentActivity() {
                         Text(text = "Remember Me",
                             Modifier
                                 .align(Alignment.TopEnd)
-                                .padding(end = screenwidthDp / 6 , top = screenheightDp/50),
+                                .padding(end = screenwidthDp / 6, top = screenheightDp / 50),
                             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                             color = Color(0xFFD9D9D9),
                             style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp)

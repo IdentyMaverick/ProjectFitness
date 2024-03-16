@@ -55,10 +55,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import navigation.NavigationBar
-import viewmodel.ProjectFitnessViewModel
 import com.example.projectfitness.R
+import navigation.NavigationBar
 import navigation.Screens
+import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelSave
 
 class Homes : ComponentActivity() {
@@ -279,7 +279,7 @@ class Homes : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(start = 20.dp),
                                     fontSize = 27.sp,
-                                    fontFamily = FontFamily(Font(R.font.poppinsextralighttext)),
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                                     textAlign = TextAlign.Left,
                                     color = Color(0xFFD9D9D9),
                                     fontWeight = FontWeight.Bold
