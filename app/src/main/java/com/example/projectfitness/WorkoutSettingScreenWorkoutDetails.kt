@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -24,12 +25,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import database.Exercises
+import database.ProjectFitnessContainer
 import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelSave
 
 @Composable
-fun WorkoutSettingScreenWorkoutDetails(navController: NavController, projectFitnessViewModel: ProjectFitnessViewModel, viewModelSave: ViewModelSave) {
-    // Use the provided viewModel instance for ViewModelSave
+fun WorkoutSettingScreenWorkoutDetails(navController: NavController, projectFitnessViewModel: ProjectFitnessViewModel,viewModelSave: ViewModelSave) {
+    val context = LocalContext.current
+    //val viewModelSave: ViewModelSave = viewModel()
+    val container = ProjectFitnessContainer(context)
 
     var config = LocalConfiguration.current
     var screenwidthDp = config.screenWidthDp.dp

@@ -25,13 +25,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import homes.inside.Profile
-import homes.inside.ProfileEdit
-import viewmodel.ProjectFitnessViewModel
 import com.example.projectfitness.R
-import viewmodel.ViewModelSave
 import com.example.projectfitness.WorkoutDetails
 import com.example.projectfitness.WorkoutSettingScreenWorkoutDetails
+import homes.inside.Profile
+import homes.inside.ProfileEdit
 import homes.inside.WorkoutLog
 import homes.inside.WorkoutSettingScreen
 import loginscreens.ForgetPasswordScreen
@@ -44,6 +42,8 @@ import mainpages.Meal
 import openscreen.Info
 import openscreen.SecondInfo
 import openscreen.ThirdInfo
+import viewmodel.ProjectFitnessViewModel
+import viewmodel.ViewModelSave
 
 @RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalFoundationApi::class)
@@ -75,7 +75,7 @@ fun Navigation() {
             Homes().Home(navController = navController,viewModel)
         }
         composable(route = Screens.Activity.route) {
-            Activity(navController = navController, viewModelSave = viewModel)
+            Activity(navController = navController)
         }
         composable(route = Screens.Home.Profile.route) {
             Profile(navController = navController)
@@ -87,25 +87,25 @@ fun Navigation() {
             LeaderBoard(navController = navController)
         }
         composable(route = Screens.CreateWorkout.route) {
-            CreateWorkout(navController = navController, viewModelSave = viewModel)
+            CreateWorkout(navController = navController,viewModel)
         }
         composable(route = Screens.ChooseExercises.route, arguments = listOf(navArgument("name"){type = NavType.StringType})){
             val arg = it.arguments?.getString("name")
-            ChooseExercises(navController = navController, arg, viewModel = viewModel)
+            ChooseExercises(navController = navController, arg,viewModel)
         }
         composable(route = Screens.WorkoutSettingScreen.route)
-        { WorkoutSettingScreen(navController = navController,viewModelSave = viewModel) }
+        { WorkoutSettingScreen(navController = navController,viewModel) }
         composable(route = Screens.WorkoutDetails.route)
         {
-            WorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(),viewModelSave = viewModel )
+            WorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel() ,viewModel)
         }
         composable(route = Screens.WorkoutSettingScreenWorkoutDetails.route)
         {
-            WorkoutSettingScreenWorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(), viewModelSave = viewModel)
+            WorkoutSettingScreenWorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(),viewModel)
         }
         composable(route = Screens.WorkoutLog.route)
         {
-            WorkoutLog(navController = navController, viewModelSave = viewModel)
+            WorkoutLog(navController = navController)
         }
         composable(route = Screens.Meal.route)
         {
@@ -114,44 +114,6 @@ fun Navigation() {
     }
 
     }
-
-
-/*@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun HorizontalPagers(){
-    val pageCount = 3
-    val pagerState = rememberPagerState()
-    HorizontalPager(state = pagerState, pageCount = pageCount) { index ->
-        if (index == 0) {
-            Info()
-        } else if (index == 1) {
-            SecondInfo()
-        } else if (index == 2) {
-            ThirdInfo(navController = rememberNavController())
-        }
-        Row(
-            Modifier
-                .fillMaxSize()
-                .padding(100.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom
-        )
-        {
-            repeat(pageCount) { iteration ->
-                val color =
-                    if (pagerState.currentPage == iteration) Color(0xFFF1C40F) else Color.White
-                Box(
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .size(10.dp)
-                )
-            }
-        }
-    }
-}
-*/
 @Composable
 fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag2: Boolean,flag3: Boolean,flag4 : Boolean) {
 

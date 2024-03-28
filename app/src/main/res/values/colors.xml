@@ -9,4 +9,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="projectfitnessblue">#181F26</color>
     <color name="projectfitnessyellow">#F1C40F</color>
+
+    <color name="pfblue">#FF181F26</color>
+    <color name="pf">#FF21282F</color>
+    <color name="pfyellow">#FFF1C40F</color>
 </resources>

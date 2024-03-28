@@ -66,6 +66,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import database.ProjectFitnessRoom
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -73,6 +74,8 @@ import kotlinx.coroutines.tasks.await
 import navigation.Screens
 
 class Login : ComponentActivity() {
+
+
 
     private lateinit var auth: FirebaseAuth
     var usernames : String = ""
@@ -89,6 +92,12 @@ class Login : ComponentActivity() {
 
     @Composable
     fun LoginScreen(navController: NavController) {
+
+        var contextmi = LocalContext.current
+        //val projectFitnessContainer = remember { ProjectFitnessContainer(contextmi) }
+        //val itemRepo = projectFitnessContainer.itemsRepository
+        val projectFitnessContainerRoom = ProjectFitnessRoom.getDatabase(contextmi)
+        val dao = projectFitnessContainerRoom.projectFitnessDao()
 
 
         val configuration = LocalConfiguration.current
@@ -320,6 +329,8 @@ class Login : ComponentActivity() {
                                         navController,
                                         context = context
                                     )
+                                    dao.getItemStream(0)
+
                                 }
 
                             }

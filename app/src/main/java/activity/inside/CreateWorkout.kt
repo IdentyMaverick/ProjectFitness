@@ -30,22 +30,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -58,14 +63,21 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import viewmodel.ProjectFitnessViewModel
 import com.example.projectfitness.R
+import database.ProjectFitnessContainer
+import kotlinx.coroutines.launch
+import navigation.Screens
+import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
 
+    // Variable Initialize *****************************************************************************************************************************************************************
+
+    val context = LocalContext.current
+    val container = ProjectFitnessContainer(context)
     val transparentColorFilter = Color(0f,0f,0f,0.4f)
 
     var count = viewModelSave.count
@@ -85,13 +97,21 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
     val viewModel: ProjectFitnessViewModel = viewModel()
     val firestoreItems = viewModel.firestoreItems.value
 
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+
+    //***************************************************************************************************************************************************************************************
+
+    // UI Coding ****************************************************************************************************************************************************************************
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF181F26))
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.left),
+            painter = painterResource(id = R.drawable.projectfitnessprevious),
             contentDescription = null,
             modifier = Modifier
                 .clickable(onClick = { navController.navigate("chooseexercises/{name}") })
@@ -102,7 +122,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(top = screenheightDp / 3.5f)
+                .padding(top = screenheightDp / 7.5f)
                 .align(Alignment.Center)) {
 
 
@@ -121,7 +141,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                             expanded = expanded,
                             onExpandedChange = { expanded = !expanded },
                             modifier = Modifier
-                                .padding(top = 25.dp, end = screenwidthDp / 2)
+                                .padding(top = 25.dp)
                                 .height(45.dp)
                                 .width(160.dp),
                         ) {
@@ -155,8 +175,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
 
                             ExposedDropdownMenu(
                                 expanded = expanded,
-                                onDismissRequest = { expanded = false },
-
+                                onDismissRequest = { expanded = false }
                                 ) {
                                 exercises.forEach { selectionOption ->
                                     DropdownMenuItem(
@@ -205,7 +224,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                                 Color(0xFF2C3E50),
                                                 shape = RoundedCornerShape(10.dp)
                                             )
-                                            .clickable(onClick = {
+                                            .clickable(onClick = {/*
                                                 viewModelSave.updateSelectedItemName(item.name.toString())
                                                 Log.d(
                                                     "TAG1",
@@ -214,7 +233,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                                 navController.navigate(route = "workoutdetails")
                                                 //ispopupVisible = true
                                                 flag.value = true
-                                                count.value += 1
+                                                count.value += 1*/
                                             })
 
                                     ) {
@@ -259,7 +278,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                         }*/
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
-                                } else if (  selectedOptionTest == "All" && text.value.isEmpty()) {
+                                } else if (  selectedOptionTest == "All" && text.value.isEmpty()) {   // OPTIMAL SITUATION
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -306,23 +325,6 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                             fontFamily = FontFamily(Font(R.font.postnobillscolombobold)) ,
                                             textAlign = TextAlign.Center
                                         )
-                                        /*Button(
-                                            onClick = { item.bool = true
-                                                    navController.navigate ( route = "chooseexercises/"+item.name )
-                                                    //ispopupVisible = true
-                                                    flag.value = true
-                                                    count.value += 1} ,
-                                            modifier = Modifier
-                                                .align(Alignment.CenterEnd)
-                                                .width(60.dp)
-                                                .height(30.dp)
-                                                .padding(end = 10.dp),
-                                            colors = ButtonDefaults.buttonColors(Color(0xFF181F26)),
-                                            shape = RoundedCornerShape(10.dp),
-                                            contentPadding = PaddingValues(0.dp)
-                                        ) {
-                                            Text(text = "add")
-                                        }*/
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
                                 }
@@ -337,7 +339,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                                 Color(0xFF2C3E50),
                                                 shape = RoundedCornerShape(10.dp)
                                             )
-                                            .clickable(onClick = {
+                                            .clickable(onClick = {/*
                                                 viewModelSave.updateSelectedItemName(item.name.toString())
                                                 Log.d(
                                                     "TAG1",
@@ -346,7 +348,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                                 navController.navigate(route = "workoutdetails")
                                                 //ispopupVisible = true
                                                 flag.value = true
-                                                count.value += 1
+                                                count.value += 1*/
                                             })
                                     ) {
                                         Image(painterResource(R.drawable.cablecrossover/*imager(projectFitnessViewModel = ProjectFitnessViewModel(),item)*/),
@@ -370,21 +372,6 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                             fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
                                             textAlign = TextAlign.Center
                                         )
-                                        /*Button(
-                                            onClick = {
-                                                        navController.navigate ( route = "chooseexercises/"+item.name ) } ,
-                                            modifier = Modifier
-                                                .align(Alignment.CenterEnd)
-                                                .width(60.dp)
-                                                .height(30.dp)
-                                                .padding(end = 10.dp),
-                                            colors = ButtonDefaults.buttonColors(Color(0xFF181F26)),
-                                            shape = RoundedCornerShape(10.dp),
-                                            contentPadding = PaddingValues(0.dp),
-                                        ) {
-                                            Text(text = "add",
-                                                fontFamily = FontFamily(Font(R.font.postnobillscolomboregular)))
-                                        }*/
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
                                 }
@@ -397,38 +384,110 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
         }
         Box(modifier = Modifier
             .fillMaxWidth()
-            .height(screenheightDp / 25)
-            .paint(
-                painter = painterResource(id = R.drawable.cablecrossover),
-                contentScale = ContentScale.Crop,
-                alpha = 0.3f
-            ))
-        Text(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 5.dp),
-            text = "PROJECT FITNESS",
-            fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
-            color = Color(0xFFF1C40F),
-            style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
+            .height(60.dp)
+            .background(Color(0xFFF1C40F)),
         )
-        Text(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = screenheightDp / 10),
-            text = "CHOOSE EXERCISES",
-            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-            color = Color.White,
-            style = TextStyle(fontSize = 30.sp, letterSpacing = 3.sp),
-        )
-        Row {
+        {
+
+            Row(Modifier.align(Alignment.CenterStart)) {
+
+                IconButton(
+                    onClick = { navController.navigate("chooseexercises/{name}") }, modifier = Modifier
+
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.left),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(25.dp)
+                            .height(25.dp),
+                        tint = Color(0xFF21282F)
+                    )
+
+                }
+
+                Text(
+                    text = "Choose Exercise",
+                    color = Color(0xFF21282F),
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                    style = TextStyle(fontSize = 30.sp),
+                    modifier = Modifier
+                        .padding(start = 10.dp, top = 5.dp)
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                IconButton(
+                    onClick = { showBottomSheet = true }, modifier = Modifier
+
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.projectfitnesspointheavy),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(25.dp)
+                            .height(25.dp),
+                        tint = Color(0xFF21282F)
+                    )
+
+                }
+
+            }
+
+            if (showBottomSheet) {
+                ModalBottomSheet(onDismissRequest = { showBottomSheet = false }, sheetState = sheetState, containerColor = Color(0xFF283747)) {
+                    LaunchedEffect(Unit) {
+                        scope.launch { sheetState.expand() }.invokeOnCompletion { if (!sheetState.isVisible) {showBottomSheet = false} }
+                    }
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(230.dp) )
+                    {
+                        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+
+                            Button(onClick = { /*TODO*/ }, modifier = Modifier
+
+                                .padding(bottom = 25.dp)
+                                .fillMaxWidth()
+                                .height(60.dp),
+                                shape = RoundedCornerShape(0.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                            ) {
+                                Text(text = "Profile Settings",
+                                    style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                    color = Color(0xFF181F26))
+                            }
+
+                            Button(onClick = { navController.navigate(Screens.LoginScreen.route) }, modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(bottom = 25.dp)
+                                .fillMaxWidth()
+                                .height(60.dp),
+                                shape = RoundedCornerShape(0.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                            ) {
+                                Text(text = "Logout",
+                                    style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                    color = Color(0xFF181F26))
+                            }
+
+                        }
+                    }
+                }
+            }
+
+        }
+
+        Row(modifier = Modifier.padding(top = 80.dp)) {
             BasicTextField(
                 value = text.value,
                 onValueChange = { text.value = it },
                 modifier = Modifier
-                    .padding(top = screenheightDp / 4f, start = 10.dp)
                     .height(41.dp)
-                    .width(283.dp)
+                    .fillMaxWidth()
+                    .padding(start = 20.dp,end = 20.dp)
                     .background(Color(0xFF21282F), shape = RoundedCornerShape(15.dp)),
                 textStyle = TextStyle(
                     fontSize = 12.sp,
@@ -475,7 +534,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                 contentPadding = PaddingValues(0.dp),
                 shape = RoundedCornerShape(5.dp)
             ) {
-                Text(text = "ALL EXERCISES",
+                Text(text = "Filter",
                     fontFamily = FontFamily(Font(R.font.postnobillscolombo)),
                     fontWeight = FontWeight.Bold,
                     style = TextStyle(letterSpacing = 1.sp, fontSize = 7.sp),
@@ -641,10 +700,10 @@ fun PopUpContent(onDismiss : () -> Unit){
 }
 */
 
-@Preview(showSystemUi = false)
+@Preview(showSystemUi = true)
 @Composable
 fun PreviewCreateWorkout() {
-    CreateWorkout(navController = rememberNavController(), viewModel())
+    CreateWorkout(navController = rememberNavController(), viewModelSave = viewModel())
 }
 
 // Exercises -> LowerBody Exercises -> LowerLeg Exercises -> Calf Raises

@@ -1,51 +1,67 @@
 package mainpages
 
 import android.content.res.Resources
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import navigation.NavigationBar
 import com.example.projectfitness.R
+import kotlinx.coroutines.launch
+import navigation.NavigationBar
 import navigation.Screens
 import viewmodel.ViewModelSave
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
+fun Activity(navController: NavController) {
+    val context = LocalContext.current
+    val viewModelSave: ViewModelSave = viewModel()
+    //val container = ProjectFitnessContainer(context)
+    //val viewModelSaves = ViewModelSave(container)
 
     val screen1 = 800
     val screen2 = 900
@@ -63,31 +79,33 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
 
 
     val marginTopDpPJWorkoutsText = if (useDiffrentValue1)
-    { 60.dp }
+    { 140.dp }
     else if (useDiffrentValue2)
-    { 60.dp }
+    { 140.dp }
     else
-    {
-        60.dp
-    }
+    { 120.dp }
 
     val marginStartDpPJWorkoutsText = if (useDiffrentValue3)
     { 40.dp }
     else if (useDiffrentValue4)
     { 60.dp }
     else
-    {
-        20.dp
-    }
+    { 20.dp }
 
     val marginTopDpCanvas = if (useDiffrentValue1)
     { 20.dp }
     else if (useDiffrentValue2)
     { 30.dp }
     else
-    {
-        10.dp
-    }
+    { 95.dp }
+
+    val fontSizePFWorkout = if (useDiffrentValue1)
+    { 25.sp }
+    else if (useDiffrentValue2)
+    { 25.sp }
+    else
+    { 20.sp }
+
 
     val marginTopDp = 16f
     val density = Resources.getSystem().displayMetrics.density
@@ -115,121 +133,138 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
         var flagg3 by remember { mutableStateOf(false) }
         var flagg4 by remember { mutableStateOf(false) }
 
-        //val isPressed by interactionSource.collectIsPressedAsState()
+        val sheetState = rememberModalBottomSheetState()
+        val scope = rememberCoroutineScope()
+        var showBottomSheet by remember { mutableStateOf(false) }
+
+
+    // TASARIM KODLARI //************************************************************************
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF181F26))
         ) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 5.dp),
-                text = "PROJECT FITNESS",
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                color = Color(0xFFF1C40F),
-                style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(Color(0xFFF1C40F)),
             )
-            Text(
-                text = "PJ Workouts",
-                color = Color(0xFFD9D9D9),
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(top = marginTopDpPJWorkoutsText, start = marginStartDpPJWorkoutsText),
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                style = TextStyle(fontSize = 25.sp,letterSpacing = 5.sp)
-            )
+            {
 
-            ExposedDropdownMenuBox(expanded = expanded2, onExpandedChange ={expanded2 = !expanded2},
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 45.dp, end = 30.dp) ) {
-                TextField(value = selectedOptionsText2, onValueChange = {},
-                    Modifier
-                        .menuAnchor()
-                        .height(60.dp)
-                        .width(130.dp)
-                        .padding(top = 5.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color(0xFF181F26),
-                        unfocusedTextColor = Color(0xFFF1C40F),
-                        focusedTextColor = (Color(0xFFF1C40F)),
-                        unfocusedIndicatorColor = Color(0xFF181F26),
-                        focusedIndicatorColor = Color(0xFF181F26)),
-                    readOnly = true,
-                    trailingIcon = {
+                Row(Modifier.align(Alignment.CenterStart)) {
+
+                    Text(
+                        text = "PF Workout",
+                        color = Color(0xFF21282F),
+                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                        style = TextStyle(fontSize = 30.sp),
+                        modifier = Modifier
+                            .padding(start = 10.dp, top = 5.dp)
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    IconButton(
+                        onClick = { navController.navigate("profile") }, modifier = Modifier
+
+                    ) {
                         Icon(
-                            painterResource(id = R.drawable.down),
+                            painterResource(id = R.drawable.projectfitnessprofileheavy),
                             contentDescription = null,
-                            tint = Color(0xFFD9D9D9),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier
+                                .width(30.dp)
+                                .height(30.dp),
+                            tint = Color(0xFF21282F)
                         )
-                    },
-                    textStyle = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), letterSpacing = 1.sp))
-            }
-            Canvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = marginTopDpCanvas)
-            ) {
-                drawLine(
-                    color = Color.White,
-                    start = Offset(marginPx.toFloat(), 250f),
-                    end = Offset((screenWidthPx-marginPx).toFloat(), 250f)
-                )
-            }
 
+                    }
 
-            Box(  modifier = Modifier.align(Alignment.TopEnd) ){IconButton(
-                onClick = { expanded = true }, modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 55.dp)
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.point),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .padding(end = 10.dp),
-                    tint = Color(0xFFD9D9D9)
-                )
+                    IconButton(
+                        onClick = {  }, modifier = Modifier
 
-            }
+                    ) {
+                        Icon(
+                            painterResource(id = R.drawable.projectfitnesscircleheavy),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(30.dp)
+                                .height(30.dp),
+                            tint = Color(0xFF21282F)
+                        )
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = !expanded },
-                    modifier = Modifier
-                ) {
-                    DropdownMenuItem(text = { Text(text = "Create Workout") }, onClick = { navController.navigate(
-                        Screens.ChooseExercises.route)
-                        fl.value = true
-                        name.value = ""
-                        exercises.clear()
-                        notworkoutPressed.value = false})
+                    }
+
+                    IconButton(
+                        onClick = { showBottomSheet = true }, modifier = Modifier
+
+                    ) {
+                        Icon(
+                            painterResource(id = R.drawable.projectfitnesspointheavy),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(25.dp)
+                                .height(25.dp),
+                            tint = Color(0xFF21282F)
+                        )
+
+                    }
+
                 }
-            }
 
-            /*Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp)
-                    .align(Alignment.TopCenter)
-            ) {
-                drawLine(
-                    color = Color(0xFF516273),
-                    start = Offset(0f,225f),
-                    end =   Offset(1200f,225f)
-                )
-            }*/
-            //val itemsList = (0..2).toList()
-            /*
+                if (showBottomSheet) {
+                    ModalBottomSheet(onDismissRequest = { showBottomSheet = false }, sheetState = sheetState, containerColor = Color(0xFF283747)) {
+                        LaunchedEffect(Unit) {
+                            scope.launch { sheetState.expand() }.invokeOnCompletion { if (!sheetState.isVisible) {showBottomSheet = false} }
+                        }
+                        Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(230.dp) )
+                        {
+                            Column(modifier = Modifier.align(Alignment.BottomCenter)) {
+
+                                Button(onClick = { /*TODO*/ }, modifier = Modifier
+
+                                    .padding(bottom = 25.dp)
+                                    .fillMaxWidth()
+                                    .height(60.dp),
+                                    shape = RoundedCornerShape(0.dp),
+                                    contentPadding = PaddingValues(0.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                                ) {
+                                    Text(text = "Profile Settings",
+                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                        color = Color(0xFF181F26))
+                                }
+
+                                Button(onClick = { navController.navigate(Screens.LoginScreen.route) }, modifier = Modifier
+                                    .align(Alignment.End)
+                                    .padding(bottom = 25.dp)
+                                    .fillMaxWidth()
+                                    .height(60.dp),
+                                    shape = RoundedCornerShape(0.dp),
+                                    contentPadding = PaddingValues(0.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                                ) {
+                                    Text(text = "Logout",
+                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                        color = Color(0xFF181F26))
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
             val itemIndexedList = listOf("A", "B", "C", "D")
             val state = rememberLazyListState()
             LazyRow(
                 modifier = Modifier
-                    .padding(top = 120.dp)
-                    .align(Alignment.TopCenter),
+                    .padding(top = 80.dp, start = 20.dp, end = 15.dp)
+                ,
                 state = state
             ) {
                 itemsIndexed(itemIndexedList) { index, item ->
@@ -270,12 +305,12 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             },
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
-                                .width(100.dp)
+                                .width(70.dp)
                                 .height(30.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = color),
                             contentPadding = PaddingValues(0.dp)
                         ) {
-                            Text(text = "All", textAlign = TextAlign.Center, style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), fontFamily = FontFamily(Font(
+                            Text(text = "All", textAlign = TextAlign.Center, style = TextStyle(fontSize = 15.sp,letterSpacing = 3.sp), fontFamily = FontFamily(Font(
                                 R.font.postnobillscolombosemibold
                             )))
                         }
@@ -294,13 +329,13 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             },
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
-                                .width(100.dp)
+                                .width(70.dp)
                                 .height(30.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = color2),
                             contentPadding = PaddingValues(0.dp)
 
                         ) {
-                            Text(text = "UpperBody", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
+                            Text(text = "UpperBody", style = TextStyle(fontSize = 15.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
                                 R.font.postnobillscolombosemibold
                             )))
                         }
@@ -319,13 +354,13 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             },
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
-                                .width(100.dp)
+                                .width(70.dp)
                                 .height(30.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = color3),
                             contentPadding = PaddingValues(0.dp)
 
                         ) {
-                            Text(text = "LowerBody", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
+                            Text(text = "LowerBody", style = TextStyle(fontSize = 15.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
                                 R.font.postnobillscolombosemibold
                             )))
                         }
@@ -344,13 +379,13 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                             },
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
-                                .width(100.dp)
+                                .width(70.dp)
                                 .height(30.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = color4),
                             contentPadding = PaddingValues(0.dp)
 
                         ) {
-                            Text(text = "Chest", style = TextStyle(fontSize = 17.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
+                            Text(text = "Filter", style = TextStyle(fontSize = 15.sp,letterSpacing = 1.sp), textAlign = TextAlign.Center,fontFamily = FontFamily(Font(
                                 R.font.postnobillscolombosemibold
                             )))
                         }
@@ -358,16 +393,15 @@ fun Activity(navController: NavController,viewModelSave: ViewModelSave) {
                     }
                 }
             }
-            */
+
             val indexs = 1
             NavigationBar(navController = navController, indexs, flagg, flagg2,flagg3,flagg4)
         }
-    }
 
 
 
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
 @Composable
 fun PreviewActivity() {
-    Activity(navController = rememberNavController(), viewModelSave = viewModel())
+    Activity(navController = rememberNavController())
 }

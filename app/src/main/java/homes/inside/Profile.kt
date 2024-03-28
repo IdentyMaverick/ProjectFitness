@@ -172,7 +172,10 @@ fun Profile(navController: NavController) {
                 fontSize = 15.sp,
             )
             Canvas(modifier = Modifier.align(Alignment.Center)) {
-                drawLine(color = (Color(0xFFF1C40F)), start = Offset(0f, 20f), end = Offset(0f, 100f))
+                drawLine(color = (Color(0xFFF1C40F)),
+                    start = Offset(0f, 20f),
+                    end = Offset(0f, 100f),
+                    strokeWidth = 5f)
             }
             Text(
                 text = "Workouts \n        0 ",
@@ -184,7 +187,10 @@ fun Profile(navController: NavController) {
                 fontSize = 15.sp,
             )
             Canvas(modifier = Modifier.padding(top = 270.dp)) {
-                drawLine(color = Color(0xFFF1C40F), start = Offset(0f, 170f), end = Offset(screenwidthDp*3.toFloat(), 170f))
+                drawLine(color = Color(0xFFF1C40F),
+                    start = Offset(0f, 170f),
+                    end = Offset(screenwidthDp*3.toFloat(), 170f),
+                    strokeWidth = 5f)
             }
             OutlinedButton(onClick = { /*TODO*/ }, modifier = Modifier
                 .align(Alignment.Center)
