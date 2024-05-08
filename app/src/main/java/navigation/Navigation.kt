@@ -105,7 +105,7 @@ fun Navigation() {
         }
         composable(route = Screens.WorkoutLog.route)
         {
-            WorkoutLog(navController = navController)
+            WorkoutLog(navController = navController,viewModel)
         }
         composable(route = Screens.Meal.route)
         {

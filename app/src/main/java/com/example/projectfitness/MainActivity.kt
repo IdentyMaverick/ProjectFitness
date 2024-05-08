@@ -16,7 +16,13 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.firebase.auth.FirebaseAuth
 import database.Exercise
 import database.ProjectFitnessContainer
+import database.ProjectFitnessExerciseEntity
 import database.ProjectFitnessWorkoutEntity
+import database.SetRep
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import navigation.Navigation
 
 class MainActivity : ComponentActivity() {
@@ -38,9 +44,17 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(key1 = Unit) {
-                itemRepo.insertItem(ProjectFitnessWorkoutEntity(1,"Base", exercises = mutableStateListOf(
-                    Exercise("Base",0,0)
+                CoroutineScope(Dispatchers.IO).launch {
+                if (itemRepo.getWorkoutWithExercises("Base").isNotEmpty()){
+                    // Pass
+                }
+                else
+                itemRepo.insertItem(ProjectFitnessWorkoutEntity(workoutId = 0,workoutName = "Base", exercises = mutableStateListOf(Exercise("Base",0,0))))
+                delay(5000)
+                itemRepo.insertItems(ProjectFitnessExerciseEntity( ids = 2, exerciseId = 1, exercisesName ="Base", exercisesRep=0, exercisesSet = 0,setrepList = mutableStateListOf(
+                    SetRep("Base", setRep = 0,ticked = false, weight = 0f)
                 )))
+                }
             }
             Main()
         }

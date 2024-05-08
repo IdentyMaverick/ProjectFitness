@@ -1,5 +1,6 @@
 package homes.inside
 
+import ItemsRepository
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,6 +54,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.chargemap.compose.numberpicker.NumberPicker
 import com.example.projectfitness.R
+import database.ProjectFitnessContainer
+import database.ProjectFitnessExerciseEntity
+import database.ProjectFitnessWorkoutWithExercises
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import navigation.Screens
 import viewmodel.ViewModelSave
@@ -60,8 +66,25 @@ import viewmodel.ViewModelSave
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSave){
-    val context = LocalContext.current
 
+    //Database Creation*************************************************************************************************************************************************************
+    val context = LocalContext.current
+    var projectFitnessContainer = ProjectFitnessContainer(context)
+    val itemRepos = projectFitnessContainer.itemsRepository
+    var itemRepoList by remember { mutableStateOf<List<ProjectFitnessWorkoutWithExercises?>>(emptyList()) }
+    var itemRepo by remember { mutableStateOf("") }
+    LaunchedEffect(key1 = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+
+            projectFitnessContainer = ProjectFitnessContainer(context)
+            var itemRepo = itemRepos
+
+            itemRepoList = itemRepo.getWorkoutWithExercises(viewModelSave.selectedWorkoutName.value)
+
+        }
+    }
+
+    //******************************************************************************************************************************************************************************
 
     val screen1 = 750
     val screen2 = 800
@@ -114,13 +137,11 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
     var showBottomSheet by remember { mutableStateOf(false) }
     var showBottomSheet2 by remember { mutableStateOf(false) }
 
-    var selectedWorkoutList = viewModelSave.selectedListWorkouts
-    Log.d(
-        "SLT INDX2",
-        "$selectedWorkoutList"
-    )
 
-    //Tasarım Kodları */*********************************************
+
+
+    // UI Coding ****************************************************************************************************************************************************************************
+
     Box(modifier = Modifier
         .fillMaxSize()
         .background(color = Color(0xFF181F26)))
@@ -130,7 +151,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .height(60.dp)
-                .background(Color(0xFFF1C40F)),
+                .background(Color(0xFF181F26)),
             )
             {
 
@@ -146,16 +167,16 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                             modifier = Modifier
                                 .width(25.dp)
                                 .height(25.dp),
-                            tint = Color(0xFF21282F)
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
 
                     Text(
                         text = "Workout Overview",
-                        color = Color(0xFF21282F),
-                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                        style = TextStyle(fontSize = 30.sp),
+                        color = Color(0xFFF1C40F),
+                        fontFamily = FontFamily(Font(R.font.postnobillscolomboregular)),
+                        style = TextStyle(fontSize = 25.sp),
                         modifier = Modifier
                             .padding(start = 10.dp, top = 5.dp)
                     )
@@ -172,7 +193,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                             modifier = Modifier
                                 .width(25.dp)
                                 .height(25.dp),
-                            tint = Color(0xFF21282F)
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -186,24 +207,9 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                         }
                         Box(modifier = Modifier
                             .fillMaxWidth()
-                            .height(230.dp) )
+                            .height(77.dp) )
                         {
                             Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-
-                                Button(onClick = { /*TODO*/ }, modifier = Modifier
-
-                                    .padding(bottom = 25.dp)
-                                    .fillMaxWidth()
-                                    .height(60.dp),
-                                    shape = RoundedCornerShape(0.dp),
-                                    contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
-                                ) {
-                                    Text(text = "Profile Settings",
-                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                                        color = Color(0xFF181F26))
-                                }
-
                                 Button(onClick = { navController.navigate(Screens.LoginScreen.route) }, modifier = Modifier
                                     .align(Alignment.End)
                                     .padding(bottom = 25.dp)
@@ -211,11 +217,11 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                     .height(60.dp),
                                     shape = RoundedCornerShape(0.dp),
                                     contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
                                     Text(text = "Logout",
-                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                                        color = Color(0xFF181F26))
+                                        style = TextStyle(fontSize = 25.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                        color = Color(0xFFF1C40F))
                                 }
 
                             }
@@ -229,12 +235,11 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                 .padding(top = 100.dp))
             {
                 Column(Modifier.fillMaxWidth()) {
-                    if (selectedWorkoutList != null) {
                         Text(
-                            text = selectedWorkoutList.name,
+                            text = viewModelSave.selectedWorkoutName.value,
                             style = TextStyle(
                                 fontSize = 30.sp,
-                                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
+                                fontFamily = FontFamily(Font(R.font.postnobillscolomboregular))
                             ),
                             color = Color.White,
                             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -247,7 +252,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                             state = LazyListState()
                         )
                         {
-                            itemsIndexed(selectedWorkoutList.exercises) { index, item ->
+                            itemsIndexed(itemRepoList) { index, item ->
 
                                 Box(
                                     modifier = Modifier
@@ -260,7 +265,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                 )
                                 {
                                     Text(
-                                        text = "" + item.name,
+                                        text = "" + (item?.exercises2?.get(index)?.exercisesName),
                                         modifier = Modifier
                                             .align(Alignment.CenterStart)
                                             .padding(start = 20.dp),
@@ -271,27 +276,29 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                         fontWeight = FontWeight.Bold
                                     )
 
-                                    Text(
-                                        text = "${item.sets} x ${item.reps}",
-                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                        fontSize = 20.sp,
-                                        modifier = Modifier
-                                            .align(Alignment.CenterEnd)
-                                            .padding(end = 35.dp),
-                                        color = Color(0xFFD9D9D9)
-                                    )
+                                    if (item != null) {
+                                        Text(
+                                            text = "${item.exercises2[index].exercisesSet } x ${item.exercises2[index].exercisesRep}",
+                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                            fontSize = 20.sp,
+                                            modifier = Modifier
+                                                .align(Alignment.CenterEnd)
+                                                .padding(end = 35.dp),
+                                            color = Color(0xFFD9D9D9)
+                                        )
+                                    }
 
 
                                     if (showBottomSheet2) {
                                         ModalBottomSheet(onDismissRequest = {
-                                            showBottomSheet = false
+                                            showBottomSheet2 = false
                                         }, sheetState = sheetState2)
                                         {
                                             LaunchedEffect(Unit) {
                                                 scope.launch { sheetState.expand() }
                                                     .invokeOnCompletion {
                                                         if (!sheetState.isVisible) {
-                                                            showBottomSheet = false
+                                                            showBottomSheet2 = false
                                                         }
                                                     }
                                             }
@@ -302,6 +309,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                                     .align(Alignment.CenterHorizontally)
                                             )
                                             {
+
                                                 Column(modifier = Modifier.padding(start = 120.dp)) {
                                                     Text(
                                                         text = "Set",
@@ -312,15 +320,19 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                                         color = Color(0xFF21282F),
                                                         style = TextStyle(fontSize = 20.sp)
                                                     )
-                                                    NumberPicker(
-                                                        value = selectedWorkoutList?.exercises?.get(index)?.sets ?: 0,
-                                                        onValueChange = {
-                                                            selectedWorkoutList.exercises[index].sets = it
+                                                    if (item != null) {
+                                                        NumberPicker(
+                                                            value = item.exercises2[index].exercisesSet,
+                                                            onValueChange = {
 
-                                                        },
-                                                        range = 0..20,
-                                                        dividersColor = Color(0xFFF1C40F)
-                                                    )
+                                                                updateItemRepoSet(itemRepos,item,index,it)
+                                                                item.exercises2[index].exercisesSet = it
+
+                                                            },
+                                                            range = 0..20,
+                                                            dividersColor = Color(0xFFF1C40F)
+                                                        )
+                                                    }
 
                                                 }
                                                 Column(
@@ -335,15 +347,19 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                                         color = Color(0xFF21282F),
                                                         style = TextStyle(fontSize = 20.sp)
                                                     )
-                                                    NumberPicker(
-                                                        value = selectedWorkoutList.exercises[index].reps,
-                                                        onValueChange = {
-                                                            selectedWorkoutList.exercises[index].reps = it
+                                                    if (item != null) {
+                                                        NumberPicker(
+                                                            value = item.exercises2[index].exercisesRep ,
+                                                            onValueChange = {
 
-                                                        },
-                                                        range = 0..20,
-                                                        dividersColor = Color(0xFFF1C40F)
-                                                    )
+                                                                updateItemRepoRep(itemRepos,item,index,it)
+                                                                item.exercises2[index].exercisesRep = it
+
+                                                            },
+                                                            range = 0..20,
+                                                            dividersColor = Color(0xFFF1C40F)
+                                                        )
+                                                    }
 
                                                 }
 
@@ -380,9 +396,7 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
                                 }
                                 Spacer(modifier = Modifier.size(20.dp))
                             }
-
                         }
-                    }
                 }
 
             }
@@ -406,7 +420,10 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
             }
             Button(onClick = {},
                 modifier = Modifier
-                    .padding(top = screenheightDp.dp / 3.75f, start = marginWorkoutSettingsTextWidthDp / 20)
+                    .padding(
+                        top = screenheightDp.dp / 3.75f,
+                        start = marginWorkoutSettingsTextWidthDp / 20
+                    )
                     .width(125.dp)
                     .height(19.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
@@ -423,6 +440,45 @@ fun WorkoutSettingScreen(navController: NavController,viewModelSave: ViewModelSa
     }
 }
 
+fun updateItemRepoSet(
+    itemRepos: ItemsRepository,
+    item: ProjectFitnessWorkoutWithExercises,
+    index: Int,
+    i: Int
+)
+{
+        CoroutineScope(Dispatchers.IO).launch {
+            itemRepos.updatesItem(ProjectFitnessExerciseEntity
+                (ids = item.exercises2[index].ids,
+                exerciseId = item.exercises2[index].exerciseId,
+                exercisesName = item.exercises2[index].exercisesName,
+                exercisesRep = item.exercises2[index].exercisesRep,
+                exercisesSet = i,
+                setrepList = ViewModelSave().setrepList )
+                )
+        }
+
+}
+
+fun updateItemRepoRep(
+    itemRepos: ItemsRepository,
+    item: ProjectFitnessWorkoutWithExercises,
+    index: Int,
+    i: Int
+)
+{
+    CoroutineScope(Dispatchers.IO).launch {
+        itemRepos.updatesItem(ProjectFitnessExerciseEntity
+            (ids = item.exercises2[index].ids,
+            exerciseId = item.exercises2[index].exerciseId,
+            exercisesName = item.exercises2[index].exercisesName,
+            exercisesRep = i,
+            exercisesSet = item.exercises2[index].exercisesSet,
+            setrepList = ViewModelSave().setrepList),
+            )
+    }
+
+}
 
 @Preview
 @Composable

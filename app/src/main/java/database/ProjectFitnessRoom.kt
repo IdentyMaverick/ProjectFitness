@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 
-@Database(entities = [ProjectFitnessWorkoutEntity::class], version = 1, exportSchema = false)
+@Database(entities = [ProjectFitnessWorkoutEntity::class,ProjectFitnessExerciseEntity::class], version = 1, exportSchema = false)
 abstract class ProjectFitnessRoom : RoomDatabase() {
     abstract fun projectFitnessDao() : ProjectFitnessDao
     companion object {

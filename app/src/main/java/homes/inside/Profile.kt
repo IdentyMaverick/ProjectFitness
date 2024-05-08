@@ -90,21 +90,22 @@ fun Profile(navController: NavController) {
                 .align(Alignment.TopCenter)
                 .padding(top = 5.dp),
             text = "PROJECT FITNESS",
-            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+            fontFamily = FontFamily(Font(R.font.postnobillscolomboregular)),
             color = Color(0xFFF1C40F),
             style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
         )
         Icon(
             painterResource(id = R.drawable.left),
             contentDescription = null,
-            tint = Color(0xFFD9D9D9),
+            tint = Color(0xFFF1C40F),
             modifier = Modifier
+                .padding(top = 5.dp)
                 .clickable(
                     interactionSource = MutableInteractionSource(),
                     indication = null,
                     onClick = { navController.navigate(Screens.Home.route) })
                 .size(30.dp)
-                .padding(top = 5.dp)
+
         )
         Box(modifier = Modifier
             .fillMaxWidth()
@@ -172,7 +173,7 @@ fun Profile(navController: NavController) {
                 fontSize = 15.sp,
             )
             Canvas(modifier = Modifier.align(Alignment.Center)) {
-                drawLine(color = (Color(0xFFF1C40F)),
+                drawLine(color = (Color(0xFF283747)),
                     start = Offset(0f, 20f),
                     end = Offset(0f, 100f),
                     strokeWidth = 5f)
@@ -187,7 +188,7 @@ fun Profile(navController: NavController) {
                 fontSize = 15.sp,
             )
             Canvas(modifier = Modifier.padding(top = 270.dp)) {
-                drawLine(color = Color(0xFFF1C40F),
+                drawLine(color = Color(0xFF283747),
                     start = Offset(0f, 170f),
                     end = Offset(screenwidthDp*3.toFloat(), 170f),
                     strokeWidth = 5f)

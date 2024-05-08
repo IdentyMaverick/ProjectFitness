@@ -1,6 +1,5 @@
 package com.example.projectfitness
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +17,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,33 +35,46 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import database.Exercises
 import database.ProjectFitnessContainer
+import database.ProjectFitnessExerciseEntity
+import kotlinx.coroutines.launch
 import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelSave
 
 @Composable
-fun WorkoutDetails(navController: NavController, projectFitnessViewModel: ProjectFitnessViewModel,viewModelSave: ViewModelSave) {
+fun WorkoutDetails(
+    navController: NavController,
+    projectFitnessViewModel: ProjectFitnessViewModel,
+    viewModelSave: ViewModelSave,
+) {
+
+    //Database Creation*************************************************************************************************************************************************************
+
     val context = LocalContext.current
-    //val viewModelSave: ViewModelSave = viewModel()
-    val container = ProjectFitnessContainer(context)
+    val scopes = rememberCoroutineScope()
+    var projectFitnessContainer = ProjectFitnessContainer(context)
+    val itemRepo = projectFitnessContainer.itemsRepository
+
+    //******************************************************************************************************************************************************************************
+
+    // Variable Initialize *********************************************************************************************************************************************************
 
     var config = LocalConfiguration.current
     var screenwidthDp = config.screenWidthDp.dp
     var screenheightDp = config.screenHeightDp.dp
 
-    // Access the selectedItemName value from the ViewModelSave
+
     val selectedItemName = viewModelSave.selectedItemName.value
     val projectFitnessViewItems = projectFitnessViewModel.firestoreItems.value
-    var selectedItemMainMuscles : String? = ""
-    var selectedItemSecondaryMuscles : String? = ""
-    //Log.d("TAG4:","Selected Item.name.equals : ${item.name} in Workout Details")
 
+    //**************************************************************************************************************************************************************************************
 
+    // UI Coding ****************************************************************************************************************************************************************************
 
-    Log.d("TAG3:","Selected Item Name is : $selectedItemName in Workout Details")
-
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color(0xFF181F26))) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF181F26))
+    ) {
         Text(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -69,7 +82,7 @@ fun WorkoutDetails(navController: NavController, projectFitnessViewModel: Projec
             text = "PROJECT FITNESS",
             fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
             color = Color(0xFFF1C40F),
-            style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
+            style = TextStyle(fontSize = 20.sp, letterSpacing = 10.sp)
         )
         Icon(
             painter = painterResource(id = R.drawable.left),
@@ -99,7 +112,7 @@ fun WorkoutDetails(navController: NavController, projectFitnessViewModel: Projec
                 .align(Alignment.TopCenter)
         )
         Text(
-            text = ""+ returnListMainMuscleItems(projectFitnessViewItems,selectedItemName),
+            text = "" + returnListMainMuscleItems(projectFitnessViewItems, selectedItemName),
             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             style = TextStyle(fontSize = 15.sp, letterSpacing = 5.sp),
             color = Color(0xFFF1C40F),
@@ -117,7 +130,7 @@ fun WorkoutDetails(navController: NavController, projectFitnessViewModel: Projec
                 .align(Alignment.TopCenter)
         )
         Text(
-            text = ""+ returnListSecondaryMuscleItems(projectFitnessViewItems,selectedItemName),
+            text = "" + returnListSecondaryMuscleItems(projectFitnessViewItems, selectedItemName),
             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             style = TextStyle(fontSize = 15.sp, letterSpacing = 5.sp),
             color = Color(0xFFFF0F00),
@@ -128,17 +141,32 @@ fun WorkoutDetails(navController: NavController, projectFitnessViewModel: Projec
         Row {
 
         }
-        Image(painterResource(
-            id = returnWorkoutDetail(selectedItemName)),
+        Image(
+            painterResource(
+                id = returnWorkoutDetail(selectedItemName)
+            ),
             contentDescription = null,
             modifier = Modifier
                 .padding(top = screenheightDp / 2.5f)
                 .align(Alignment.TopCenter)
-            )
-        Button(onClick = {
+        )
+        Button(
+            onClick = {
                 navController.navigate("chooseexercises/$selectedItemName")
-
-        },
+                scopes.launch {
+                    itemRepo.insertItems(
+                        ProjectFitnessExerciseEntity(
+                            exerciseId = (viewModelSave.idFlag.value) + 1,
+                            exercisesName = selectedItemName,
+                            exercisesRep = 12,
+                            exercisesSet = 3,
+                            setrepList = viewModelSave.setrepList
+                        )
+                    )
+                    viewModelSave.idFlag2.value++
+                    viewModelSave.selectedItemUpdatedName.value = selectedItemName
+                }
+            },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = screenheightDp / 18)
@@ -151,134 +179,145 @@ fun WorkoutDetails(navController: NavController, projectFitnessViewModel: Projec
             colors = ButtonDefaults.buttonColors(Color(0xFFD9D9D9)),
             contentPadding = PaddingValues(0.dp)
         ) {
-            Text(text = "ADD EXERCISES",
+            Text(
+                text = "ADD EXERCISES",
                 fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                color = Color(0xFF506172))
+                color = Color(0xFF506172)
+            )
         }
     }
 }
+
 @Composable
-fun returnListMainMuscleItems(projectFitnessViewList: List<Exercises>, selectedItemName : String?) : String?{
-    for (i in projectFitnessViewList)
-    {
-        if (i.name.equals(selectedItemName))
-        {
+fun returnListMainMuscleItems(
+    projectFitnessViewList: List<Exercises>,
+    selectedItemName: String?,
+): String? {
+    for (i in projectFitnessViewList) {
+        if (i.name.equals(selectedItemName)) {
             return i.bodypart.toString().uppercase()
         }
     }
     return null
 }
+
 @Composable
-fun returnListSecondaryMuscleItems(projectFitnessViewList: List<Exercises>, selectedItemName : String?) : String?{
-    for (i in projectFitnessViewList)
-    {
-        if (i.name.equals(selectedItemName))
-        {
+fun returnListSecondaryMuscleItems(
+    projectFitnessViewList: List<Exercises>,
+    selectedItemName: String?,
+): String? {
+    for (i in projectFitnessViewList) {
+        if (i.name.equals(selectedItemName)) {
             return i.secondarymuscles.toString().uppercase()
         }
     }
     return null
 }
+
 @Composable
-fun returnWorkoutDetail(selectedItemName : String?) : Int {
+fun returnWorkoutDetail(selectedItemName: String?): Int {
     if (selectedItemName == "Barbell Bench Press") {
         return R.drawable.legpress
-    } else if (selectedItemName == "Cable Crossovers"){
+    } else if (selectedItemName == "Cable Crossovers") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Chest Dip"){
+    } else if (selectedItemName == "Chest Dip") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Chest Press"){
+    } else if (selectedItemName == "Chest Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Close Grip Dumbbell Press"){
+    } else if (selectedItemName == "Close Grip Dumbbell Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Decline Bench Press"){
+    } else if (selectedItemName == "Decline Bench Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Bench Press"){
+    } else if (selectedItemName == "Dumbbell Bench Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Flys"){
+    } else if (selectedItemName == "Dumbbell Flys") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Pullover"){
+    } else if (selectedItemName == "Dumbbell Pullover") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Hammer Strength Bench Press"){
+    } else if (selectedItemName == "Hammer Strength Bench Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Incline Dumbbell Bench Press"){
+    } else if (selectedItemName == "Incline Dumbbell Bench Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Incline Dumbbell Flys"){
+    } else if (selectedItemName == "Incline Dumbbell Flys") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Leg Press"){
+    } else if (selectedItemName == "Leg Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Pec Dec"){
+    } else if (selectedItemName == "Pec Dec") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Push Up"){
+    } else if (selectedItemName == "Push Up") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Smith Machine Bench Press"){
+    } else if (selectedItemName == "Smith Machine Bench Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Smith Machine Incline Bench Press"){
+    } else if (selectedItemName == "Smith Machine Incline Bench Press") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Standing Cable Fly"){
+    } else if (selectedItemName == "Standing Cable Fly") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Squat"){
+    } else if (selectedItemName == "Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Leg Extension"){
+    } else if (selectedItemName == "Leg Extension") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Machine Hack Squat"){
+    } else if (selectedItemName == "Machine Hack Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Squat"){
+    } else if (selectedItemName == "Dumbbell Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Lunge"){
+    } else if (selectedItemName == "Dumbbell Lunge") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Front Squat"){
+    } else if (selectedItemName == "Front Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Bulgarian Split Squat"){
+    } else if (selectedItemName == "Dumbbell Bulgarian Split Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Split Squat"){
+    } else if (selectedItemName == "Dumbbell Split Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Plie Squat"){
+    } else if (selectedItemName == "Plie Squat") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Single Leg Extension"){
+    } else if (selectedItemName == "Single Leg Extension") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Box Jump"){
+    } else if (selectedItemName == "Box Jump") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Stiff Leg Deadlift"){
+    } else if (selectedItemName == "Stiff Leg Deadlift") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Dumbbell Hamstring Curl"){
+    } else if (selectedItemName == "Dumbbell Hamstring Curl") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Trap Bar Deadlift"){
+    } else if (selectedItemName == "Trap Bar Deadlift") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Seated Leg Curl"){
+    } else if (selectedItemName == "Seated Leg Curl") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Kettlebell Swing"){
+    } else if (selectedItemName == "Kettlebell Swing") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Sumo Deadlift"){
+    } else if (selectedItemName == "Sumo Deadlift") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Nordic Hamstring Curl"){
+    } else if (selectedItemName == "Nordic Hamstring Curl") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Seated Calf Raise"){
+    } else if (selectedItemName == "Seated Calf Raise") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Leg Press Calf Raise"){
+    } else if (selectedItemName == "Leg Press Calf Raise") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Standing Machine Calf Raise"){
+    } else if (selectedItemName == "Standing Machine Calf Raise") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Hyperextension"){
+    } else if (selectedItemName == "Hyperextension") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Barbell Hip Thrust"){
+    } else if (selectedItemName == "Barbell Hip Thrust") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Standing Good Morning"){
+    } else if (selectedItemName == "Standing Good Morning") {
         return R.drawable.legpress
-    }else if (selectedItemName == "IT Band Foam Rolling"){
+    } else if (selectedItemName == "IT Band Foam Rolling") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Plantar Fascia Lacrosse Ball"){
+    } else if (selectedItemName == "Plantar Fascia Lacrosse Ball") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Kneeling Posterior Hip Capsule Mobilization"){
+    } else if (selectedItemName == "Kneeling Posterior Hip Capsule Mobilization") {
         return R.drawable.legpress
-    }else if (selectedItemName == "Hip Abduction Machine"){
+    } else if (selectedItemName == "Hip Abduction Machine") {
         return R.drawable.legpress
     }
     return R.drawable.down
 }
+
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
 @Composable
-fun WorkoutDetailsPreview()
-{
-    WorkoutDetails(navController = rememberNavController(), projectFitnessViewModel = viewModel<ProjectFitnessViewModel>(), viewModelSave = viewModel() )
+fun WorkoutDetailsPreview() {
+    WorkoutDetails(
+        navController = rememberNavController(),
+        projectFitnessViewModel = viewModel<ProjectFitnessViewModel>(),
+        viewModelSave = viewModel()
+    )
 }

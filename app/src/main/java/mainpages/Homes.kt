@@ -1,7 +1,7 @@
 package mainpages
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -33,14 +33,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,7 +61,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
+import database.Exercise
 import database.ProjectFitnessContainer
+import database.ProjectFitnessWorkoutEntity
 import kotlinx.coroutines.launch
 import navigation.NavigationBar
 import navigation.Screens
@@ -74,6 +77,7 @@ class Homes : ComponentActivity() {
 
         }
     }
+    @SuppressLint("StateFlowValueCalledInComposition")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Home(navController: NavController,viewModelSave: ViewModelSave) {
@@ -84,9 +88,9 @@ class Homes : ComponentActivity() {
         var projectFitnessContainer = ProjectFitnessContainer(context)
         val itemRepo = projectFitnessContainer.itemsRepository
 
-        LaunchedEffect(key1 = null) {
+        val itemsState by itemRepo.getAllItemsStream().collectAsState(initial = emptyList())
 
-        }
+
 
         //******************************************************************************************************************************************************************************
 
@@ -114,8 +118,6 @@ class Homes : ComponentActivity() {
         var fl = viewModelSave.flag
         var notworkoutPressed = viewModelSave.allowed
 
-        var selectedListWorkouts = viewModelSave.selectedListWorkouts
-
         viewModelSave.exercisesForWorkouts2.clear()
 
         // UI Coding ****************************************************************************************************************************************************************************
@@ -129,22 +131,23 @@ class Homes : ComponentActivity() {
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
-                .background(Color(0xFFF1C40F)),
+                .background(Color(0xFF181F26)),
             )
             {
 
-                Row(Modifier.align(Alignment.CenterStart)) {
+                Row(Modifier.align(Alignment.CenterEnd)) {
 
                     Text(
                         text = "Your Workouts",
-                        color = Color(0xFF21282F),
-                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                        color = Color(0xFFF1C40F),
+                        fontFamily = FontFamily(Font(R.font.postnobillscolomboregular)),
                         style = TextStyle(fontSize = 30.sp),
                         modifier = Modifier
-                            .padding(start = 10.dp, top = 5.dp)
+                            .align(Alignment.CenterVertically)
+                            .padding(start = 10.dp)
                     )
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.weight(0.5f))
 
                     IconButton(
                         onClick = {  navController.navigate(Screens.ChooseExercises.route)
@@ -152,6 +155,9 @@ class Homes : ComponentActivity() {
                             name.value = ""
                             exercises.clear()
                             notworkoutPressed.value = false
+
+                            scopes.launch { itemRepo.insertItem(ProjectFitnessWorkoutEntity(workoutName = "", exercises = mutableStateListOf(Exercise("",0,0)))) }
+
                                   }, modifier = Modifier
 
                     ) {
@@ -159,9 +165,9 @@ class Homes : ComponentActivity() {
                             painterResource(id = R.drawable.projectfitnessplus),
                             contentDescription = null,
                             modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp),
-                            tint = Color(0xFF21282F)
+                                .width(25.dp)
+                                .height(25.dp),
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -175,9 +181,9 @@ class Homes : ComponentActivity() {
                             painterResource(id = R.drawable.projectfitnessprofileheavy),
                             contentDescription = null,
                             modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp),
-                            tint = Color(0xFF21282F)
+                                .width(25.dp)
+                                .height(25.dp),
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -190,9 +196,9 @@ class Homes : ComponentActivity() {
                             painterResource(id = R.drawable.projectfitnesscircleheavy),
                             contentDescription = null,
                             modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp),
-                            tint = Color(0xFF21282F)
+                                .width(25.dp)
+                                .height(25.dp),
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -207,7 +213,7 @@ class Homes : ComponentActivity() {
                             modifier = Modifier
                                 .width(25.dp)
                                 .height(25.dp),
-                            tint = Color(0xFF21282F)
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -221,24 +227,9 @@ class Homes : ComponentActivity() {
                         }
                         Box(modifier = Modifier
                             .fillMaxWidth()
-                            .height(230.dp) )
+                            .height(77.dp) )
                         {
                             Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-
-                                Button(onClick = { /*TODO*/ }, modifier = Modifier
-
-                                    .padding(bottom = 25.dp)
-                                    .fillMaxWidth()
-                                    .height(60.dp),
-                                    shape = RoundedCornerShape(0.dp),
-                                    contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
-                                ) {
-                                    Text(text = "Profile Settings",
-                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                                        color = Color(0xFF181F26))
-                                }
-
                                 Button(onClick = { navController.navigate(Screens.LoginScreen.route) }, modifier = Modifier
                                     .align(Alignment.End)
                                     .padding(bottom = 25.dp)
@@ -246,11 +237,11 @@ class Homes : ComponentActivity() {
                                     .height(60.dp),
                                     shape = RoundedCornerShape(0.dp),
                                     contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
                                     Text(text = "Logout",
-                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                                        color = Color(0xFF181F26))
+                                        style = TextStyle(fontSize = 25.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                        color = Color(0xFFF1C40F))
                                 }
 
                             }
@@ -267,24 +258,25 @@ class Homes : ComponentActivity() {
                     .fillMaxHeight()
                     .padding(top = 100.dp)
 
-
             )
             {
                 Column {
+                    /*
                     Text(text = "All Exercises",
-                        style = TextStyle(fontSize = 30.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), letterSpacing = 4.sp ),
+                        style = TextStyle(fontSize = 30.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), letterSpacing = 1.sp ),
                         modifier = Modifier
-                            .align(Alignment.CenterHorizontally),
-                        color = Color.White)
-
-                    Spacer(modifier = Modifier.size(50.dp))
+                            .align(Alignment.Start)
+                            .padding(start = 15.dp),
+                        color = Color(0xFFF1C40F))
+*/
+                    Spacer(modifier = Modifier.size(20.dp))
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(top = 10.dp, bottom = 20.dp, start = 20.dp, end = 20.dp),
+                            .padding(bottom = 20.dp),
                         state = LazyListState()
                     ) {
-                        itemsIndexed(list) { index, item ->
+                        itemsIndexed(itemsState) { index, item ->
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -300,11 +292,8 @@ class Homes : ComponentActivity() {
                                         )
                                     )
                                     .clickable {
-                                        viewModelSave.selectedListWorkouts = list[index]
-                                        Log.d(
-                                            "SLT INDX",
-                                            list[index].toString() + " $selectedListWorkouts"
-                                        )
+                                        viewModelSave.selectedWorkoutName.value = item.workoutName
+
                                         navController.navigate("workoutsettingscreen")
                                     }
 
@@ -315,8 +304,7 @@ class Homes : ComponentActivity() {
                                         contentScale = ContentScale.Crop,
                                         alpha = 0.7f,
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(shape = RoundedCornerShape(20.dp)),
+                                            .fillMaxSize(),
                                     )
                                 }else if (index == 1){
                                     Image(painterResource(id = R.drawable.login),
@@ -324,17 +312,16 @@ class Homes : ComponentActivity() {
                                         contentScale = ContentScale.Crop,
                                         alpha = 0.7f,
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(shape = RoundedCornerShape(20.dp)),
+                                            .fillMaxSize(),
                                     )
                                 }
 
                                 Row(modifier = Modifier.align(Alignment.Center)) {
                                     Text(
-                                        text = "" + item.name,
+                                        text = "" + item.workoutName,
                                         modifier = Modifier
                                             .padding(start = 20.dp),
-                                        fontSize = 27.sp,
+                                        fontSize = 30.sp,
                                         fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                                         textAlign = TextAlign.Left,
                                         color = Color(0xFFD9D9D9),

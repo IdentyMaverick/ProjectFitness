@@ -148,7 +148,7 @@ fun Activity(navController: NavController) {
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)
-                .background(Color(0xFFF1C40F)),
+                .background(Color(0xFF181F26)),
             )
             {
 
@@ -156,8 +156,8 @@ fun Activity(navController: NavController) {
 
                     Text(
                         text = "PF Workout",
-                        color = Color(0xFF21282F),
-                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                        color = Color(0xFFF1C40F),
+                        fontFamily = FontFamily(Font(R.font.postnobillscolomboregular)),
                         style = TextStyle(fontSize = 30.sp),
                         modifier = Modifier
                             .padding(start = 10.dp, top = 5.dp)
@@ -173,9 +173,9 @@ fun Activity(navController: NavController) {
                             painterResource(id = R.drawable.projectfitnessprofileheavy),
                             contentDescription = null,
                             modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp),
-                            tint = Color(0xFF21282F)
+                                .width(25.dp)
+                                .height(25.dp),
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -188,9 +188,9 @@ fun Activity(navController: NavController) {
                             painterResource(id = R.drawable.projectfitnesscircleheavy),
                             contentDescription = null,
                             modifier = Modifier
-                                .width(30.dp)
-                                .height(30.dp),
-                            tint = Color(0xFF21282F)
+                                .width(25.dp)
+                                .height(25.dp),
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -205,7 +205,7 @@ fun Activity(navController: NavController) {
                             modifier = Modifier
                                 .width(25.dp)
                                 .height(25.dp),
-                            tint = Color(0xFF21282F)
+                            tint = Color(0xFFF1C40F)
                         )
 
                     }
@@ -219,24 +219,9 @@ fun Activity(navController: NavController) {
                         }
                         Box(modifier = Modifier
                             .fillMaxWidth()
-                            .height(230.dp) )
+                            .height(77.dp) )
                         {
                             Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-
-                                Button(onClick = { /*TODO*/ }, modifier = Modifier
-
-                                    .padding(bottom = 25.dp)
-                                    .fillMaxWidth()
-                                    .height(60.dp),
-                                    shape = RoundedCornerShape(0.dp),
-                                    contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
-                                ) {
-                                    Text(text = "Profile Settings",
-                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                                        color = Color(0xFF181F26))
-                                }
-
                                 Button(onClick = { navController.navigate(Screens.LoginScreen.route) }, modifier = Modifier
                                     .align(Alignment.End)
                                     .padding(bottom = 25.dp)
@@ -244,11 +229,11 @@ fun Activity(navController: NavController) {
                                     .height(60.dp),
                                     shape = RoundedCornerShape(0.dp),
                                     contentPadding = PaddingValues(0.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F))
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                                 ) {
                                     Text(text = "Logout",
-                                        style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                                        color = Color(0xFF181F26))
+                                        style = TextStyle(fontSize = 25.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
+                                        color = Color(0xFFF1C40F))
                                 }
 
                             }
