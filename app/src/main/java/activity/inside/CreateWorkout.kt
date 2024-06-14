@@ -38,6 +38,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -74,9 +74,16 @@ import viewmodel.ViewModelSave
 @Composable
 fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
 
+    // Database Initialize *****************************************************************************************************************************************************************
+    val context = LocalContext.current
+    val scopes = rememberCoroutineScope()
+    var projectFitnessContainer = ProjectFitnessContainer(context)
+    val itemRepo = projectFitnessContainer.itemsRepository
+
+    var exerciseList = itemRepo.getProjectFitnessExercises().collectAsState(initial = emptyList())
+
     // Variable Initialize *****************************************************************************************************************************************************************
 
-    val context = LocalContext.current
     val container = ProjectFitnessContainer(context)
     val transparentColorFilter = Color(0f,0f,0f,0.4f)
 
@@ -84,7 +91,8 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
     var flag = viewModelSave.flag
     var exercise = viewModelSave.exercises
     var text = remember{ mutableStateOf("") }
-    val exercises = arrayOf("All", "Chest", "Leg")
+
+    val exercises = arrayOf("All", "Abductors" , "Abs" , "Adductors" , "Biceps" , "Calves" , "Chest", "Forearms" , "Glutes" , "Hamstrings" , "Hip Flexors" , "IT Band" ,  "Lats" , "Lower Back"  , "Upper Back"  , "Neck" , "Obliques" , "Palmar Fascia" , "Plantar Fascia" , "Quads" , "Shoulders" , "Traps" , "Triceps")
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionTest by remember { mutableStateOf(exercises[0]) }
     var allowed = viewModelSave.allowed
@@ -99,7 +107,12 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(true) }
+
+    var filteredExercises = exerciseList.value.filter {
+        (selectedOptionTest == "All" || it.bodyPart == selectedOptionTest) && it.exerciseName.startsWith(text.value, ignoreCase = true)
+    }
+    Log.d("start with",filteredExercises.toString())
 
 
     //***************************************************************************************************************************************************************************************
@@ -214,8 +227,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                 .align(Alignment.TopCenter)
                                 .padding(top = 20.dp, bottom = 20.dp, start = 20.dp, end = 20.dp)
                         ) {
-                            items(firestoreItems) { item ->
-                                if (item.bodypart == selectedOptionTest && text.value.isEmpty()) {
+                            items(filteredExercises) { item ->
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -225,16 +237,16 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                                 Color(0xFF2C3E50),
                                                 shape = RoundedCornerShape(10.dp)
                                             )
-                                            .clickable(onClick = {/*
-                                                viewModelSave.updateSelectedItemName(item.name.toString())
+                                            .clickable(onClick = {
+                                                viewModelSave.updateSelectedItemName(item.exerciseName)
                                                 Log.d(
                                                     "TAG1",
-                                                    "Selected Item Name is sett : ${item.name}"
+                                                    "Selected Item Name is sett : ${item.exerciseName}"
                                                 )
                                                 navController.navigate(route = "workoutdetails")
                                                 //ispopupVisible = true
                                                 flag.value = true
-                                                count.value += 1*/
+                                                count.value += 1
                                             })
 
                                     ) {
@@ -249,7 +261,7 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                                 ) ,
                                         )
                                         Text(
-                                            text = "" + item.name,
+                                            text = "" + item.exerciseName,
                                             modifier = Modifier
                                                 .align(
                                                     Alignment.Center
@@ -260,122 +272,9 @@ fun CreateWorkout(navController: NavController,viewModelSave: ViewModelSave) {
                                             fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
                                             textAlign = TextAlign.Center
                                         )
-                                        /*Button(
-                                            onClick = {
-                                                //ispopupVisible = true
-                                                navController.navigate (route = "chooseexercises/"+item.name)
-                                                flag.value = true
-                                                      count.value += 1},
-                                            modifier = Modifier
-                                                .align(Alignment.CenterEnd)
-                                                .width(60.dp)
-                                                .height(30.dp)
-                                                .padding(end = 10.dp),
-                                            colors = ButtonDefaults.buttonColors(Color(0xFFD9D9D9)),
-                                            shape = RoundedCornerShape(10.dp),
-                                            contentPadding = PaddingValues(0.dp)
-                                        ) {
-                                            Text(text = "add")
-                                        }*/
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
-                                } else if (  selectedOptionTest == "All" && text.value.isEmpty()) {   // OPTIMAL SITUATION
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(Alignment.Center)
-                                            .height(70.dp)
-                                            .background(
-                                                Color(0xFF2C3E50),
-                                                shape = RoundedCornerShape(10.dp)
-                                            )
-                                            .clickable(onClick = {
-                                                viewModelSave.updateSelectedItemName(item.name.toString())
-                                                Log.d(
-                                                    "TAG1",
-                                                    "Selected Item Name is sett : ${item.name}"
-                                                )
-                                                navController.navigate(route = "workoutdetails")
-                                                //ispopupVisible = true
-                                                flag.value = true
-                                                count.value += 1
-                                            })
 
-                                    ) {
-
-                                        Image(
-                                            painterResource(
-                                                id = R.drawable.cablecrossover/*imager(projectFitnessViewModel = ProjectFitnessViewModel(),item)*/),
-                                            contentDescription = null,
-                                            alpha = 0.5f,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(
-                                                    RoundedCornerShape(10.dp)
-                                                ),
-                                        )
-                                        Text(
-                                            text = "" + item.name,
-                                            modifier = Modifier
-                                                .align(
-                                                    Alignment.Center
-                                                ),
-                                            style = TextStyle(fontSize = 20.sp,letterSpacing = 3.sp),
-                                            color = Color(0xFFD9D9D9),
-                                            fontFamily = FontFamily(Font(R.font.postnobillscolombobold)) ,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.size(10.dp))
-                                }
-                                else if (selectedOptionTest == "All" && text.value.contains("B") == item.name?.contains("B")
-                                    || selectedOptionTest == "All" && text.value.contains("Barbell") == item.name?.contains("Barbell")){
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .align(Alignment.Center)
-                                            .height(70.dp)
-                                            .background(
-                                                Color(0xFF2C3E50),
-                                                shape = RoundedCornerShape(10.dp)
-                                            )
-                                            .clickable(onClick = {/*
-                                                viewModelSave.updateSelectedItemName(item.name.toString())
-                                                Log.d(
-                                                    "TAG1",
-                                                    "Selected Item Name is sett : ${item.name}"
-                                                )
-                                                navController.navigate(route = "workoutdetails")
-                                                //ispopupVisible = true
-                                                flag.value = true
-                                                count.value += 1*/
-                                            })
-                                    ) {
-                                        Image(painterResource(R.drawable.cablecrossover/*imager(projectFitnessViewModel = ProjectFitnessViewModel(),item)*/),
-                                            contentDescription =null,
-                                            alpha = 0.5f,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(
-                                                    RoundedCornerShape(10.dp)
-                                                ),
-                                            colorFilter = ColorFilter.tint(Color.Transparent.copy(alpha = 0.4f)))
-                                        Text(
-                                            text = "" + item.name,
-                                            modifier = Modifier
-                                                .align(
-                                                    Alignment.Center
-                                                ),
-                                            style = TextStyle(fontSize = 20.sp,letterSpacing = 3.sp),
-                                            color = Color(0xFFD9D9D9),
-                                            fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.size(10.dp))
-                                }
                             }
                         }
                     }

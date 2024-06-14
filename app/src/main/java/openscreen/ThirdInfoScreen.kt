@@ -30,14 +30,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
-import navigation.Screens
 import com.example.projectfitness.Show
+import navigation.Screens
 
 @Composable
 fun ThirdInfo(navController: NavController) {
 
-    var show = Show()
-    var context : Context = LocalContext.current
+    val show = Show()
+    val context : Context = LocalContext.current
     Box(
         Modifier
             .fillMaxSize()

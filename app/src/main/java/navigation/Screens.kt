@@ -22,4 +22,12 @@ sealed class Screens(val route: String) {
     object WorkoutSettingScreenWorkoutDetails : Screens(route = "workoutsettingscreenworkoutdetails")
     object WorkoutLog : Screens(route = "workoutlog")
     object Meal : Screens(route = "meal")
+    object WorkoutCompleteScreen : Screens(route = "workoutcompletescreen")
+    object WorkoutSettingDetails : Screens(route = "workoutsettingdetails" )
+    object ProjectChallangesScreen : Screens(route = "projectchallangesscreen")
+    object ProjectCoachScreen : Screens(route = "projectcoachscreen")
+    object HistoryExerciseScreen : Screens(route = "historyexercisescreen")
+    object ProjectFollowersScreen : Screens(route = "projectfollowersscreen")
+    object ProjectFollowScreen : Screens(route = "projectfollowscreen")
+    object OtherScreenProfile : Screens(route = "otherscreenprofile/{nickname}")
 }

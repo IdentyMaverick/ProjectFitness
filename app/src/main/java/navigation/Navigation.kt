@@ -1,8 +1,14 @@
 package navigation
 
+import HistoryExerciseScreen
+import OtherScreenProfile
+import ProjectChallangesScreen
+import ProjectCoachScreen
+import SocialViewModel
 import activity.inside.ChooseExercises
 import activity.inside.CreateWorkout
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -27,22 +33,29 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.projectfitness.R
 import com.example.projectfitness.WorkoutDetails
+import com.example.projectfitness.WorkoutSettingDetails
 import com.example.projectfitness.WorkoutSettingScreenWorkoutDetails
+import database.FirestoreRepository
 import homes.inside.Profile
 import homes.inside.ProfileEdit
+import homes.inside.ProjectFollowScreen
+import homes.inside.ProjectFollowersScreen
+import homes.inside.WorkoutCompleteScreen
 import homes.inside.WorkoutLog
 import homes.inside.WorkoutSettingScreen
 import loginscreens.ForgetPasswordScreen
 import loginscreens.Login
 import loginscreens.Register
 import mainpages.Activity
-import mainpages.Homes
+import mainpages.Home
 import mainpages.LeaderBoard
 import mainpages.Meal
 import openscreen.Info
 import openscreen.SecondInfo
 import openscreen.ThirdInfo
 import viewmodel.ProjectFitnessViewModel
+import viewmodel.ViewModelHomes
+import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
 
 @RequiresApi(Build.VERSION_CODES.R)
@@ -50,6 +63,11 @@ import viewmodel.ViewModelSave
 @Composable
 fun Navigation() {
     val viewModel : ViewModelSave = viewModel() // For holding list of exercise , preserve every class
+    val projectFitnessViewModel : ProjectFitnessViewModel = ProjectFitnessViewModel()
+    val viewModelProfile : ViewModelProfile = ViewModelProfile()
+    val viewModelHomes : ViewModelHomes = ViewModelHomes()
+    val firestoreRepository : FirestoreRepository = FirestoreRepository()
+    val socialViewModel : SocialViewModel = SocialViewModel(repository = firestoreRepository)
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screens.FirstInfoScreen.route) {
         composable(route = Screens.FirstInfoScreen.route) {
@@ -63,22 +81,22 @@ fun Navigation() {
             ThirdInfo(navController = navController)
         }
         composable(route = Screens.LoginScreen.route) {
-            Login().LoginScreen(navController = navController)
+            Login().LoginScreen(navController = navController , viewModelProfile = viewModelProfile)
         }
         composable(route = Screens.LoginScreen.ForgetPasswordScreen.route) {
             ForgetPasswordScreen(navController = navController)
         }
         composable(route = Screens.LoginScreen.RegisterScreen.route) {
-            Register().RegisterScreen(navController = navController)
+            Register().RegisterScreen(navController = navController , viewModelProfile)
         }
         composable(route = Screens.Home.route) {
-            Homes().Home(navController = navController,viewModel)
+            Home(navController = navController,viewModel , projectFitnessViewModel ,viewModelProfile = viewModelProfile)
         }
         composable(route = Screens.Activity.route) {
-            Activity(navController = navController)
+            Activity(navController = navController , viewModelSave = viewModel)
         }
         composable(route = Screens.Home.Profile.route) {
-            Profile(navController = navController)
+            Profile(navController = navController , viewModelProfile = viewModelProfile , socialViewModel = socialViewModel)
         }
         composable(route = Screens.Home.Profile.ProfileEdit.route) {
             ProfileEdit()
@@ -97,11 +115,11 @@ fun Navigation() {
         { WorkoutSettingScreen(navController = navController,viewModel) }
         composable(route = Screens.WorkoutDetails.route)
         {
-            WorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel() ,viewModel)
+            WorkoutDetails(navController = navController, projectFitnessViewModel = projectFitnessViewModel , viewModel)
         }
         composable(route = Screens.WorkoutSettingScreenWorkoutDetails.route)
         {
-            WorkoutSettingScreenWorkoutDetails(navController = navController, projectFitnessViewModel = ProjectFitnessViewModel(),viewModel)
+            WorkoutSettingScreenWorkoutDetails(navController = navController, projectFitnessViewModel = projectFitnessViewModel , viewModel)
         }
         composable(route = Screens.WorkoutLog.route)
         {
@@ -111,6 +129,43 @@ fun Navigation() {
         {
             Meal(navController = navController)
         }
+        composable(route = Screens.WorkoutCompleteScreen.route){
+
+            WorkoutCompleteScreen(navController = navController,viewModel)
+        }
+        composable(route = Screens.WorkoutSettingDetails.route)
+        {
+            WorkoutSettingDetails(navController = navController, projectFitnessViewModel = projectFitnessViewModel ,viewModel)
+        }
+        composable(route = Screens.ProjectChallangesScreen.route)
+        {
+            ProjectChallangesScreen(navController = navController , viewModelSave = viewModel)
+        }
+        composable(route = Screens.ProjectCoachScreen.route)
+        {
+            ProjectCoachScreen(navController = navController , viewModelSave = viewModel)
+        }
+        composable(route = Screens.HistoryExerciseScreen.route)
+        {
+            HistoryExerciseScreen(navController = navController , viewModelProfile = viewModelProfile)
+        }
+        composable(route = Screens.ProjectFollowersScreen.route)
+        {
+            ProjectFollowersScreen(navController = navController , socialViewModel = socialViewModel)
+        }
+        composable(route = Screens.ProjectFollowScreen.route)
+        {
+            ProjectFollowScreen(navController = navController , socialViewModel = socialViewModel)
+        }
+        composable(route = Screens.OtherScreenProfile.route, arguments = listOf(navArgument("nickname"){type = NavType.StringType})){
+            val nickname = it.arguments?.getString("nickname")
+            if (nickname != null) {
+                OtherScreenProfile(navController = navController, socialViewModel , nickname)
+            }else {
+                Log.d("seeees","looool")}
+        }
+
+
     }
 
     }
@@ -122,7 +177,7 @@ fun NavigationBar(navController: NavController, indexs: Int, flag: Boolean, flag
         Modifier
             .fillMaxHeight()
             .height(50.dp)
-            .padding(top = 600.dp), containerColor = Color(0xFF181F26)
+            .padding(top = 670.dp), containerColor = Color(0xFF181F26)
     ) {
 
         var flag = flag

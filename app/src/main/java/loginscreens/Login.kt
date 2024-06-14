@@ -1,4 +1,6 @@
 package loginscreens
+
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -30,12 +32,17 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +59,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -63,25 +71,28 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.projectfitness.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import database.ProjectFitnessContainer
 import database.ProjectFitnessRoom
+import database.ProjectFitnessUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import navigation.Screens
+import viewmodel.ViewModelProfile
 
 class Login : ComponentActivity() {
 
-
-
     private lateinit var auth: FirebaseAuth
-    var usernames : String = ""
+    var usernames: String = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
+
         setContent {
         }
     }
@@ -90,26 +101,40 @@ class Login : ComponentActivity() {
         super.onStart()
     }
 
+    @SuppressLint("CoroutineCreationDuringComposition")
     @Composable
-    fun LoginScreen(navController: NavController) {
-
+    fun LoginScreen(navController: NavController, viewModelProfile: ViewModelProfile) {
         var contextmi = LocalContext.current
-        //val projectFitnessContainer = remember { ProjectFitnessContainer(contextmi) }
-        //val itemRepo = projectFitnessContainer.itemsRepository
+        var sharedPreferences = contextmi.getSharedPreferences("rememberbuttonStatus", Context.MODE_PRIVATE)
         val projectFitnessContainerRoom = ProjectFitnessRoom.getDatabase(contextmi)
         val dao = projectFitnessContainerRoom.projectFitnessDao()
-
-
         val configuration = LocalConfiguration.current
         val screenwidthDp = configuration.screenWidthDp.dp
         val screenheightDp = configuration.screenHeightDp.dp
-
-        val checkedState = remember { mutableStateOf(true) }
         val context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
+        var rememberMeBool by remember { mutableStateOf(sharedPreferences.getBoolean("bool",false)) }
+        // Database Initialization
+        val scopes = rememberCoroutineScope()
+        var projectFitnessContainer = ProjectFitnessContainer(context)
+        val itemRepo = projectFitnessContainer.itemsRepository
+        var user = itemRepo.getProjectFitnessUser().collectAsState(initial = emptyList()).value
 
-        //getCurrentUser(navController)
+        if (user.isNotEmpty() && user[0].userRemember) {
+            scopes.launch {
+                if (user.isNotEmpty() && user[0].userRemember) {
+                    LoginFirebase(user[0].userEmail, user[0].userPassword, navController, context , viewModelProfile)
+                }
+            }
 
+            Box(modifier = Modifier
+                .background(Color(0xFF181F26))
+                .fillMaxSize(), contentAlignment = Alignment.Center){
+                Image(painter = painterResource(id = R.drawable.projectfitnesslogologin), contentDescription = null , Modifier.padding(top = 100.dp) )
+                IndeterminateCircularIndicator()
+            }
+        }
+        else{
         Box(
             Modifier
                 .fillMaxSize()
@@ -123,7 +148,7 @@ class Login : ComponentActivity() {
                 modifier = Modifier.size(800.dp)
             )
             Image(
-                painter = painterResource(id = R.drawable.projectfitnesslogologin) ,
+                painter = painterResource(id = R.drawable.projectfitnesslogologin),
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -151,21 +176,14 @@ class Login : ComponentActivity() {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF181F26).copy(alpha = 0.4f)),
+                Button(colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF181F26).copy(
+                        alpha = 0.4f
+                    )
+                ),
                     shape = RoundedCornerShape(10.dp),
                     onClick = { /*TODO*/ }
                 ) {
-                    Text(
-                        text = "Login with Google account",
-                        color = Color(0xFFD9D9D9),
-                        modifier = Modifier.padding(end = 5.dp),
-                        fontSize = 17.sp,
-                        fontFamily = FontFamily(
-                            Font(R.font.postnobillscolombosemibold)
-                        ),
-                        textAlign = TextAlign.Center,
-                        style = TextStyle(letterSpacing = 3.sp),
-                    )
                     Image(painterResource(id = R.drawable.google), contentDescription = null)
                 }
             }
@@ -191,6 +209,7 @@ class Login : ComponentActivity() {
                     BasicTextField(
                         value = emailText.value,
                         onValueChange = { emailText.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier
                             .height(40.dp)
                             .width(270.dp)
@@ -200,45 +219,52 @@ class Login : ComponentActivity() {
                             fontSize = 12.sp,
                             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                             color = Color.White,
-                            letterSpacing = 1.sp
+                            letterSpacing = 1.sp,
+                            textDecoration = TextDecoration.None
                         ),
                         decorationBox = { innerTextField ->
-                            Row(
-                                modifier = Modifier
-                                    .padding(horizontal = 20.dp)
-                                    .fillMaxWidth()
-                                    .background(
-                                        color = Color(0xFF2C3E50),
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .border(
-                                        width = 2.dp,
-                                        color = Color(0xFF2C3E50),
-                                        shape = RoundedCornerShape(10.dp)
-                                    ),
-                                verticalAlignment = Alignment.CenterVertically
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.CenterStart // Metni sol ortalamak için
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Email,
-                                    contentDescription = "Favorite icon",
-                                    tint = Color.Black
-                                )
-                                Spacer(modifier = Modifier.width(width = 10.dp))
-                                innerTextField()
-
+                                Row(
+                                    modifier = Modifier
+                                        .padding(horizontal = 20.dp)
+                                        .fillMaxWidth()
+                                        .background(
+                                            color = Color(0xFF2C3E50),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                        .border(
+                                            width = 2.dp,
+                                            color = Color(0xFF2C3E50),
+                                            shape = RoundedCornerShape(10.dp)
+                                        ),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Email,
+                                        contentDescription = "Favorite icon",
+                                        tint = Color.Black
+                                    )
+                                    Spacer(modifier = Modifier.width(width = 10.dp))
+                                    innerTextField()
+                                }
                             }
                         }
 
                     )
 
+
                     var password = remember { mutableStateOf("") }
                     Text(
-                        text = "Password", fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                        text = "Password",
+                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                         modifier = Modifier.padding(top = 5.dp, end = 185.dp),
                         style = TextStyle(letterSpacing = 3.sp),
                         color = Color(0xFFD9D9D9)
 
-                        )
+                    )
                     Spacer(modifier = Modifier.size(5.dp))
                     BasicTextField(
                         value = password.value,
@@ -289,29 +315,46 @@ class Login : ComponentActivity() {
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .height(40.dp)){
-                        Checkbox(checked = checkedState.value, onCheckedChange = { checkedState.value = it } ,
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(end = screenwidthDp / 20))
-                        Text(text = "Remember Me",
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(end = screenwidthDp / 6, top = screenheightDp / 50),
-                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                            color = Color(0xFFD9D9D9),
-                            style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp)
-                        )
+                            .height(40.dp)
+                    ) {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                            .padding(start = 50.dp)) {
+                            Text(
+                                text = "Forget Password ?",
+                                textDecoration = TextDecoration.Underline,
+                                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                modifier = Modifier
+                                    .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route) }
+                                    .align(Alignment.CenterVertically),
+                                color = Color(0xFFD9D9D9),
+                                style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp)
+                            )
+                            Spacer(modifier = Modifier.size(20.dp))
+                            Text(
+                                text = "Remember Me",
+                                Modifier
+                                    .align(Alignment.CenterVertically),
+                                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                color = Color(0xFFD9D9D9),
+                                style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp)
+                            )
+                            Checkbox(
+                                checked = rememberMeBool,
+                                onCheckedChange = {
+                                    rememberMeBool = it
+                                    Log.d("boolstatus",rememberMeBool.toString())
+                                    val editor = sharedPreferences.edit()
+                                    editor.putBoolean("bool",it)
+                                    editor.apply()},
+                                Modifier
+                                    .align(Alignment.CenterVertically),
+                                colors = CheckboxDefaults.colors(checkmarkColor = Color.Black , checkedColor = Color(0xFFF1C40F))
+                            )
+                        }
+
                     }
-
-
-                    Text(text = "Forget Password ?",
-                        textDecoration = TextDecoration.Underline,
-                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                        modifier = Modifier
-                            .clickable { navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route) },
-                        color = Color(0xFFD9D9D9),
-                        style = TextStyle(letterSpacing = 1.sp, fontSize = 15.sp))
                     Spacer(modifier = Modifier.size(10.dp))
                     Button(
                         onClick = {
@@ -327,7 +370,8 @@ class Login : ComponentActivity() {
                                         emailText.value,
                                         password.value,
                                         navController,
-                                        context = context
+                                        context = context ,
+                                        viewModelProfile
                                     )
                                     dao.getItemStream(0)
 
@@ -341,14 +385,34 @@ class Login : ComponentActivity() {
                             contentColor = Color(0xFFF1C40F)
                         ), shape = RoundedCornerShape(5.dp)
                     ) {
-                        Text(text = "Sign-in", fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), fontSize = 15.sp, letterSpacing = 1.sp)
+                        Text(
+                            text = "Sign-in",
+                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                            fontSize = 15.sp,
+                            letterSpacing = 1.sp
+                        )
                     }
                     Spacer(modifier = Modifier.size(7.dp))
                     val annotedText = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = Color(0xFFD9D9D9), fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), fontSize = 15.sp, letterSpacing = 1.sp)){
+                        withStyle(
+                            style = SpanStyle(
+                                color = Color(0xFFD9D9D9),
+                                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                fontSize = 15.sp,
+                                letterSpacing = 1.sp
+                            )
+                        ) {
                             append("Don’t have an account yet ?")
                         }
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = Color(0xFFF1C40F),fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), fontSize = 15.sp, letterSpacing = 1.sp)) {
+                        withStyle(
+                            style = SpanStyle(
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFF1C40F),
+                                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                fontSize = 15.sp,
+                                letterSpacing = 1.sp
+                            )
+                        ) {
                             append(" Sign-up")
                         }
                     }
@@ -363,18 +427,23 @@ class Login : ComponentActivity() {
             }
 
         }
+        }
     }
 
     suspend fun LoginFirebase(
         email: String,
         password: String,
         navController: NavController,
-        context: Context
-
-    ) {
+        context: Context,
+        viewModelProfile: ViewModelProfile
+        ) {
+        var projectFitnessContainer = ProjectFitnessContainer(context)
+        val itemRepo = projectFitnessContainer.itemsRepository
         val db = Firebase.firestore
         val docRef = db.collection("users")
+        var sharedPreferences = context.getSharedPreferences("rememberbuttonStatus",Context.MODE_PRIVATE)
         auth = Firebase.auth
+        var uid = ""
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
                 val query = docRef.whereEqualTo("email", email)
@@ -382,10 +451,16 @@ class Login : ComponentActivity() {
                     query.get().addOnSuccessListener { document ->
                         for (document in document) {
                             var usernameinfo = document.data.get("first").toString()
+                            var nickName = document.data.get("nickname")
+                            viewModelProfile.nickNameId.value = nickName.toString()
+
                             this@Login.usernames = usernameinfo
                         }
                     }.await()
-                    Toast.makeText(context, "user is " + this@Login.usernames, Toast.LENGTH_SHORT).show()
+                    itemRepo.insertProjectUser(ProjectFitnessUser
+                        (uid, usernames , email , password ,
+                        "gs://projectfitness-ddfeb.appspot.com/gs:/projectfitness-ddfeb.appspot.com/profile_photos/${com.google.firebase.Firebase.auth.currentUser?.uid}/profile.jpg" , sharedPreferences.getBoolean("bool",false) , viewModelProfile.nickNameId.value))
+                        //"gs://projectfitness-ddfeb.appspot.com/gs:/projectfitness-ddfeb.appspot.com/profile_photos/VgUOk57HqnSH1tUAD3ZI/profile.jpg"
                     navController.navigate(Screens.Home.route)
                     finish()
                 }
@@ -399,26 +474,37 @@ class Login : ComponentActivity() {
         }
     }
 
-    fun getCurrentUser(navController: NavController){
+    fun getCurrentUser(navController: NavController) {
         try {
             val user = Firebase.auth.currentUser
-            if (user != null){
+            if (user != null) {
                 navController.navigate(Screens.Home.route)
-            }
-            else{
+            } else {
                 // Login
             }
+        } catch (e: Exception) {
+            Log.d("LOOOL", e.message.toString())
         }
-        catch (e:Exception){
-            Log.d("LOOOL",e.message.toString())}
-
 
 
     }
 
+    @Composable
+    fun IndeterminateCircularIndicator() {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .width(40.dp)
+                .fillMaxSize()
+                .padding(top = 500.dp),
+            color = Color(0xFF181F26),
+            trackColor = Color(0xFFF1C40F),
+        )
+    }
+
+
     @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
     @Composable
     fun PreviewLoginScreen() {
-        LoginScreen(rememberNavController())
+        LoginScreen(rememberNavController(), viewModelProfile = ViewModelProfile())
     }
 }

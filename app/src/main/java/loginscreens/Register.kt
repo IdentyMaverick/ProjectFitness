@@ -1,6 +1,5 @@
 package loginscreens
 
-import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Email
@@ -48,9 +48,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,19 +64,16 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import database.Database
 import navigation.Screens
+import viewmodel.ViewModelProfile
 
 class Register : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        var context: Context
         auth = Firebase.auth
         //var user = auth.currentUser
         //context = applicationContext
-        setContent {
-
-
-        }
+        setContent {}
     }
 
     public override fun onStart() {
@@ -91,7 +88,7 @@ class Register : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun RegisterScreen(navController: NavController) {
+    fun RegisterScreen(navController: NavController , viewModelProfile: ViewModelProfile) {
         val db = Firebase.firestore
         val context = LocalContext.current
         val scaleMultiplier = 0.5f
@@ -175,6 +172,7 @@ class Register : ComponentActivity() {
                     BasicTextField(
                         value = name.value,
                         onValueChange = { name.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier
                             .height(40.dp)
                             .width(270.dp)
@@ -184,7 +182,57 @@ class Register : ComponentActivity() {
                             fontSize = 15.sp,
                             fontFamily = FontFamily(Font(R.font.poppinslighttext)),
                             color = Color.White,
-                            textDecoration = TextDecoration.LineThrough,
+                        ),
+                        decorationBox = { innerTextField ->
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 20.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = Color(0xFF2C3E50),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        width = 2.dp,
+                                        color = Color(0xFF2C3E50),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AccountBox,
+                                    contentDescription = "Favorite icon",
+                                    tint = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(width = 10.dp))
+                                innerTextField()
+                            }
+                        }
+                    )
+
+                    var nickName = remember { mutableStateOf("") }
+                    Text(
+                        text = "Nickname",
+                        fontFamily = FontFamily(Font(R.font.poppinsregulartext)),
+                        modifier = Modifier.padding(top = 30.dp, end = 150.dp),
+                        color = Color(0xFFD9D9D9)
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    BasicTextField(
+                        value = nickName.value,
+                        onValueChange = {
+                            viewModelProfile.nickNameId.value = it
+                            nickName.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(270.dp)
+                            .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
+                        maxLines = 1,
+                        textStyle = TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                            color = Color.White,
                         ),
                         decorationBox = { innerTextField ->
                             Row(
@@ -224,6 +272,7 @@ class Register : ComponentActivity() {
                     BasicTextField(
                         value = emailText.value,
                         onValueChange = { emailText.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier
                             .height(40.dp)
                             .width(270.dp)
@@ -271,6 +320,7 @@ class Register : ComponentActivity() {
                     BasicTextField(
                         value = password.value,
                         onValueChange = { password.value = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier
                             .height(40.dp)
                             .width(270.dp)
@@ -312,10 +362,10 @@ class Register : ComponentActivity() {
                     Spacer(modifier = Modifier.size(15.dp))
                     Button(
                         onClick = {
-                            if (name.value.isNullOrEmpty() || emailText.value.isNullOrEmpty() || password.value.isNullOrEmpty()) {
+                            if (name.value.isNullOrEmpty() || emailText.value.isNullOrEmpty() || password.value.isNullOrEmpty() || nickName.value.isNullOrEmpty()) {
                                 Toast.makeText(
                                     context,
-                                    "Name ,E-Mail and Password should filled, try again",
+                                    "Name, Nickname, E-Mail and Password should be filled, try again",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
@@ -324,6 +374,7 @@ class Register : ComponentActivity() {
                                     password = password.value,
                                     navController = navController,
                                     name = name.value,
+                                    nickName = nickName.value
                                 )
                             }
 
@@ -360,16 +411,17 @@ class Register : ComponentActivity() {
         emailText: String,
         password: String,
         navController: NavController,
-        name: String
+        name: String ,
+        nickName : String
     ) {
         auth = Firebase.auth
         auth.createUserWithEmailAndPassword(emailText, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    //user = auth.currentUser
                     val user = hashMapOf(
-                        "first" to name,
-                        "email" to emailText,
+                        "first" to name ,
+                        "nickname" to nickName ,
+                        "email" to emailText ,
                         "password" to password)
                     Database().DatabaseUserCreate(user)
                     navController.navigate(Screens.LoginScreen.route)
@@ -383,6 +435,6 @@ class Register : ComponentActivity() {
     @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
     @Composable
     fun PreviewRegisterScreen() {
-        RegisterScreen(navController = rememberNavController())
+        RegisterScreen(navController = rememberNavController() , ViewModelProfile())
     }
 }

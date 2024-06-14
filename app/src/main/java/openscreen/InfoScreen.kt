@@ -1,4 +1,7 @@
 package openscreen
+import InsertProjectChallange
+import InsertProjectCoach
+import InsertProjectExercise
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Canvas
@@ -35,6 +38,9 @@ import com.example.projectfitness.Show
 
 @Composable
 fun Info(navController: NavController) {
+        InsertProjectExercise()
+        InsertProjectChallange()
+        InsertProjectCoach()
 
         var show : Show = Show()
         var context : Context = LocalContext.current
@@ -93,7 +99,8 @@ fun Info(navController: NavController) {
                             interactionSource = MutableInteractionSource(),
                             indication = null
                         ) {
-                            navController.navigate(Screens.SecondInfoScreen.route) },
+                            navController.navigate(Screens.SecondInfoScreen.route)
+                        },
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center,
                     color = Color(0xFFF1C40F),

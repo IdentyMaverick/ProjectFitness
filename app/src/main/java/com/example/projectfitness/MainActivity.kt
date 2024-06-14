@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.firebase.auth.FirebaseAuth
 import database.Exercise
 import database.ProjectFitnessContainer
 import database.ProjectFitnessExerciseEntity
@@ -26,8 +25,6 @@ import kotlinx.coroutines.launch
 import navigation.Navigation
 
 class MainActivity : ComponentActivity() {
-    private lateinit var auth : FirebaseAuth
-
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

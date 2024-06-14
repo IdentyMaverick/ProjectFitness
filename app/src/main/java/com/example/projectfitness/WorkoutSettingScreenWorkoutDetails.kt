@@ -81,7 +81,7 @@ fun WorkoutSettingScreenWorkoutDetails(navController: NavController, projectFitn
                 .align(Alignment.TopCenter)
         )
         Text(
-            text = ""+ returnListMainMuscleItems2(projectFitnessViewItems,selectedItemName),
+            text = ""+ projectFitnessViewItems?.let { returnListMainMuscleItems2(it,selectedItemName) },
             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             style = TextStyle(fontSize = 15.sp, letterSpacing = 5.sp),
             color = Color(0xFFF1C40F),
@@ -99,7 +99,7 @@ fun WorkoutSettingScreenWorkoutDetails(navController: NavController, projectFitn
                 .align(Alignment.TopCenter)
         )
         Text(
-            text = ""+ returnListSecondaryMuscleItems2(projectFitnessViewItems,selectedItemName),
+            text = ""+ projectFitnessViewItems?.let { returnListSecondaryMuscleItems2(it,selectedItemName) },
             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             style = TextStyle(fontSize = 15.sp, letterSpacing = 5.sp),
             color = Color(0xFFFF0F00),
@@ -114,7 +114,7 @@ fun WorkoutSettingScreenWorkoutDetails(navController: NavController, projectFitn
             id = returnWorkoutDetail2(selectedItemName)),
             contentDescription = null,
             modifier = Modifier
-                .padding(top = screenheightDp / 2.5f, end = screenwidthDp / 2 )
+                .padding(top = screenheightDp / 2.5f, end = screenwidthDp / 3 )
                 .align(Alignment.TopCenter)
         )
     }

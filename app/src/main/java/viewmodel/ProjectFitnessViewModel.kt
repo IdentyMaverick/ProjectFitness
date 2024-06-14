@@ -2,8 +2,6 @@ package viewmodel
 
 import android.service.controls.ControlsProviderService.TAG
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.ktx.auth
@@ -17,43 +15,44 @@ import kotlinx.coroutines.tasks.await
 
 class ProjectFitnessViewModel : ViewModel() {
     val firestoreData = MutableLiveData<String>()
-    val firestoreExercisesData = MutableLiveData<String>()
-
+    val firestoreExercisesData = MutableLiveData<List<Exercises>>() // Egzersiz verileri için MutableLiveData güncellendi
     private val firestore = Firebase.firestore
     private val itemsCollection = firestore.collection("exercises")
-    val firestoreItems: MutableState<List<Exercises>> = mutableStateOf(emptyList())
+    val firestoreItems: MutableLiveData<List<Exercises>> = MutableLiveData() // Egzersiz verileri için MutableLiveData güncellendi
 
     init {
+        loadDataFromFirestore()
         loadExercisesDataFromFirestore()
     }
 
     fun loadDataFromFirestore() {
         val db = Firebase.firestore
         val auth = Firebase.auth
-        var currentUserInfo = auth.currentUser?.email
-        var nameofUser: String = ""
+        val currentUserInfo = auth.currentUser?.email
         val docRef = db.collection("users")
         val query = docRef.whereEqualTo("email", currentUserInfo)
         CoroutineScope(Dispatchers.Main).launch {
-            query.get().addOnSuccessListener { document ->
-                for (document in document) {
-                    nameofUser = document.data.get("first").toString()
+            try {
+                val snapshot = query.get().await()
+                for (document in snapshot) {
+                    val nameofUser = document.data["first"].toString()
                     firestoreData.value = nameofUser
-                    Log.d(TAG, "Username is " + firestoreData.value)
+                    Log.d(TAG, "Username is $nameofUser")
                 }
-            }.await()
-            Log.d(TAG, "Username2 is " + firestoreData.value)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading user data: ${e.message}")
+            }
         }
     }
 
-    fun loadExercisesDataFromFirestore() {
-        itemsCollection.addSnapshotListener{snapshot,error ->
-            if (error != null){
+    private fun loadExercisesDataFromFirestore() {
+        itemsCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e(TAG, "Error listening to exercises collection: ${error.message}")
                 return@addSnapshotListener
-
             }
 
-            else if (snapshot != null && !snapshot.isEmpty){
+            if (snapshot != null && !snapshot.isEmpty) {
                 try {
                     val itemList = snapshot.documents.map { document ->
                         val data = document.data
@@ -61,12 +60,11 @@ class ProjectFitnessViewModel : ViewModel() {
                         val bodypart = data?.get("bodypart") as? String
                         val index = data?.get("index") as? String
                         val secondarymuscles = data?.get("secondary muscles") as? String
-                        Exercises(name, bodypart,index, secondarymuscles)
+                        Exercises(name, bodypart, index, secondarymuscles)
                     }
                     firestoreItems.value = itemList
-            }
-                catch (e:Exception){
-                    Log.d(TAG,"Error is " + e.message)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error processing exercises data: ${e.message}")
                 }
             }
         }

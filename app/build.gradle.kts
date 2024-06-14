@@ -56,7 +56,6 @@ dependencies {
     val nav_version = "2.7.7"
     implementation("androidx.room:room-common:2.6.1")
     implementation(platform("androidx.compose:compose-bom:2024.03.00"))
-    implementation("com.google.firebase:firebase-database-ktx:20.3.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.03.00"))
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -83,13 +82,7 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.31.1-alpha")
     implementation ("androidx.compose.material3:material3-window-size-class:1.2.1")
     implementation("androidx.navigation:navigation-compose:$nav_version")
-    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation ("com.google.firebase:firebase-firestore-ktx:24.11.0")
     implementation ("androidx.compose.ui:ui-tooling:1.6.4")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
@@ -99,6 +92,28 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.44")
     kapt("com.google.dagger:hilt-android-compiler:2.44")
     implementation ("com.google.code.gson:gson:2.8.8")
+    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.19")
+    // For `compose`. Creates a `ChartStyle` based on an M2 Material Theme.
+    implementation("com.patrykandpatrick.vico:compose-m2:2.0.0-alpha.19")
+    // For `compose`. Creates a `ChartStyle` based on an M3 Material Theme.
+    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.19")
+    // Houses the core logic for charts and other elements. Included in all other modules.
+    implementation("com.patrykandpatrick.vico:core:2.0.0-alpha.19")
+    // For the view system.
+    implementation("com.patrykandpatrick.vico:views:2.0.0-alpha.19")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("io.coil-kt:coil-compose:2.1.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.datastore:datastore:1.1.1")
+    implementation("dev.chrisbanes.snapper:snapper:0.2.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.7")
+    //implementation("androidx.core:core-ktx:2.2.0")
+
 
 }
 
