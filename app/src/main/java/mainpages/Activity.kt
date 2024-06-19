@@ -57,7 +57,7 @@ import viewmodel.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
+fun Activity(navController: NavController, viewModelSave: ViewModelSave) {
 
     //Database Creation*************************************************************************************************************************************************************
 
@@ -76,8 +76,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
     val screenheightDp = configuration.screenHeightDp
     val screenwidthDp = configuration.screenWidthDp
 
-    var lazyListState : LazyListState = rememberLazyListState()
-    var lazyListState2 : LazyListState = rememberLazyListState()
+    var lazyListState: LazyListState = rememberLazyListState()
+    var lazyListState2: LazyListState = rememberLazyListState()
 
     // UI Codes ------------------------------------------------------------------------------------
     Box( // Ana arkaplan
@@ -93,50 +93,72 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
     )
     {
         // Top Bar Design --------------------------------------------------------------------------
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 10.dp, top = 10.dp)) {
-            Text(text = "PROJECT FITNESS",
-                fontSize = 25.sp ,
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                letterSpacing = 3.sp ,
-                modifier = Modifier.align(Alignment.CenterVertically))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 10.dp, top = 10.dp)
+        ) {
+            Text(
+                text = "PROJECT FITNESS",
+                fontSize = 25.sp,
+                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                letterSpacing = 3.sp,
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
 
             IconButton(onClick = { /*TODO Profile section nav */ }) {
-                Icon(painter = painterResource(id = R.drawable.accountcircle),
-                    contentDescription = null ,
+                Icon(
+                    painter = painterResource(id = R.drawable.accountcircle),
+                    contentDescription = null,
                     Modifier
                         .size(25.dp)
-                        .align(Alignment.CenterVertically))
+                        .align(Alignment.CenterVertically)
+                )
             }
 
             IconButton(onClick = { /*TODO Profile section nav */ }) {
-                Icon(painter = painterResource(id = R.drawable.circlenotifications),
-                    contentDescription = null ,
+                Icon(
+                    painter = painterResource(id = R.drawable.circlenotifications),
+                    contentDescription = null,
                     Modifier
                         .size(25.dp)
-                        .align(Alignment.CenterVertically))
+                        .align(Alignment.CenterVertically)
+                )
             }
 
             IconButton(onClick = { /*TODO Profile section nav */ }) {
-                Icon(painter = painterResource(id = R.drawable.point),
-                    contentDescription = null ,
+                Icon(
+                    painter = painterResource(id = R.drawable.point),
+                    contentDescription = null,
                     Modifier
                         .size(25.dp)
-                        .align(Alignment.CenterVertically))
+                        .align(Alignment.CenterVertically)
+                )
             }
 
         }
-    // ---------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------
 
-            Text(text = "PF", style = TextStyle(fontSize = 70.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)), lineHeight = 70.sp),
-                color = Color(0xFF000000),
-                modifier = Modifier.padding(start = 25.dp, top = 50.dp),
-            )
-            Text(text = "WORKOUTS", style = TextStyle(fontSize = 60.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombolight)), lineHeight = 70.sp),
-                color = Color(0xFF000000),
-                modifier = Modifier.padding(start = 25.dp , top = 110.dp),
-            )
+        Text(
+            text = "PF",
+            style = TextStyle(
+                fontSize = 70.sp,
+                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                lineHeight = 70.sp
+            ),
+            color = Color(0xFF000000),
+            modifier = Modifier.padding(start = 25.dp, top = 50.dp),
+        )
+        Text(
+            text = "WORKOUTS",
+            style = TextStyle(
+                fontSize = 60.sp,
+                fontFamily = FontFamily(Font(R.font.postnobillscolombolight)),
+                lineHeight = 70.sp
+            ),
+            color = Color(0xFF000000),
+            modifier = Modifier.padding(start = 25.dp, top = 110.dp),
+        )
         /*
             Text(text = "Special Exercises Created By Project Fitness Coach", style = TextStyle(fontSize = 17.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombolight)), lineHeight = 70.sp ,
                 letterSpacing = 1.sp),
@@ -146,26 +168,34 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                     .align(Alignment.TopCenter),
             )
         */
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 40.dp, bottom = 150.dp)) {
-            Text(text = "CHALLANGES", style = TextStyle(fontSize = 25.sp,
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                lineHeight = 70.sp ,
-                letterSpacing = 20.sp ),
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp, bottom = 150.dp)
+        ) {
+            Text(
+                text = "CHALLANGES",
+                style = TextStyle(
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                    lineHeight = 70.sp,
+                    letterSpacing = 20.sp
+                ),
                 color = Color.White.copy(alpha = 0.5f),
                 modifier = Modifier
                     .padding(top = 190.dp)
                     .align(Alignment.CenterHorizontally),
             )
 
-            LazyRow(modifier = Modifier
-                .background(Color.Transparent)
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(top = 20.dp, start = 30.dp, end = 30.dp),
-                state = lazyListState) {
-                itemsIndexed(itemsState){ index , item ->
+            LazyRow(
+                modifier = Modifier
+                    .background(Color.Transparent)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(top = 20.dp, start = 30.dp, end = 30.dp),
+                state = lazyListState
+            ) {
+                itemsIndexed(itemsState) { index, item ->
                     Box(
                         modifier = Modifier
                             .padding(start = 0.dp)
@@ -185,8 +215,10 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                             )
                             .clickable(onClick = {
                                 viewModelSave.challangesSelectedName.value = item.challangeName
-                                viewModelSave.challangesSelectedDifficulty.value = item.challangeDifficulty
-                                navController.navigate("projectchallangesscreen") })
+                                viewModelSave.challangesSelectedDifficulty.value =
+                                    item.challangeDifficulty
+                                navController.navigate("projectchallangesscreen")
+                            })
 
                     ) {
                         if (index == 0) {
@@ -198,14 +230,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -215,7 +251,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -241,14 +278,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -258,7 +299,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -273,8 +315,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 2) {
+                        } else if (index == 2) {
                             Image(
                                 painterResource(id = R.drawable.gym),
                                 contentDescription = null,
@@ -283,14 +324,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -300,7 +345,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -315,8 +361,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 3) {
+                        } else if (index == 3) {
                             Image(
                                 painterResource(id = R.drawable.gymroomwith),
                                 contentDescription = null,
@@ -325,14 +370,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -342,7 +391,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -357,8 +407,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 4) {
+                        } else if (index == 4) {
                             Image(
                                 painterResource(id = R.drawable.gymroomwithgym),
                                 contentDescription = null,
@@ -367,14 +416,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -384,7 +437,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -399,8 +453,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 5) {
+                        } else if (index == 5) {
                             Image(
                                 painterResource(id = R.drawable.gymroomgym),
                                 contentDescription = null,
@@ -409,14 +462,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -426,7 +483,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -441,8 +499,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 6) {
+                        } else if (index == 6) {
                             Image(
                                 painterResource(id = R.drawable.login),
                                 contentDescription = null,
@@ -451,14 +508,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.challangeName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.challangeName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -468,7 +529,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -485,17 +547,20 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                             }
                         }
                     }
-                    Canvas(modifier = Modifier
-                        .padding(bottom = 30.dp)
-                        .fillMaxHeight()
-                        .align(Alignment.CenterHorizontally)) {
+                    Canvas(
+                        modifier = Modifier
+                            .padding(bottom = 30.dp)
+                            .fillMaxHeight()
+                            .align(Alignment.CenterHorizontally)
+                    ) {
                         val crcRadius = 10f
                         val crcSpacing = 40f
 
-                        for (i in 0 until itemsState.size ) {
-                            val crcX = size.width / 1 + i * crcSpacing - (itemsState.size + 8) * crcSpacing / 1
-                            val crcColor = if (i == index ) Color(0xFFF1C40F) else Color.White
-                            drawCircle( crcColor , crcRadius , Offset(crcX , size.height - 320 ))
+                        for (i in 0 until itemsState.size) {
+                            val crcX =
+                                size.width / 1 + i * crcSpacing - (itemsState.size + 8) * crcSpacing / 1
+                            val crcColor = if (i == index) Color(0xFFF1C40F) else Color.White
+                            drawCircle(crcColor, crcRadius, Offset(crcX, size.height - 320))
                         }
                     }
                     Spacer(modifier = Modifier.size(70.dp))
@@ -503,27 +568,34 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
 
             }
         }
-        Column(modifier = Modifier
-            .padding(top = 400.dp, bottom = 0.dp)
-            .align(Alignment.Center)
-            .height(200.dp)
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            ) {
-            Text(text = "COACH SELECTIONS", style = TextStyle(fontSize = 25.sp,
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                lineHeight = 70.sp ,
-                letterSpacing = 10.sp ),
+        Column(
+            modifier = Modifier
+                .padding(top = 400.dp, bottom = 0.dp)
+                .align(Alignment.Center)
+                .height(200.dp)
+                .fillMaxWidth()
+                .background(Color.Transparent)
+        ) {
+            Text(
+                text = "COACH SELECTIONS",
+                style = TextStyle(
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                    lineHeight = 70.sp,
+                    letterSpacing = 10.sp
+                ),
                 color = Color.White.copy(alpha = 0.5f),
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
-            LazyRow(modifier = Modifier
-                .background(Color.Transparent)
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(top = 20.dp, start = 30.dp, end = 30.dp),
-                state = lazyListState2) {
-                itemsIndexed(itemsState2){ index , item ->
+            LazyRow(
+                modifier = Modifier
+                    .background(Color.Transparent)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .padding(top = 20.dp, start = 30.dp, end = 30.dp),
+                state = lazyListState2
+            ) {
+                itemsIndexed(itemsState2) { index, item ->
                     Box(
                         modifier = Modifier
                             .padding(start = 0.dp)
@@ -544,7 +616,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                             .clickable(onClick = {
                                 viewModelSave.coachesSelectedName.value = item.coachName
                                 viewModelSave.coachesSelectedDifficulty.value = item.coachDifficulty
-                                navController.navigate("projectcoachscreen") })
+                                navController.navigate("projectcoachscreen")
+                            })
 
                     ) {
                         if (index == 0) {
@@ -556,14 +629,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -573,7 +650,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -598,14 +676,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -615,7 +697,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -630,8 +713,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 2) {
+                        } else if (index == 2) {
                             Image(
                                 painterResource(id = R.drawable.gym),
                                 contentDescription = null,
@@ -640,14 +722,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -657,7 +743,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -672,8 +759,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 3) {
+                        } else if (index == 3) {
                             Image(
                                 painterResource(id = R.drawable.gymroomwith),
                                 contentDescription = null,
@@ -682,14 +768,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -699,7 +789,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -714,8 +805,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 4) {
+                        } else if (index == 4) {
                             Image(
                                 painterResource(id = R.drawable.gymroomwithgym),
                                 contentDescription = null,
@@ -724,14 +814,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -741,7 +835,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -756,8 +851,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 5) {
+                        } else if (index == 5) {
                             Image(
                                 painterResource(id = R.drawable.gymroomgym),
                                 contentDescription = null,
@@ -766,14 +860,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -783,7 +881,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -798,8 +897,7 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                     }
                                 }
                             }
-                        }
-                        else if (index == 6) {
+                        } else if (index == 6) {
                             Image(
                                 painterResource(id = R.drawable.login),
                                 contentDescription = null,
@@ -808,14 +906,18 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 modifier = Modifier
                                     .fillMaxSize(),
                             )
-                            Text(text = item.coachName ,
-                                style = TextStyle(fontSize = 25.sp ,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)) ,
-                                    letterSpacing = 5.sp) ,
-                                color = Color.White.copy(alpha = 0.7f) ,
+                            Text(
+                                text = item.coachName,
+                                style = TextStyle(
+                                    fontSize = 25.sp,
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    letterSpacing = 5.sp
+                                ),
+                                color = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .padding(bottom = 50.dp))
+                                    .padding(bottom = 50.dp)
+                            )
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -825,7 +927,8 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                                 val totalIcons = 5
 
                                 for (i in 1..totalIcons) {
-                                    val iconColor = if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
+                                    val iconColor =
+                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
                                         painter = painterResource(id = R.drawable.skull),
@@ -842,17 +945,20 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
                             }
                         }
                     }
-                    Canvas(modifier = Modifier
-                        .padding(top = 235.dp)
-                        .fillMaxHeight()
-                        .align(Alignment.CenterHorizontally)) {
+                    Canvas(
+                        modifier = Modifier
+                            .padding(top = 235.dp)
+                            .fillMaxHeight()
+                            .align(Alignment.CenterHorizontally)
+                    ) {
                         val crcRadius = 10f
                         val crcSpacing = 40f
 
-                        for (i in 0 until itemsState.size ) {
-                            val crcX = size.width / 1 + i * crcSpacing - (itemsState.size + 8) * crcSpacing / 1
-                            val crcColor = if (i == index ) Color(0xFFF1C40F) else Color.White
-                            drawCircle( crcColor , crcRadius , Offset(crcX , size.height - 320 ))
+                        for (i in 0 until itemsState.size) {
+                            val crcX =
+                                size.width / 1 + i * crcSpacing - (itemsState.size + 8) * crcSpacing / 1
+                            val crcColor = if (i == index) Color(0xFFF1C40F) else Color.White
+                            drawCircle(crcColor, crcRadius, Offset(crcX, size.height - 320))
                         }
                     }
                     Spacer(modifier = Modifier.size(70.dp))
@@ -871,15 +977,13 @@ fun Activity(navController: NavController , viewModelSave: ViewModelSave) {
     var flagg4 by remember { mutableStateOf(false) }
 
 
-
-            val indexs = 1
-            NavigationBar(navController = navController, indexs, flagg, flagg2,flagg3,flagg4)
-        }
-
+    val indexs = 1
+    NavigationBar(navController = navController, indexs, flagg, flagg2, flagg3, flagg4)
+}
 
 
 @Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
 @Composable
 fun PreviewActivity() {
-    Activity(navController = rememberNavController() , viewModelSave = ViewModelSave())
+    Activity(navController = rememberNavController(), viewModelSave = ViewModelSave())
 }

@@ -21,12 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import navigation.NavigationBar
 import com.example.projectfitness.R
+import navigation.NavigationBar
 
 @Composable
-fun Meal(navController: NavController)
-{
+fun Meal(navController: NavController) {
     var flagggg by remember { mutableStateOf(false) }
     var flagggg2 by remember { mutableStateOf(false) }
     var flagggg3 by remember { mutableStateOf(false) }
@@ -45,9 +44,9 @@ fun Meal(navController: NavController)
             text = "PROJECT FITNESS",
             fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
             color = Color(0xFFF1C40F),
-            style = TextStyle(fontSize = 20.sp,letterSpacing = 10.sp)
+            style = TextStyle(fontSize = 20.sp, letterSpacing = 10.sp)
         )
-        
+
         Text(
             text = "SOON",
             modifier = Modifier.align(Alignment.Center),
@@ -59,7 +58,9 @@ fun Meal(navController: NavController)
         )
         Text(
             text = "MEAL TIME",
-            modifier = Modifier.align(Alignment.Center).padding(top = 150.dp),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(top = 150.dp),
             color = Color.White,
             style = TextStyle(
                 fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
@@ -69,11 +70,11 @@ fun Meal(navController: NavController)
         )
     }
     var indexs = 3
-    NavigationBar(navController = navController, indexs,flagggg,flagggg2,flagggg3,flagggg4)
+    NavigationBar(navController = navController, indexs, flagggg, flagggg2, flagggg3, flagggg4)
 }
 
 @Preview(showSystemUi = true)
 @Composable
-fun PreviewMeal(){
+fun PreviewMeal() {
     Meal(navController = rememberNavController())
 }

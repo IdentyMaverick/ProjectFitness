@@ -27,6 +27,7 @@ import navigation.Navigation
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
+        actionBar?.hide()
         super.onCreate(savedInstanceState)
 
         setContent {

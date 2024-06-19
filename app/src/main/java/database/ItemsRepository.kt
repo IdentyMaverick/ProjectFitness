@@ -71,6 +71,8 @@ interface ItemsRepository {
 
     suspend fun updateCompletedWorkout(rate : Int , notes : String , completedWorkoutId: Int)
 
+    suspend fun updateCompletedWorkoutVolume( workoutId : Int , maxWorkoutVolume : Int)
+
     // ---------------------------------------------------------------------------------------------
 
     suspend fun insertCompletedSetting(savedcompletedWorkoutId: ProjectCompletedSetting)
@@ -83,7 +85,15 @@ interface ItemsRepository {
 
     fun getAllItemsCompleted(completedWorkoutId : Int): Flow<List<ProjectCompletedExerciseEntity>>
 
+    fun getItemsCompleted(exerciseName : String): Flow<List<ProjectCompletedExerciseEntity>>
+
     fun completedGetSetRep(exerciseId: Int): List<ProjectCompletedExerciseEntity>
+
+    suspend fun updateCompletedExerciseVolume( completedworkoutId: Int , maxExerciseVolume : Int)
+
+    fun getCompletedExercise(): Flow<List<ProjectCompletedExerciseEntity>>
+
+    suspend fun updateCompletedSameExerciseVolume( exerciseName : String , maxExerciseVolume : Int )
 
     // Project Fitness Exercise DAO ---------------------------------------------------------------------------------------------
 

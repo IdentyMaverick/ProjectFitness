@@ -463,6 +463,7 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                     } else {
                         val editor = sharedPreferences.edit()
                         allowed.value = true
+
                         scopes.launch {
                             try {
                                 itemRepos.updateItem(

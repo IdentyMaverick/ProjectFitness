@@ -85,7 +85,6 @@ class OfflineItemsRepository(private val itemDao: ProjectFitnessDao) : ItemsRepo
         itemDao.deleteCompletedWorkout(completedWorkout)
     }
 
-    // ---------------------------------------------------------------------------------------------
     override suspend fun insertCompletedSetting(savedcompletedWorkoutId: ProjectCompletedSetting) {
         itemDao.insertCompletedSetting(savedcompletedWorkoutId)
     }
@@ -98,6 +97,10 @@ class OfflineItemsRepository(private val itemDao: ProjectFitnessDao) : ItemsRepo
         itemDao.updateCompletedWorkout(rate , notes , completedWorkoutId)
     }
 
+    override suspend fun updateCompletedWorkoutVolume( workoutId: Int , maxWorkoutVolume : Int) {
+        itemDao.updateCompletedWorkoutVolume( workoutId , maxWorkoutVolume )
+    }
+
     // Completed Exercise DAO Repo --------------------------------------------------------
 
     override suspend fun insertCompletedExercise(completedExercise: ProjectCompletedExerciseEntity) {
@@ -108,8 +111,24 @@ class OfflineItemsRepository(private val itemDao: ProjectFitnessDao) : ItemsRepo
         return itemDao.getAllItemsCompleted(completedWorkoutId) // Tüm öğelerin akışını döndürür
     }
 
+    override fun getItemsCompleted(exerciseName : String): Flow<List<ProjectCompletedExerciseEntity>> {
+        return itemDao.getItemsCompleted(exerciseName) // Tüm öğelerin akışını döndürür
+    }
+
     override fun completedGetSetRep(exerciseId: Int): List<ProjectCompletedExerciseEntity> {
         return itemDao.completedGetSetRep(exerciseId)
+    }
+
+    override suspend fun updateCompletedExerciseVolume( completedworkoutId: Int , maxExerciseVolume : Int) {
+        itemDao.updateCompletedExerciseVolume( completedworkoutId , maxExerciseVolume )
+    }
+
+    override fun getCompletedExercise(): Flow<List<ProjectCompletedExerciseEntity>> {
+        return itemDao.getCompletedExercise()
+    }
+
+    override suspend fun updateCompletedSameExerciseVolume( exerciseName: String , maxExerciseVolume : Int) {
+        itemDao.updateCompletedSameExerciseVolume( exerciseName , maxExerciseVolume)
     }
 
     // Project Fitness Exercise DAO Repo --------------------------------------------------------

@@ -85,13 +85,18 @@ import viewmodel.ViewModelProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , socialViewModel: SocialViewModel) {
+fun Profile(
+    navController: NavController,
+    viewModelProfile: ViewModelProfile,
+    socialViewModel: SocialViewModel,
+) {
 
     //Firebase Database Creation*************************************************************************************************************************************************************
     val storageRef = Firebase.storage.reference
     val uid = Firebase.auth.currentUser?.uid
-    Log.d("uid",uid.toString())
-    var profileRef : StorageReference = storageRef.child("gs://projectfitness-ddfeb.appspot.com/profile_photos/$uid/profile.jpg")
+    Log.d("uid", uid.toString())
+    var profileRef: StorageReference =
+        storageRef.child("gs://projectfitness-ddfeb.appspot.com/profile_photos/$uid/profile.jpg")
     //******************************************************************************************************************************************************************************
     //Database Creation*************************************************************************************************************************************************************
     val context = LocalContext.current
@@ -103,44 +108,55 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
     val userPhotoUri = viewModelProfile.selectedImageUri.value
     //******************************************************************************************************************************************************************************
     //Image select options
-    var isdialogVisible by remember{ mutableStateOf(false) }
+    var isdialogVisible by remember { mutableStateOf(false) }
 
-    var selectedimageUri : Uri? by remember { mutableStateOf(null) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { // Galeriden seçim ekranı
-        uri: Uri? ->
-        uri?.let {
-            selectedimageUri = it
-            profileRef.putFile(selectedimageUri!!)
-            isdialogVisible = false}
-    }
+    var selectedimageUri: Uri? by remember { mutableStateOf(null) }
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { // Galeriden seçim ekranı
+                uri: Uri? ->
+            uri?.let {
+                selectedimageUri = it
+                profileRef.putFile(selectedimageUri!!)
+                isdialogVisible = false
+            }
+        }
     if (isdialogVisible) {
-        CustomDialogScreen(onDismiss = {isdialogVisible = false}, launcher = launcher)
+        CustomDialogScreen(onDismiss = { isdialogVisible = false }, launcher = launcher)
     }
     val configuration = LocalConfiguration.current
     val screenwidthDp = configuration.screenWidthDp
     val screenheightDp = configuration.screenHeightDp
 
-    var listOfProfile = mutableListOf<String>("Age","Gender","Weight","Height")
-    var listOfApp = mutableListOf<String>("Theme","Notification","Privacy")
-    var listOfInt = mutableListOf<Int>(R.drawable.forwardmedia,R.drawable.wc,R.drawable.monitorweight,R.drawable.height)
-    var listOfIntApp = mutableListOf<Int>(R.drawable.contrast,R.drawable.addalert,R.drawable.addmoderator)
+    var listOfProfile = mutableListOf<String>("Age", "Gender", "Weight", "Height")
+    var listOfApp = mutableListOf<String>("Theme", "Notification", "Privacy")
+    var listOfInt = mutableListOf<Int>(
+        R.drawable.forwardmedia,
+        R.drawable.wc,
+        R.drawable.monitorweight,
+        R.drawable.height
+    )
+    var listOfIntApp =
+        mutableListOf<Int>(R.drawable.contrast, R.drawable.addalert, R.drawable.addmoderator)
 
     var themeSwitchState by remember { mutableStateOf(false) } // If false dark theme on
-    Log.d("Firebases",viewModelProfile.selectedImageUri.value.toString())
+    Log.d("Firebases", viewModelProfile.selectedImageUri.value.toString())
     if (userPhotoUri != null) {
-        if (userPhotoUri.isNotEmpty()){
-            Log.d("Lol","1st selected")
+        if (userPhotoUri.isNotEmpty()) {
+            Log.d("Lol", "1st selected")
             selectedimageUri = Uri.parse(userPhotoUri)
-            viewModelProfile.imageBitmap.value = loadbitmapfromUri(uri = selectedimageUri!!, context = context , viewModelProfile)
+            viewModelProfile.imageBitmap.value =
+                loadbitmapfromUri(uri = selectedimageUri!!, context = context, viewModelProfile)
         } else {
-            Log.d("Lol","2st selected")
+            Log.d("Lol", "2st selected")
         }
     }
 
     val _user = com.google.firebase.ktx.Firebase.auth.currentUser
     val getAllUserState by socialViewModel.getAllUsers().observeAsState(initial = emptyList())
-    val getFollowers by socialViewModel.getFollowers(_user?.uid ?: "").observeAsState(initial = emptyList())
-    val getFollowing by socialViewModel.getFollowing(_user?.uid ?: "").observeAsState(initial = emptyList())
+    val getFollowers by socialViewModel.getFollowers(_user?.uid ?: "")
+        .observeAsState(initial = emptyList())
+    val getFollowing by socialViewModel.getFollowing(_user?.uid ?: "")
+        .observeAsState(initial = emptyList())
     var numberOfFollows = getFollowing.size
     var numberOfFollowers = getFollowers.size
     Log.d("nof", numberOfFollows.toString())
@@ -158,53 +174,61 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
 
     )
     {
-            Row(Modifier.align(Alignment.TopCenter)) {
+        Row(Modifier.align(Alignment.TopCenter)) {
 
-                IconButton(
-                    onClick = { navController.navigate("home") }, modifier = Modifier
+            IconButton(
+                onClick = { navController.navigate("home") }, modifier = Modifier
 
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.projectfitnessprevious),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(25.dp)
-                            .height(25.dp),
-                        tint = Color(0xFF181F26)
-                    )
-
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "PROJECT FITNESS",
-                    color = Color(0xFF181F26),
-                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                    style = TextStyle(fontSize = 25.sp, letterSpacing = 3.sp),
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.projectfitnessprevious),
+                    contentDescription = null,
                     modifier = Modifier
-                        .align(Alignment.CenterVertically)
+                        .width(25.dp)
+                        .height(25.dp),
+                    tint = Color(0xFF181F26)
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(
-                    onClick = { }, modifier = Modifier
 
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.projectfitnesscircleheavy),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(25.dp)
-                            .height(25.dp)
-                            .padding(end = 10.dp),
-                        tint = Color(0xFF181F26)
-                    )
-                }
             }
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "PROJECT FITNESS",
+                color = Color(0xFF181F26),
+                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                style = TextStyle(fontSize = 25.sp, letterSpacing = 3.sp),
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = { }, modifier = Modifier
 
-        Column(modifier = Modifier
-            .padding(top = 40.dp)
-            .background(Color.Transparent)
-            .fillMaxWidth()) {
-            Text(text = "Profile", style = TextStyle(fontSize = 40.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombolight)), lineHeight = 55.sp),
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.projectfitnesscircleheavy),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(25.dp)
+                        .height(25.dp)
+                        .padding(end = 10.dp),
+                    tint = Color(0xFF181F26)
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(top = 40.dp)
+                .background(Color.Transparent)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Profile",
+                style = TextStyle(
+                    fontSize = 40.sp,
+                    fontFamily = FontFamily(Font(R.font.postnobillscolombolight)),
+                    lineHeight = 55.sp
+                ),
                 color = Color(0xFF000000),
                 modifier = Modifier.padding(start = 25.dp),
             )
@@ -215,7 +239,8 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                 .background(Color.Transparent)
                 .fillMaxWidth()
                 .height(600.dp)
-                .align(Alignment.BottomCenter)) {
+                .align(Alignment.BottomCenter)
+        ) {
             if (!viewModelProfile.selectedImageUri.value.isNullOrEmpty()) {
                 viewModelProfile.selectedImageUri.value.let { url ->
                     Box(
@@ -262,9 +287,9 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                             clip = false
                         )
                         .clip(CircleShape)
-                ){
+                ) {
                     Image(
-                        painterResource(id = R.drawable.secondinfo) , contentDescription = null,
+                        painterResource(id = R.drawable.secondinfo), contentDescription = null,
                         modifier = Modifier
                             .size(130.dp)
                             .shadow(
@@ -280,7 +305,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                 }
             }
             Spacer(modifier = Modifier.size(30.dp))
-            user.forEachIndexed{index , item ->
+            user.forEachIndexed { index, item ->
                 Text(
                     text = item.userName,
                     modifier = Modifier
@@ -292,7 +317,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                     style = TextStyle(letterSpacing = 3.sp)
                 )
                 Text(
-                    text = "@"+item.nickName,
+                    text = "@" + item.nickName,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 10.dp),
@@ -303,9 +328,11 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                 )
             }
 
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
                 Text(
                     text = "Followers $numberOfFollowers",
                     modifier = Modifier
@@ -315,11 +342,11 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                     color = Color(0xFFD9D9D9),
                     fontFamily = FontFamily(Font(R.font.postnobillscolombolight)),
                     fontSize = 20.sp,
-                    style = TextStyle(letterSpacing = 3.sp) ,
+                    style = TextStyle(letterSpacing = 3.sp),
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "Follows $numberOfFollows" ,
+                    text = "Follows $numberOfFollows",
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(bottom = 30.dp, end = 40.dp)
@@ -331,40 +358,49 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                 )
             }
 
-        var tabTitles = listOf("Activity","Profile","App")
-        var selectedTabIndex by remember { mutableStateOf(0) }
+            var tabTitles = listOf("Activity", "Profile", "App")
+            var selectedTabIndex by remember { mutableStateOf(0) }
             SecondaryTabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = Color(0xFF181F26),
                 contentColor = Color.White,
                 indicator = {
                     // TabRowDefaults.SecondaryIndicator(color = Color.Cyan)
-                    TabRowDefaults.SecondaryIndicator(color = Color(0xFFF1C40F), height = 1.5f.dp, modifier = Modifier.tabIndicatorOffset(selectedTabIndex))
+                    TabRowDefaults.SecondaryIndicator(
+                        color = Color(0xFFF1C40F),
+                        height = 1.5f.dp,
+                        modifier = Modifier.tabIndicatorOffset(selectedTabIndex)
+                    )
                 }) {
                 tabTitles.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
                         text = {
-                            if (selectedTabIndex == index){
-                            Text(
-                                text = title,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                fontSize = 15.sp,
-                                letterSpacing = 3.sp),
-                                color = Color(0xFFF1C40F))
-                            }
-                            else {
+                            if (selectedTabIndex == index) {
                                 Text(
                                     text = title,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
-                                    style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    style = TextStyle(
+                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                                         fontSize = 15.sp,
-                                        letterSpacing = 3.sp),
-                                    color = Color.White)
+                                        letterSpacing = 3.sp
+                                    ),
+                                    color = Color(0xFFF1C40F)
+                                )
+                            } else {
+                                Text(
+                                    text = title,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = TextStyle(
+                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                        fontSize = 15.sp,
+                                        letterSpacing = 3.sp
+                                    ),
+                                    color = Color.White
+                                )
                             }
                         }
                     )
@@ -372,7 +408,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
             }
             if (selectedTabIndex == 0) {
 
-                if (itemsState.isEmpty()){
+                if (itemsState.isEmpty()) {
                     Text(
                         text = "No workout history yet. Start your first workout today!",
                         fontFamily = FontFamily(Font(R.font.postnobillscolombo)),
@@ -381,7 +417,9 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                         color = Color.White.copy(alpha = 0.5f),
                         modifier = Modifier
                             .padding(top = 100.dp)
-                            .align(Alignment.CenterHorizontally))}
+                            .align(Alignment.CenterHorizontally)
+                    )
+                }
 
                 LazyColumn(
                     modifier = Modifier
@@ -441,8 +479,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                         modifier = Modifier
                                             .fillMaxSize(),
                                     )
-                                }
-                                else if (index == 2) {
+                                } else if (index == 2) {
                                     Image(
                                         painterResource(id = R.drawable.gym),
                                         contentDescription = null,
@@ -451,8 +488,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                         modifier = Modifier
                                             .fillMaxSize(),
                                     )
-                                }
-                                else if (index == 3) {
+                                } else if (index == 3) {
                                     Image(
                                         painterResource(id = R.drawable.gymroomwith),
                                         contentDescription = null,
@@ -461,8 +497,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                         modifier = Modifier
                                             .fillMaxSize(),
                                     )
-                                }
-                                else if (index == 4) {
+                                } else if (index == 4) {
                                     Image(
                                         painterResource(id = R.drawable.gymroomwithgym),
                                         contentDescription = null,
@@ -471,8 +506,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                         modifier = Modifier
                                             .fillMaxSize(),
                                     )
-                                }
-                                else if (index == 5) {
+                                } else if (index == 5) {
                                     Image(
                                         painterResource(id = R.drawable.gymroomgym),
                                         contentDescription = null,
@@ -481,8 +515,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                         modifier = Modifier
                                             .fillMaxSize(),
                                     )
-                                }
-                                else if (index == 6) {
+                                } else if (index == 6) {
                                     Image(
                                         painterResource(id = R.drawable.login),
                                         contentDescription = null,
@@ -502,7 +535,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                     Text(
                                         text = item.completionDate,
                                         modifier = Modifier
-                                            .padding(start = 100.dp , top = 7.dp),
+                                            .padding(start = 100.dp, top = 7.dp),
                                         fontSize = 15.sp,
                                         fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                                         textAlign = TextAlign.Left,
@@ -514,7 +547,7 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                     Text(
                                         text = item.completedWorkoutName.uppercase(),
                                         modifier = Modifier
-                                            .padding(start = 100.dp , top = 0.dp),
+                                            .padding(start = 100.dp, top = 0.dp),
                                         fontSize = 20.sp,
                                         fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                                         textAlign = TextAlign.Left,
@@ -567,41 +600,55 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                     }
                 }
 
-            }
-            else if (selectedTabIndex == 1) {
+            } else if (selectedTabIndex == 1) {
 
-                LazyColumn(modifier = Modifier
-                    .background(Color.Transparent)
-                    .align(Alignment.CenterHorizontally)
-                    .padding(20.dp)) {
-                    itemsIndexed(listOfProfile){ index,item ->
-                        Column(modifier = Modifier
-                            .height(34.dp)
-                            .width(341.dp)
-                            .background(Color.Transparent, shape = RoundedCornerShape(7.dp))
-                            .align(Alignment.CenterHorizontally)
-                            .border(
-                                1.dp,
-                                shape = RoundedCornerShape(7.dp),
-                                color = Color(0xFF202B36)
-                            )){
+                LazyColumn(
+                    modifier = Modifier
+                        .background(Color.Transparent)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(20.dp)
+                ) {
+                    itemsIndexed(listOfProfile) { index, item ->
+                        Column(
+                            modifier = Modifier
+                                .height(34.dp)
+                                .width(341.dp)
+                                .background(Color.Transparent, shape = RoundedCornerShape(7.dp))
+                                .align(Alignment.CenterHorizontally)
+                                .border(
+                                    1.dp,
+                                    shape = RoundedCornerShape(7.dp),
+                                    color = Color(0xFF202B36)
+                                )
+                        ) {
 
                             Row {
                                 Spacer(modifier = Modifier.size(10.dp))
-                                Icon(painter = painterResource(id = listOfInt[index]), contentDescription = null ,
+                                Icon(
+                                    painter = painterResource(id = listOfInt[index]),
+                                    contentDescription = null,
                                     Modifier
                                         .padding(top = 1.dp)
                                         .size(30.dp),
-                                    tint = Color(0xFF202B36) )
+                                    tint = Color(0xFF202B36)
+                                )
                                 Spacer(modifier = Modifier.size(10.dp))
-                                Text(text = item, style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                    letterSpacing = 3.sp,
-                                    fontSize = 15.sp,
-                                    color = Color.White),
+                                Text(
+                                    text = item, style = TextStyle(
+                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                        letterSpacing = 3.sp,
+                                        fontSize = 15.sp,
+                                        color = Color.White
+                                    ),
                                     modifier = Modifier
-                                        .align(Alignment.CenterVertically))
+                                        .align(Alignment.CenterVertically)
+                                )
                                 Spacer(modifier = Modifier.weight(1f))
-                                Button(onClick = {  }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF202B36)),
+                                Button(
+                                    onClick = { },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF202B36)
+                                    ),
                                     shape = RoundedCornerShape(5.dp),
                                     modifier = Modifier
                                         .padding(end = 20.dp)
@@ -609,68 +656,89 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
                                         .width(59.dp)
                                         .align(Alignment.CenterVertically),
                                     contentPadding = PaddingValues(0.dp)
-                                        ) {
-                                    Text(text = "Change",
+                                ) {
+                                    Text(
+                                        text = "Change",
                                         style = TextStyle(fontSize = 10.sp),
-                                        color = Color(0xFFF1C40F))
+                                        color = Color(0xFFF1C40F)
+                                    )
                                 }
                             }
                         }
                         Spacer(modifier = Modifier.size(10.dp))
                     }
                 }
-            }
-            else if (selectedTabIndex == 2) {
-                LazyColumn(modifier = Modifier
-                    .background(Color.Transparent)
-                    .align(Alignment.CenterHorizontally)
-                    .padding(20.dp)) {
-                    itemsIndexed(listOfApp){ index,item ->
-                        Column(modifier = Modifier
-                            .height(34.dp)
-                            .width(341.dp)
-                            .background(Color.Transparent, shape = RoundedCornerShape(7.dp))
-                            .align(Alignment.CenterHorizontally)
-                            .border(
-                                1.dp,
-                                shape = RoundedCornerShape(7.dp),
-                                color = Color(0xFF202B36)
-                            )){
+            } else if (selectedTabIndex == 2) {
+                LazyColumn(
+                    modifier = Modifier
+                        .background(Color.Transparent)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(20.dp)
+                ) {
+                    itemsIndexed(listOfApp) { index, item ->
+                        Column(
+                            modifier = Modifier
+                                .height(34.dp)
+                                .width(341.dp)
+                                .background(Color.Transparent, shape = RoundedCornerShape(7.dp))
+                                .align(Alignment.CenterHorizontally)
+                                .border(
+                                    1.dp,
+                                    shape = RoundedCornerShape(7.dp),
+                                    color = Color(0xFF202B36)
+                                )
+                        ) {
 
                             Row {
                                 Spacer(modifier = Modifier.size(10.dp))
-                                Icon(painter = painterResource(id = listOfIntApp[index]), contentDescription = null ,
+                                Icon(
+                                    painter = painterResource(id = listOfIntApp[index]),
+                                    contentDescription = null,
                                     Modifier
                                         .padding(top = 1.dp)
                                         .size(30.dp),
-                                    tint = Color(0xFF202B36))
+                                    tint = Color(0xFF202B36)
+                                )
                                 Spacer(modifier = Modifier.size(10.dp))
-                                Text(text = item, style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                    letterSpacing = 3.sp,
-                                    fontSize = 15.sp,
-                                    color = Color.White),
+                                Text(
+                                    text = item, style = TextStyle(
+                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                        letterSpacing = 3.sp,
+                                        fontSize = 15.sp,
+                                        color = Color.White
+                                    ),
                                     modifier = Modifier
-                                        .align(Alignment.CenterVertically))
+                                        .align(Alignment.CenterVertically)
+                                )
                                 Spacer(modifier = Modifier.weight(1f))
-                                if (index == 0){
-                                    Text(text = "Dark", style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                        letterSpacing = 2.sp,
-                                        fontSize = 10.sp,
-                                        color = Color.White),
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically))
-                                    Switch(checked = themeSwitchState, onCheckedChange = { themeSwitchState = !themeSwitchState },
-                                        modifier = Modifier.scale(0.5f)
-                                    )
-                                    Text(text = "Day", style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                        letterSpacing = 2.sp,
-                                        fontSize = 10.sp,
-                                        color = Color.White),
+                                if (index == 0) {
+                                    Text(
+                                        text = "Dark", style = TextStyle(
+                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                            letterSpacing = 2.sp,
+                                            fontSize = 10.sp,
+                                            color = Color.White
+                                        ),
                                         modifier = Modifier
                                             .align(Alignment.CenterVertically)
-                                            .padding(end = 15.dp))
-                                }
-                                else{
+                                    )
+                                    Switch(
+                                        checked = themeSwitchState,
+                                        onCheckedChange = { themeSwitchState = !themeSwitchState },
+                                        modifier = Modifier.scale(0.5f)
+                                    )
+                                    Text(
+                                        text = "Day", style = TextStyle(
+                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                            letterSpacing = 2.sp,
+                                            fontSize = 10.sp,
+                                            color = Color.White
+                                        ),
+                                        modifier = Modifier
+                                            .align(Alignment.CenterVertically)
+                                            .padding(end = 15.dp)
+                                    )
+                                } else {
                                     //
                                 }
                             }
@@ -683,48 +751,61 @@ fun Profile(navController: NavController , viewModelProfile: ViewModelProfile , 
 
         }
 
-}
+    }
 }
 
 @Composable
-fun CustomDialogScreen(onDismiss : () -> Unit,launcher : ManagedActivityResultLauncher<String,Uri?>){
-    var text by remember{ mutableStateOf("") }
-    Log.d("TAG","visible")
-    Dialog(onDismissRequest = {onDismiss.invoke()}) {
-        Box(modifier = Modifier
-            .padding(top = 300.dp)
-            .background(
-                Color(0xFFD9D9D9).copy(alpha = 0.4f),
-                shape = RoundedCornerShape(10.dp)
-            )
-            .fillMaxWidth()
-            .height(70.dp))
+fun CustomDialogScreen(
+    onDismiss: () -> Unit,
+    launcher: ManagedActivityResultLauncher<String, Uri?>,
+) {
+    var text by remember { mutableStateOf("") }
+    Log.d("TAG", "visible")
+    Dialog(onDismissRequest = { onDismiss.invoke() }) {
+        Box(
+            modifier = Modifier
+                .padding(top = 300.dp)
+                .background(
+                    Color(0xFFD9D9D9).copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .fillMaxWidth()
+                .height(70.dp)
+        )
         {
-            Button(onClick = {launcher.launch("image/*")},
+            Button(
+                onClick = { launcher.launch("image/*") },
                 colors = ButtonDefaults.buttonColors(Color.Transparent),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(70.dp))
+                    .height(70.dp)
+            )
             {
-                Text(text = "Open Gallery",
+                Text(
+                    text = "Open Gallery",
                     fontFamily = FontFamily(Font(R.font.poppinslighttext)),
                     color = Color.Black,
-                    textAlign = TextAlign.Center)
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
 }
 
 
-fun loadbitmapfromUri(uri:Uri,context:Context,viewModelProfile: ViewModelProfile) : ImageBitmap?{
+fun loadbitmapfromUri(
+    uri: Uri,
+    context: Context,
+    viewModelProfile: ViewModelProfile,
+): ImageBitmap? {
     val contentResolver = context.contentResolver
     return try {
         val inputStream = contentResolver.openInputStream(uri)
         val bitmap = BitmapFactory.decodeStream(inputStream)
         bitmap.asImageBitmap()
 
-    } catch (e:Exception){
+    } catch (e: Exception) {
         viewModelProfile.imageBitmap.value
     }
 }

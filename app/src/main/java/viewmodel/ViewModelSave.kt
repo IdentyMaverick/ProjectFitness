@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import database.Exercise
+import database.ProjectCompletedExerciseEntity
 import database.ProjectFitnessWorkoutEntity
 import database.SetRep
 import database.Workout
@@ -81,6 +82,11 @@ class ViewModelSave() : ViewModel() {
 
     var coachesSelectedName = mutableStateOf("")
     var coachesSelectedDifficulty = mutableStateOf(0)
+
+    var alertDialogSpecificExerciseName = mutableStateOf("")
+
+    var pastExerciseVolume = mutableStateOf("")
+    var improvedExercising = mutableMapOf<ProjectCompletedExerciseEntity, Int>()
 
     fun updateSelectedItemName(newName: String) {
         selectedItemName.value = newName

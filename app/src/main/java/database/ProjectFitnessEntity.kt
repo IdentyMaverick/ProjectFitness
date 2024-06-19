@@ -60,7 +60,9 @@ data class ProjectCompletedWorkoutEntity(
     val totalReps: Int,
     var rateOfWorkout : Int, // Rate between 1 to 5
     var notesAboutWorkout : String,
-    var completedWorkoutName : String
+    var completedWorkoutName : String,
+    val totalWorkoutVolume : Int,
+    val maxWorkoutVolume : Int = 0
 )
 
 @Entity(
@@ -80,7 +82,9 @@ data class ProjectCompletedExerciseEntity(
     val exerciseName: String,
     val exerciseRep: Int,
     val exerciseSet: Int,
-    var setrepListCompleted: MutableList<SetRep>
+    var setrepListCompleted: MutableList<SetRep>,
+    var totalExerciseVolume : Int,
+    var maxExerciseVolume : Int = 0
 )
 
 

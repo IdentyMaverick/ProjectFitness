@@ -78,6 +78,9 @@ interface ProjectFitnessDao {
     @Query("UPDATE project_completed_workout SET  rateOfWorkout = :rate , notesAboutWorkout = :notes WHERE completedWorkoutId = :completedWorkoutId")
     suspend fun updateCompletedWorkout(rate : Int , notes : String , completedWorkoutId: Int)
 
+    @Query("UPDATE project_completed_workout SET  maxWorkoutVolume = :maxWorkoutVolume WHERE workoutId = :workoutId")
+    suspend fun updateCompletedWorkoutVolume( workoutId: Int , maxWorkoutVolume : Int)
+
     // ProjectCompletedSettingDAO ------------------------------------------------------------------
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCompletedSetting(savedcompletedWorkoutId: ProjectCompletedSetting)
@@ -93,6 +96,18 @@ interface ProjectFitnessDao {
 
     @Query("SELECT * from project_completed_exercise WHERE completedWorkoutId = :completedWorkoutId")
     fun getAllItemsCompleted(completedWorkoutId : Int): Flow<List<ProjectCompletedExerciseEntity>> // Tüm öğelerin akışını döndüren fonksiyon
+
+    @Query("SELECT * from project_completed_exercise WHERE exerciseName = :exerciseName ")
+    fun getItemsCompleted(exerciseName : String): Flow<List<ProjectCompletedExerciseEntity>>
+
+    @Query("UPDATE project_completed_exercise SET  maxExerciseVolume = :maxExerciseVolume WHERE completedWorkoutId = :completedworkoutId")
+    suspend fun updateCompletedExerciseVolume( completedworkoutId: Int , maxExerciseVolume : Int)
+
+    @Query("SELECT * FROM project_completed_exercise")
+    fun getCompletedExercise(): Flow<List<ProjectCompletedExerciseEntity>>
+
+    @Query("UPDATE project_completed_exercise SET  maxExerciseVolume = :maxExerciseVolume WHERE exerciseName = :exerciseName")
+    suspend fun updateCompletedSameExerciseVolume( exerciseName: String , maxExerciseVolume : Int)
 
     //----------------------------------------------------------------------------------------------
     // Project Fitness Exercise DAO ----------------------------------------------------------------

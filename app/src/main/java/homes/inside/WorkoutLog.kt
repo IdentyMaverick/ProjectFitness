@@ -111,15 +111,21 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
     var scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(true) }
 
-    var changedProjectFitnessExerciseEntityList by remember { mutableStateOf(ProjectFitnessExerciseEntity(0,1,"",1,1, mutableListOf())) }
+    var changedProjectFitnessExerciseEntityList by remember {
+        mutableStateOf(
+            ProjectFitnessExerciseEntity(0, 1, "", 1, 1, mutableListOf())
+        )
+    }
 
-    var isClicked by remember {mutableStateOf(false)}
+    var isClicked by remember { mutableStateOf(false) }
 
-    var now : LocalDate = LocalDate.now()
+    var now: LocalDate = LocalDate.now()
     var year = now.year
     var month = now.monthValue
     var day = now.dayOfMonth
 
+    var calculateTotalVolume by remember { mutableStateOf(0) }
+    var calculatetotalVolume by remember { mutableStateOf(0) }
 
 
     LaunchedEffect(key1 = null) {
@@ -129,7 +135,8 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
             var itemRepo = itemRepos
 
             itemRepoList = itemRepo.getWorkoutWithExercises(viewModelSave.selectedWorkoutName.value)
-            getWorkoutId = itemRepo.getWorkoutId(viewModelSave.selectedWorkoutName.value)[0]?.workoutId!!
+            getWorkoutId =
+                itemRepo.getWorkoutId(viewModelSave.selectedWorkoutName.value)[0]?.workoutId!!
             exerciseList = itemRepo.getExerciseList(getWorkoutId)
             setrepList = itemRepo.getSetRepList(getWorkoutId)
 
@@ -167,18 +174,21 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                     .align(Alignment.CenterStart)
                     .background(Color.Transparent)
             ) {
-                Icon(painter = painterResource(id = R.drawable.projectfitnessprevious), contentDescription = null, tint = Color(0xFFF1C40F), modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(30.dp)
-                    .clickable {
-                        viewModelSave.hourInt.value = 0
-                        viewModelSave.minuteInt.value = 0
-                        viewModelSave.secondInt.value = 0
-                        showBottomSheet = true
-                        scopes.launch { sheetState.expand() }
-                    }
-                    .align(Alignment.CenterVertically)
-                    )
+                Icon(painter = painterResource(id = R.drawable.projectfitnessprevious),
+                    contentDescription = null,
+                    tint = Color(0xFFF1C40F),
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(30.dp)
+                        .clickable {
+                            viewModelSave.hourInt.value = 0
+                            viewModelSave.minuteInt.value = 0
+                            viewModelSave.secondInt.value = 0
+                            showBottomSheet = true
+                            scopes.launch { sheetState.expand() }
+                        }
+                        .align(Alignment.CenterVertically)
+                )
 
                 Text(
                     text = "Workout",
@@ -232,22 +242,24 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                             currentExercise = item.exercisesName
                         }
                         if (item != null) {
-                            
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = 10.dp)
-                            ){
-                            Text(
-                                text = item.exercisesName,
-                                modifier = Modifier.padding(top = 10.dp, start = 20.dp),
-                                color = Color(0xFFF1C40F),
-                                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                style = TextStyle(fontSize = 25.sp),
-                            )
+                            ) {
+                                Text(
+                                    text = item.exercisesName,
+                                    modifier = Modifier.padding(top = 10.dp, start = 20.dp),
+                                    color = Color(0xFFF1C40F),
+                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                    style = TextStyle(fontSize = 25.sp),
+                                )
                                 Spacer(modifier = Modifier.weight(1f))
-                                Icon(painter = painterResource(id = R.drawable.question), contentDescription = null,
-                                    tint = Color(0xFFF1C40F), modifier = Modifier
+                                Icon(painter = painterResource(id = R.drawable.question),
+                                    contentDescription = null,
+                                    tint = Color(0xFFF1C40F),
+                                    modifier = Modifier
                                         .padding(end = 20.dp)
                                         .size(25.dp)
                                         .align(Alignment.CenterVertically)
@@ -258,7 +270,7 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                                             viewModelSave.flagD.value = false
                                             navController.navigate("workoutsettingdetails")
                                         }
-                                        )
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.size(5.dp))
@@ -280,7 +292,7 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                                     .padding(start = 40.dp)
 
                             )
-                                    Spacer(modifier = Modifier.size(10.dp))
+                            Spacer(modifier = Modifier.size(10.dp))
                             Text(
                                 text = "Weight (kg)",
                                 style = TextStyle(
@@ -329,131 +341,133 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                             if (item != null) {
                                 setrepList.forEachIndexed { index, item ->
                                     if (item.exercisesName == currentExercise) {
-                                            for (i in item.setrepList) {
-                                                /*
-                                                val annotatedString = buildAnnotatedString {
-                                                    append("${i.setNumber.last()}            ")
-                                                    withStyle(
-                                                        style = SpanStyle(
-                                                            color = Color.White.copy(
-                                                                alpha = 0.5f
-                                                            )
+                                        for (i in item.setrepList) {
+                                            /*
+                                            val annotatedString = buildAnnotatedString {
+                                                append("${i.setNumber.last()}            ")
+                                                withStyle(
+                                                    style = SpanStyle(
+                                                        color = Color.White.copy(
+                                                            alpha = 0.5f
                                                         )
-                                                    ) {
-                                                        append("${i.weight}")
-                                                    }
-
-                                                    append("                   ${i.weight.toInt()}                   ")
-                                                    append("${i.setRep}")
-
-                                                }
-                                                */
-                                                Row {
-                                                    Text(
-                                                        text = i.setNumber.last().toString(),
-                                                        style = TextStyle(
-                                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                                            fontSize = 17.sp
-                                                        ),
-                                                        modifier = Modifier
-                                                            .padding(start = 20.dp),
-                                                        color = Color.White
                                                     )
-                                                    Spacer(modifier = Modifier.size(30.dp))
-                                                    Text(
-                                                        text = i.weight.toInt().toString() + " kg",
-                                                        style = TextStyle(
-                                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                                            fontSize = 17.sp
-                                                        ),
-                                                        modifier = Modifier
-                                                            .padding(start = 20.dp),
-                                                        color = Color.White
-                                                    )
-                                                    Spacer(modifier = Modifier.size(30.dp))
-                                                    Text(
-                                                        text = i.weight.toInt().toString() + " kg",
-                                                        style = TextStyle(
-                                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                                            fontSize = 17.sp
-                                                        ),
-                                                        modifier = Modifier
-                                                            .padding(start = 20.dp),
-                                                        color = Color.White
-                                                    )
-                                                    Spacer(modifier = Modifier.size(40.dp))
-                                                    Text(
-                                                        text = i.setRep.toString(),
-                                                        style = TextStyle(
-                                                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                                            fontSize = 17.sp
-                                                        ),
-                                                        modifier = Modifier
-                                                            .padding(start = 20.dp),
-                                                        color = Color.White
-                                                    )
-                                                    Spacer(modifier = Modifier.size(40.dp))
-                                                    Icon(painter = painterResource(id = R.drawable.projectfitnesssetting),
-                                                        contentDescription = null,
-                                                        modifier = Modifier
-                                                            .size(20.dp)
-                                                            .clickable {
-                                                                modalBottomBarWeightValue =
-                                                                    i.weight.toInt()
-                                                                modalBottomBarRepsValue = i.setRep
-                                                                modalBottomBarSetNumber =
-                                                                    i.setNumber
-                                                                modalBottomBarName =
-                                                                    item.exercisesName
-                                                                changedProjectFitnessExerciseEntityList =
-                                                                    item // Seçilen itemin entity bilgilerini çeker
-                                                                showBottomSheetSettingChange = true
-                                                            },
-                                                        tint = Color.White.copy(alpha = 0.8f))
+                                                ) {
+                                                    append("${i.weight}")
                                                 }
 
-                                                Spacer(modifier = Modifier.size(20.dp))
+                                                append("                   ${i.weight.toInt()}                   ")
+                                                append("${i.setRep}")
+
                                             }
-                                            Box(
-                                                modifier = Modifier
-                                                    .clickable {
-                                                        val newSetRep = SetRep(
-                                                            setNumber = "${item.setrepList.size + 1}",
-                                                            setRep = 12,
-                                                            ticked = false,
-                                                            weight = 0.0f
-                                                        )
-                                                        item.setrepList
-                                                            .toMutableList()
-                                                            .apply { add(newSetRep) }
-                                                        scopes.launch { itemrepolist }
-                                                        item.setrepList.add(
-                                                            SetRep(
-                                                                "${item.setrepList.size + 1}",
-                                                                12,
-                                                                ticked = false,
-                                                                0.0f
-                                                            )
-                                                        )
-
-
-                                                    }
-                                                    .padding(start = 16.dp, end = 16.dp)
-                                                    .fillMaxWidth()// İsteğe bağlı: kutuyu etrafında bir boşluk bırakır
-                                                , contentAlignment = Alignment.TopCenter
-                                            )
-                                            {
+                                            */
+                                            Row {
                                                 Text(
-                                                    text = "Add Set",
+                                                    text = i.setNumber.last().toString(),
                                                     style = TextStyle(
                                                         fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
                                                         fontSize = 17.sp
                                                     ),
                                                     modifier = Modifier
-                                                        .align(Alignment.Center),
-                                                    color = Color(0xFFF1C40F)
+                                                        .padding(start = 20.dp),
+                                                    color = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.size(30.dp))
+                                                Text(
+                                                    text = i.weight.toInt().toString() + " kg",
+                                                    style = TextStyle(
+                                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                                        fontSize = 17.sp
+                                                    ),
+                                                    modifier = Modifier
+                                                        .padding(start = 20.dp),
+                                                    color = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.size(30.dp))
+                                                Text(
+                                                    text = i.weight.toInt().toString() + " kg",
+                                                    style = TextStyle(
+                                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                                        fontSize = 17.sp
+                                                    ),
+                                                    modifier = Modifier
+                                                        .padding(start = 20.dp),
+                                                    color = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.size(40.dp))
+                                                Text(
+                                                    text = i.setRep.toString(),
+                                                    style = TextStyle(
+                                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                                        fontSize = 17.sp
+                                                    ),
+                                                    modifier = Modifier
+                                                        .padding(start = 20.dp),
+                                                    color = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.size(40.dp))
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.projectfitnesssetting),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(20.dp)
+                                                        .clickable {
+                                                            modalBottomBarWeightValue =
+                                                                i.weight.toInt()
+                                                            modalBottomBarRepsValue = i.setRep
+                                                            modalBottomBarSetNumber =
+                                                                i.setNumber
+                                                            modalBottomBarName =
+                                                                item.exercisesName
+                                                            changedProjectFitnessExerciseEntityList =
+                                                                item // Seçilen itemin entity bilgilerini çeker
+                                                            showBottomSheetSettingChange = true
+                                                        },
+                                                    tint = Color.White.copy(alpha = 0.8f)
                                                 )
                                             }
+
+                                            Spacer(modifier = Modifier.size(20.dp))
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .clickable {
+                                                    val newSetRep = SetRep(
+                                                        setNumber = "${item.setrepList.size + 1}",
+                                                        setRep = 12,
+                                                        ticked = false,
+                                                        weight = 0.0f
+                                                    )
+                                                    item.setrepList
+                                                        .toMutableList()
+                                                        .apply { add(newSetRep) }
+                                                    scopes.launch { itemrepolist }
+                                                    item.setrepList.add(
+                                                        SetRep(
+                                                            "${item.setrepList.size + 1}",
+                                                            12,
+                                                            ticked = false,
+                                                            0.0f
+                                                        )
+                                                    )
+
+
+                                                }
+                                                .padding(start = 16.dp, end = 16.dp)
+                                                .fillMaxWidth()// İsteğe bağlı: kutuyu etrafında bir boşluk bırakır
+                                            , contentAlignment = Alignment.TopCenter
+                                        )
+                                        {
+                                            Text(
+                                                text = "Add Set",
+                                                style = TextStyle(
+                                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
+                                                    fontSize = 17.sp
+                                                ),
+                                                modifier = Modifier
+                                                    .align(Alignment.Center),
+                                                color = Color(0xFFF1C40F)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -463,52 +477,80 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                 }
 
             }
-            Button(onClick = {  }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)), modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp)
-                .size(40.dp),
+            Button(
+                onClick = { },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 20.dp)
+                    .size(40.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
 
-                Icon(painter = painterResource(id = R.drawable.projectfitnesstick), contentDescription = null, tint = Color.Black,
+                Icon(painter = painterResource(id = R.drawable.projectfitnesstick),
+                    contentDescription = null,
+                    tint = Color.Black,
                     modifier = Modifier
                         .size(25.dp)
                         .clickable {
                             scopes.launch {
-                                // Completed Workout Database Insert
-                                itemRepos.insertCompletedWorkout(
-                                completedWorkout = ProjectCompletedWorkoutEntity(completedWorkoutId = viewModelSave.completedWorkoutId.value,workoutId = getWorkoutId,
-                                    completionDate = "${day}.${month}.${year}" ,
-                                    durationMinutes = viewModelSave.hour.value + viewModelSave.minutes.value + viewModelSave.seconds.value,
-                                    totalSets = 0 ,
-                                    totalReps = 0 ,
-                                    rateOfWorkout = 0,
-                                    notesAboutWorkout = "",
-                                    completedWorkoutName = viewModelSave.selectedWorkoutName.value
+                                setrepList.forEachIndexed { index, item ->
+                                    item.setrepList.forEachIndexed { index, setRep ->
+                                        calculateTotalVolume += (setRep.weight.toInt() * setRep.setRep)
+                                    }
+                                    // Completed Workout Database Insert
+                                    itemRepos.insertCompletedWorkout(
+                                        completedWorkout = ProjectCompletedWorkoutEntity(
+                                            completedWorkoutId = viewModelSave.completedWorkoutId.value,
+                                            workoutId = getWorkoutId,
+                                            completionDate = "${day}.${month}.${year}",
+                                            durationMinutes = viewModelSave.hour.value + viewModelSave.minutes.value + viewModelSave.seconds.value,
+                                            totalSets = 0,
+                                            totalReps = 0,
+                                            rateOfWorkout = 0,
+                                            notesAboutWorkout = "",
+                                            completedWorkoutName = viewModelSave.selectedWorkoutName.value,
+                                            totalWorkoutVolume = calculateTotalVolume
+                                        )
                                     )
-                            )
-                            itemRepos.insertCompletedSetting(savedcompletedWorkoutId = ProjectCompletedSetting(viewModelSave.completedWorkoutId.value))
-                            // Completed Exercise Database Insert
-                                setrepList.forEachIndexed{index , item ->
-                                    itemRepos.insertCompletedExercise(ProjectCompletedExerciseEntity(
-                                        completedWorkoutId = viewModelSave.completedWorkoutId.value,
-                                        completedExerciseId = getExerciseId,
-                                        exerciseName = item.exercisesName,
-                                        exerciseRep = 12,
-                                        exerciseSet = 3,
-                                        setrepListCompleted = item.setrepList))
+                                }
+                                itemRepos.insertCompletedSetting(
+                                    savedcompletedWorkoutId = ProjectCompletedSetting(
+                                        viewModelSave.completedWorkoutId.value
+                                    )
+                                )
+                                // Completed Exercise Database Insert
+                                setrepList.forEachIndexed { index, item ->
+                                    calculatetotalVolume = 0
+                                    item.setrepList.forEachIndexed { index, setRep ->
+                                        calculatetotalVolume += (setRep.weight.toInt() * setRep.setRep)
+                                    }
+                                    itemRepos.insertCompletedExercise(
+                                        ProjectCompletedExerciseEntity(
+                                            completedWorkoutId = viewModelSave.completedWorkoutId.value,
+                                            completedExerciseId = getExerciseId,
+                                            exerciseName = item.exercisesName,
+                                            exerciseRep = 12,
+                                            exerciseSet = 3,
+                                            setrepListCompleted = item.setrepList,
+                                            totalExerciseVolume = calculatetotalVolume
+                                        )
+                                    )
                                     getExerciseId += 1
-                                    Log.d("KAYIT","id $getExerciseId")
+                                    Log.d("KAYIT", "id $getExerciseId")
                                     viewModelSave.exerciseId.value = getExerciseId
                                     // Some features of Workout
                                     viewModelSave.totalSetsOfCompletedWorkout.value += item.setrepList.size
-                                    for (i in item.setrepList){
+                                    for (i in item.setrepList) {
                                         viewModelSave.totalRepsOfCompletedWorkout.value += i.setRep
                                         viewModelSave.totalWeightOfCompletedWorkout.value += (i.weight.toInt() * i.setRep)
                                     }
-                                    Log.d("lolsa",viewModelSave.totalSetsOfCompletedWorkout.value.toString())
-                                }
+                                    Log.d(
+                                        "lolsa",
+                                        viewModelSave.totalSetsOfCompletedWorkout.value.toString()
+                                    )
 
+                                }
                             }
                             navController.navigate(route = "workoutcompletescreen")
                             viewModelSave.completedWorkoutId.value += 1
@@ -519,7 +561,7 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
 
     if (showBottomSheetSettingChange) {
         ModalBottomSheet(
-            onDismissRequest = { showBottomSheetSettingChange = false},
+            onDismissRequest = { showBottomSheetSettingChange = false },
             sheetState = sheetStateSettingChange,
             containerColor = Color(0xFF283747)
         ) {
@@ -567,24 +609,31 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                 Row(modifier = Modifier.align(Alignment.Center)) {
                     NumberPicker(
                         value = modalBottomBarWeightValue,
-                        onValueChange = { modalBottomBarWeightValue = it
+                        onValueChange = {
+                            modalBottomBarWeightValue = it
 
-                                          scopes.launch {
-                                              val newSetRepList = SetRep(modalBottomBarSetNumber,modalBottomBarRepsValue,ticked = false,modalBottomBarWeightValue.toFloat())
-                                              val updatedEntity = changedProjectFitnessExerciseEntityList // Seçilen egzersiz entity'sini çeker
-                                              updatedEntity.setrepList.forEachIndexed{index,item ->
-                                                  if(index == modalBottomBarSetNumber.last().digitToInt()-1) {
-                                                      Log.d("values",modalBottomBarSetNumber.last().toString())
-                                                      item.weight =
-                                                          modalBottomBarWeightValue.toFloat()
-                                                  }
-                                              }
-                                              // updatedEntity.setrepList.toMutableList().apply { add(newSetRepList) }
-                                              itemRepos.updateSetRepList(updatedEntity)
-                                              Log.d("value","${newSetRepList} and $updatedEntity")
-                                          }
-                                        },
-                        range = 0..500 step(5), // step fonkisyonu ile 5'er arttırma yapıldı
+                            scopes.launch {
+                                val newSetRepList = SetRep(
+                                    modalBottomBarSetNumber,
+                                    modalBottomBarRepsValue,
+                                    ticked = false,
+                                    modalBottomBarWeightValue.toFloat()
+                                )
+                                val updatedEntity =
+                                    changedProjectFitnessExerciseEntityList // Seçilen egzersiz entity'sini çeker
+                                updatedEntity.setrepList.forEachIndexed { index, item ->
+                                    if (index == modalBottomBarSetNumber.last().digitToInt() - 1) {
+                                        Log.d("values", modalBottomBarSetNumber.last().toString())
+                                        item.weight =
+                                            modalBottomBarWeightValue.toFloat()
+                                    }
+                                }
+                                // updatedEntity.setrepList.toMutableList().apply { add(newSetRepList) }
+                                itemRepos.updateSetRepList(updatedEntity)
+                                Log.d("value", "${newSetRepList} and $updatedEntity")
+                            }
+                        },
+                        range = 0..500 step (5), // step fonkisyonu ile 5'er arttırma yapıldı
                         dividersColor = Color(0xFFF1C40F),
                         textStyle = TextStyle(color = Color.White),
 
@@ -604,21 +653,29 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
                     Spacer(modifier = Modifier.size(130.dp))
                     NumberPicker(
                         value = modalBottomBarRepsValue,
-                        onValueChange = { modalBottomBarRepsValue = it
+                        onValueChange = {
+                            modalBottomBarRepsValue = it
                             scopes.launch {
-                                val newSetRepList = SetRep(modalBottomBarSetNumber,modalBottomBarRepsValue,ticked = false,modalBottomBarWeightValue.toFloat())
-                                val updatedEntity = changedProjectFitnessExerciseEntityList // Seçilen egzersiz entity'sini çeker
-                                updatedEntity.setrepList.forEachIndexed{index,item ->
-                                    if(index == modalBottomBarSetNumber.last().digitToInt()-1) {
-                                        Log.d("values",modalBottomBarSetNumber.last().toString())
+                                val newSetRepList = SetRep(
+                                    modalBottomBarSetNumber,
+                                    modalBottomBarRepsValue,
+                                    ticked = false,
+                                    modalBottomBarWeightValue.toFloat()
+                                )
+                                val updatedEntity =
+                                    changedProjectFitnessExerciseEntityList // Seçilen egzersiz entity'sini çeker
+                                updatedEntity.setrepList.forEachIndexed { index, item ->
+                                    if (index == modalBottomBarSetNumber.last().digitToInt() - 1) {
+                                        Log.d("values", modalBottomBarSetNumber.last().toString())
                                         item.setRep =
                                             modalBottomBarRepsValue
                                     }
                                 }
                                 // updatedEntity.setrepList.toMutableList().apply { add(newSetRepList) }
                                 itemRepos.updateSetRepList(updatedEntity)
-                                Log.d("value","${newSetRepList} and $updatedEntity")
-                            }},
+                                Log.d("value", "${newSetRepList} and $updatedEntity")
+                            }
+                        },
                         range = 0..50,
                         dividersColor = Color(0xFFF1C40F),
                         textStyle = TextStyle(color = Color.White),
@@ -693,40 +750,65 @@ fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {
     }
 
     if (showBottomSheet) {
-        ModalBottomSheet(onDismissRequest = { showBottomSheet = false }, sheetState = sheetState, containerColor = Color(0xFF283747)) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = Color(0xFF283747)
+        ) {
             LaunchedEffect(Unit) {
-                scope.launch { sheetState.expand() }.invokeOnCompletion { if (!sheetState.isVisible) {showBottomSheet = false} }
+                scope.launch { sheetState.expand() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) {
+                        showBottomSheet = false
+                    }
+                }
             }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp) )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+            )
             {
                 Column(modifier = Modifier.align(Alignment.TopCenter))
-                     {
-                        Text(text = "Do you want to leave workout ?",
-                            style = TextStyle(fontSize = 25.sp , fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))),
-                            color = Color(0xFFF1C40F),
-                            modifier = Modifier.align(Alignment.CenterHorizontally))
-                        Row(modifier = Modifier
+                {
+                    Text(
+                        text = "Do you want to leave workout ?",
+                        style = TextStyle(
+                            fontSize = 25.sp,
+                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
+                        ),
+                        color = Color(0xFFF1C40F),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    Row(
+                        modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .align(Alignment.CenterHorizontally)
                             .background(Color.Transparent)
-                            .padding(top = 20.dp)) {
-                            Text(text = "Yes", style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolomboregular))), fontSize = 25.sp,
-                                modifier = Modifier
-                                    .padding(start = 100.dp)
-                                    .clickable { navController.navigate("home") }, color = Color(0xFFF1C40F))
-                            Spacer(modifier = Modifier.weight(1f))
-                            Text(text = "No", style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolomboregular))), fontSize = 25.sp,
-                                modifier = Modifier
-                                    .padding(end = 100.dp)
-                                    .clickable {
-                                        showBottomSheet = false
-                                        scopes.launch { sheetState.hide() }
-                                    },color = Color(0xFFF1C40F))
-                        }
+                            .padding(top = 20.dp)
+                    ) {
+                        Text(text = "Yes",
+                            style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolomboregular))),
+                            fontSize = 25.sp,
+                            modifier = Modifier
+                                .padding(start = 100.dp)
+                                .clickable { navController.navigate("home") },
+                            color = Color(0xFFF1C40F)
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(text = "No",
+                            style = TextStyle(fontFamily = FontFamily(Font(R.font.postnobillscolomboregular))),
+                            fontSize = 25.sp,
+                            modifier = Modifier
+                                .padding(end = 100.dp)
+                                .clickable {
+                                    showBottomSheet = false
+                                    scopes.launch { sheetState.hide() }
+                                },
+                            color = Color(0xFFF1C40F)
+                        )
                     }
+                }
 
             }
         }
@@ -748,17 +830,15 @@ fun timerWorkout(viewModelSave: ViewModelSave): String {
             second.value++
             if (minute.value == 60) {
                 hour.value++
-                minute.value= 0
-            }
-            else if (second.value == 60){
+                minute.value = 0
+            } else if (second.value == 60) {
                 minute.value++
                 second.value = 0
             }
         }
     }
-    return " %2d h : %2d m : %2d s ".format( hour.value , minute.value , second.value )
+    return " %2d h : %2d m : %2d s ".format(hour.value, minute.value, second.value)
 }
-
 
 
 fun selectedexerciseNameFunction(
@@ -772,7 +852,6 @@ fun selectedexerciseNameFunction(
         itemRepoList[index]?.exercises2?.get(index)?.exercisesName.toString()
 
 }
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)
