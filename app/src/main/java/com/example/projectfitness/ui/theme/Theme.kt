@@ -54,7 +54,6 @@ fun ProjectFitnessTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
         content = content
     )
 }

@@ -4,18 +4,25 @@ package activity.inside
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.health.connect.datatypes.units.Length
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +30,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -30,14 +38,28 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -47,6 +69,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,12 +78,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -72,246 +97,160 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.chargemap.compose.numberpicker.NumberPicker
 import com.example.projectfitness.R
+import com.example.projectfitness.data.local.entity.SetEntity
+import com.example.projectfitness.data.local.entity.WorkoutEntity
+import com.google.android.play.core.integrity.d
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import database.Exercise
-import database.ProjectFitnessContainer
-import database.ProjectFitnessWorkoutEntity
+import com.patrykandpatrick.vico.compose.common.shader.color
+import data.local.viewmodel.ChooseExercisesViewModel
+import data.local.viewmodel.CreateWorkoutViewModel
+import data.local.viewmodel.SetDraft
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import navigation.Screens
-import viewmodel.ViewModelSave
+import ui.mainpages.mainpages.LongClickModalBottom
+import ui.mainpages.navigation.NavigationBar
+import ui.mainpages.navigation.Screens
+import java.util.UUID
+import kotlin.collections.minus
+import kotlin.collections.plus
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
+    ExperimentalFoundationApi::class
+)
 @SuppressLint("UnrememberedMutableState", "InvalidColorHexValue")
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewModelSave) {
+fun ChooseExercises(navController: NavController, createWorkoutViewModel: CreateWorkoutViewModel, chooseExercisesViewModel: ChooseExercisesViewModel) {
 
     //Database Creation *************************************************************************************************************************************************************
-    val db = FirebaseFirestore.getInstance()
-    val uid = Firebase.auth.currentUser?.uid
+    val draft = createWorkoutViewModel.draftExercises.collectAsState().value
+    val modalBottomSheetState = rememberModalBottomSheetState()
+    var expandBottomSheet by remember { mutableStateOf(false) }
+
+    var editingCatalogId by remember { mutableStateOf("") }
+    var editingSetIndex by remember { mutableStateOf(0) }
+    var tempReps by remember { mutableStateOf(0) }
+    var tempWeight by remember { mutableStateOf(0) }
 
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("workoutIdNumber", Context.MODE_PRIVATE)
-    var workoutIdNumber by remember { mutableStateOf(sharedPreferences.getInt("number",2)) }
-   // var workoutidNumber by remember { mutableStateOf(sharedPreferences.getInt("number2",1)) }
-    val scopes = rememberCoroutineScope()
-    var projectFitnessContainer = ProjectFitnessContainer(context)
-    val itemRepos = projectFitnessContainer.itemsRepository
-    var item by remember { mutableStateOf(0) }
-    val itemsState by itemRepos.getAllItemsStream().collectAsState(initial = emptyList())
 
-    //******************************************************************************************************************************************************************************
+    var workoutNameInput = chooseExercisesViewModel.workoutName.collectAsState().value
+    val currentUser = Firebase.auth.currentUser
 
-    // Variable Initialize *********************************************************************************************************************************************************
+    val deleteSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var itemToDeleteId by remember { mutableStateOf<String?>(null) }
 
-    val sheetState = rememberModalBottomSheetState()
-    val sheetStateState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(true) }
-    var showBottomSheetSetting by remember { mutableStateOf(true) }
-    var showBottomSheetSettingSetting by remember { mutableStateOf(true) }
-    var allowed = viewModel.allowed
-    var list = viewModel.exercises // Create list and init with ViewModelSave for preserving any class
-    var flag = viewModel.flag
-    var text = viewModel.name
-    var exercisesForWorkouts2 =
-        viewModel.exercisesForWorkouts2 // ViewModelSave classından örneği oluşturulmuş mutablestatelistof<Exercise> liste nesnesi
-    var newExercises = Exercise("", 0, 0)
-
-    var arg2 by remember { mutableStateOf("") }
-
-    val screen1 = 750
-    val screen2 = 800
-    val screen3 = 900
-    val screen4 = 380
-    val screen5 = 400
-    val screen6 = 420
-
-    var configuration = LocalConfiguration.current
-    var screenheightDp = configuration.screenHeightDp
-    var screenwidthDp = configuration.screenWidthDp
-
-    val useDiffrentValue1 = screenheightDp in screen1..screen2
-    val useDiffrentValue2 = screenheightDp in screen2..screen3
-    val useDiffrentValue3 = screenheightDp >= screen3
-
-
-    val useDiffrentValue4 = screenwidthDp in screen4..screen5
-    val useDiffrentValue5 = screenwidthDp in screen5..screen6
-    val useDiffrentValue6 = screenwidthDp >= screen6
-
-    val marginLazyColumnTopDp = if (useDiffrentValue1) {
-        70.dp
-    } // 750-800 dp
-    else if (useDiffrentValue2) {
-        60.dp
-    } // 800-900 dp
-    else if (useDiffrentValue3) {
-        70.dp
-    } // >= 900 dp
-    else {
-        70.dp
-    } // <= 750 dp
-
-    val marginWidthDp = if (useDiffrentValue4) {
-        500.dp
-    } else if (useDiffrentValue5) {
-        10.dp
-    } else if (useDiffrentValue6) {
-        10.dp
-    } else {
-        200.dp
-    }
-
-
-    var idFlags = viewModel.idFlag
-
-    var clicked by remember { mutableStateOf(false) }
 
 
     //**************************************************************************************************************************************************************************************
 
     // UI Coding ****************************************************************************************************************************************************************************
-    if (arg?.length == 6) {
-        Log.d("arg1", arg ?: "arg is null")
-    } else {
-        if (arg != null) {
-            arg2 = arg
-        }
-        if (arg2 !in list && flag.value) {
-            list.add(arg2)                                  // Workout Details classından gelen seçilmiş egzersizin stringini list ' e ekle
-            newExercises = Exercise(
-                arg2,
-                0,
-                0
-            ) // Exercise sınıfından örnek oluşturup içine egzersiz ismi , tekrar ve setler ekleniyor
-            exercisesForWorkouts2.add(newExercises)        // ViewModelSave sınıfından oluşturulmuş mutablestatelistof<Exercise> nesnesine bir önceki Exercise nesnesi ekleniyor
-        }
-    }
-    Log.d("ChooseExercises / WorkoutIdNumber / Not Clicked ",workoutIdNumber.toString())
-    Box( // Ana arkaplan
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFFF1C40F), Color(0xFF181F26)),
-                    start = Offset(0f, 0f),
-                    end = Offset(0f, screenheightDp.toFloat())
-                )
-            )
-    ) {
-            Row(
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .background(Color.Transparent)) {
+    Scaffold(
+        contentWindowInsets = WindowInsets(0),
+        topBar = {
+            HomeTopBarChooseExercises(navController, chooseExercisesViewModel)
+        },
+        containerColor = Color(0xFF121417),
+        bottomBar = {
+            // senin NavigationBar fonksiyonun zaten hazır
+            val indexs = 1
+            val flagg = false
+            val flagg2 = true
+            val flagg3 = false
+            val flagg4 = false
+            NavigationBar(navController = navController, indexs, flagg, flagg2, flagg3, flagg4)
+        },
+        floatingActionButton = {
+            Column(
+                horizontalAlignment = Alignment.End, // Sağ tarafa yasla
+                verticalArrangement = Arrangement.spacedBy(16.dp) // Butonlar arası boşluk
+            ) {
+                // --- 1. BUTON (Yeni Eklenen Küçük Buton) ---
+                FloatingActionButton(
+                    onClick = {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            navController.navigate(Screens.CreateWorkout.route)
+                        }
+                    },
+                    containerColor = Color(0xFF1C2126), // Koyu gri arka plan
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Settings")
+                }
 
-                Icon(
-                    painter = painterResource(id = R.drawable.projectfitnessprevious),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable(onClick = {
-                            if (text.value.isEmpty() || list.isEmpty()) {
-                                scopes.launch {
-                                    itemRepos.deleteItem(itemsState.last())
+                ExtendedCreateButtonAddExercise {
+                    if (currentUser != null && workoutNameInput.isNotBlank() && draft.isNotEmpty()) {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            val uniqueWorkoutId = UUID.randomUUID().toString()
+                            createWorkoutViewModel.saveWorkout(
+                                workoutId = uniqueWorkoutId, // Yeni kayıt olduğu için boş bırakıyoruz (Repo'da UUID üretiliyorsa)
+                                workoutName = workoutNameInput, // TextField'dan gelen isim
+                                workoutType = "User", // Burayı sabit verebilirsin veya bir selector ekleyebilirsin
+                                workoutRating = 0,
+                                ownerUid = currentUser.uid, // Firebase User ID
+                                syncState = true,
+                                onDone = {
+                                    Toast.makeText(context, "Workout Saved!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate(Screens.Activity.route)
+                                    chooseExercisesViewModel.setName("")
+                                },
+                                onError = { e ->
+                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
-                                viewModel.workoutSize.value -= 1
-                                viewModel.idFlag.value += 1
-                            }
-                            navController.navigate("home")
-                        })
-                        .padding(top = 10.dp)
-                        .size(30.dp),
-                    tint = Color(0xFF000000)
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                IconButton(
-                    onClick = {
-                        clicked = true
-                        showBottomSheetSetting = true }, modifier = Modifier
-
-                ) {
-                    Icon(
-                        painterResource(id = if (clicked){R.drawable.settingsfilled}else{R.drawable.settings}),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(25.dp)
-                            .height(25.dp),
-                        tint = Color(0xFF000000)
-                    )
-
-                }
-                IconButton(
-                    onClick = {
-                        Log.d("CLICKED", "clicked")
-                        showBottomSheet = true
-                    }, modifier = Modifier
-
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.projectfitnesspointheavy),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(25.dp)
-                            .height(25.dp),
-                        tint = Color(0xFF181F26)
-                    )
-
-                }
-
-
-            }
-        Text(
-            text = "Create",
-            style = TextStyle(
-                fontSize = 70.sp,
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                lineHeight = 55.sp
-            ),
-            color = Color(0xFF000000),
-            modifier = Modifier.padding(start = 25.dp, top = 50.dp),
-        )
-        Text(text = "Workout", style = TextStyle(fontSize = 70.sp, fontFamily = FontFamily(Font(R.font.postnobillscolombolight)), lineHeight = 55.sp),
-            color = Color(0xFF000000),
-            modifier = Modifier.padding(start = 25.dp, top = 105.dp),
-        )
-
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            .height((screenheightDp.dp / 1.5f))
-            .align(Alignment.BottomCenter)) {
-
-            Text(text = "Type Workout Name",
-                style = TextStyle(fontSize = 20.sp),
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                color = Color.White, letterSpacing = 3.sp,
-                modifier = Modifier
-                    .padding(top = 60.dp)
-                    .align(Alignment.CenterHorizontally))
-            BasicTextField(
-                value = text.value,
-                onValueChange = {
-                    if (!allowed.value) {
-                        text.value = it
+                            )
+                        }
+                    } else {
+                        // Hata mesajı: Kullanıcı yoksa veya isim girilmediyse
+                        Toast.makeText(context, "Please enter a workout name and add exercises before saving.", Toast.LENGTH_SHORT).show()
                     }
-                },
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.EndOverlay, // EndOverlay yerine End daha stabil olabilir
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues->
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            Spacer(modifier = Modifier
+                .padding(top = 30.dp))
+            Text("Create Workout",
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontSize = 30.sp,
+                modifier = Modifier)
+            Spacer(modifier = Modifier
+                .padding(top = 30.dp))
+            Text("Type Workout Name",
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.lexendsemibold)),
+                fontSize = 20.sp,
+                modifier = Modifier)
+            Spacer(modifier = Modifier
+                .padding(top = 30.dp))
+            BasicTextField(
+                value = workoutNameInput,
+                onValueChange = { workoutNameInput = it
+                    chooseExercisesViewModel.setName(workoutNameInput)
+                                },
 
                 modifier = Modifier
-                    .padding(top = 5.dp)
                     .height(40.dp)
-                    .fillMaxWidth()
+                    .padding(horizontal = 30.dp)
                     .background(Color.Transparent, shape = RoundedCornerShape(10.dp)),
                 textStyle = TextStyle(
                     fontSize = 15.sp,
-                    fontFamily = FontFamily(Font(R.font.poppinslighttext)),
+                    fontFamily = FontFamily(Font(R.font.lexendbold)),
                     color = Color(0xFFD9D9D9)
                 ),
                 maxLines = 1,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 decorationBox = { innerTextField ->
                     Row(
                         modifier = Modifier
@@ -340,360 +279,394 @@ fun ChooseExercises(navController: NavController, arg: String?, viewModel: ViewM
                     }
                 }
             )
-
+            Spacer(Modifier.size(50.dp))
+            if (draft.isNotEmpty()){
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = 30.dp,
-                        bottom = 0.dp,
-                        start = 0.dp,
-                        end = 0.dp
-                    ),
+                    .padding(horizontal = 20.dp),
                 state = LazyListState()
             )
             {
-                itemsIndexed(list) { index, item ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight()
-                            .background(Color.Transparent, shape = RoundedCornerShape(20.dp))
-                    ){
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 20.dp)
-                            .width(90.dp)
-                            .height(90.dp)
-                            .clip(shape = RoundedCornerShape(20.dp))
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color.DarkGray,
-                                        Color(0xFF181F26)  // End color
-                                    ),
-                                    start = Offset.Infinite,
-                                    end = Offset(100.0f, 0.0f)
-                                ),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .clickable {},
-
-                        ) { // EMPTY
-                        }
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .height(90.dp)
-                                .padding(end = 40.dp)
-                        ){
-                            Row(modifier = Modifier) {
-                                Text(
-                                    text = "" + item.toString(),
-                                    modifier = Modifier
-                                        .padding(start = 130.dp),
-                                    fontSize = 20.sp,
-                                    fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                                    color = Color(0xFFD9D9D9),
-                                    style = TextStyle(letterSpacing = 1.sp)
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                Icon(painter = painterResource(id = R.drawable.question),
-                                    contentDescription = null,
-                                    tint = Color(0xFFF1C40F),
-                                    modifier = Modifier
-                                        .padding(top = 20.dp)
-                                        .size(25.dp)
-                                        .clickable {
-                                            viewModel.flagA.value = false
-                                            viewModel.flagB.value = false
-                                            viewModel.flagC.value = true
-                                            viewModel.flagD.value = false
-                                            navController.navigate("workoutsettingdetails")
-                                        }
-                                )
-                            }
-                        }
-
-                        Text(
-                            text = viewModel.setRepString[index].toString() ,
-                            fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                            fontSize = 15.sp,
-                            textAlign = TextAlign.Left,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                                .padding(start = 130.dp, top = 25.dp),
-                            color = Color(0xFFD9D9D9)
+                itemsIndexed(draft) { index, item ->
+                    ExerciseItem(item.name, index, item.sets, createWorkoutViewModel, item.catalogId,
+                        onEditClick = { setIndex, currentReps, currentWeight ->
+                            editingCatalogId = item.catalogId
+                            editingSetIndex = setIndex
+                            tempReps = currentReps.toInt()
+                            tempWeight = currentWeight
+                            expandBottomSheet = true},
+                        onLongClick = {
+                            itemToDeleteId = item.catalogId
+                        },
                         )
+                    Spacer(Modifier.size(10.dp))
+                }
+                }
+
+            }
+            else {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxSize().padding(bottom = 100.dp)
+                ) {
+                    Icon(painter = painterResource(R.drawable.dumbbell), contentDescription = null, tint = Color(0xFF2C3138), modifier = Modifier.size(150.dp))
+                    Spacer(Modifier.size(50.dp))
+                    Text("No Exercise Yet", color = Color.White, fontFamily = FontFamily(Font(R.font.lexendbold)), fontSize = 22.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Add your first exercise right below",
+                        style = TextStyle(
+                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            fontSize = 16.sp,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+            }
+        }
+        if (expandBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {expandBottomSheet = false},
+                sheetState = modalBottomSheetState,
+                containerColor = Color(0xFF121417)
+            ) {
+                var currentRepsPicker by remember(tempReps) { mutableStateOf(tempReps) }
+                var currentWeightPicker by remember(tempWeight) { mutableStateOf(tempWeight) }
+                Column(modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 0.dp)
+                        ) {
+                            Text("REP", color = Color.White, fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.lexendbold)))
+                            Spacer(Modifier.size(10.dp))
+                            NumberPicker(
+                                value = currentRepsPicker,
+                                onValueChange = {currentRepsPicker = it},
+                                range = 0..100,
+                                dividersColor = Color(0xFFF1C40F),
+                                textStyle = TextStyle(color = Color.White)
+                            )
+                        }
+                        Spacer(modifier = Modifier.size(40.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 0.dp)
+                        ) {
+                            Text("Weight", color = Color.White, fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.lexendbold)))
+                            Spacer(Modifier.size(10.dp))
+                            NumberPicker(
+                                value = currentWeightPicker,
+                                onValueChange = {currentWeightPicker = it},
+                                range = 0..100,
+                                dividersColor = Color(0xFFF1C40F),
+                                textStyle = TextStyle(color = Color.White)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.size(30.dp))
+                    Button(onClick = {
+                        Log.d("CATALOG", "editing one is $editingCatalogId and set is ${editingSetIndex+1}")
+                        createWorkoutViewModel.updateSet(editingCatalogId, editingSetIndex, currentRepsPicker, currentWeightPicker.toFloat())
+                        expandBottomSheet = false
+                    },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C2126))) {
+                        Text("Change", fontFamily = FontFamily(Font(R.font.lexendbold)))
                     }
                     Spacer(modifier = Modifier.size(20.dp))
                 }
             }
-
         }
-        Row(modifier = Modifier.align(Alignment.BottomCenter)) { // Alt button row'u
-            Button(
-                onClick = { navController.navigate(route = "createworkout")
-                          viewModel.setrepList.clear()},
-                modifier = Modifier
-                    .padding(top = screenheightDp.dp / 3.5f, start = screenwidthDp.dp / 20)
-                    .width(220.dp)
-                    .height(35.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                contentPadding = PaddingValues(0.dp),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-
-                Text(
-                    text = "ADD EXERCISES",
-                    fontFamily = FontFamily(Font(R.font.postnobillscolombo)),
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(letterSpacing = 1.sp, fontSize = 20.sp),
-                    color = Color(0xFF21282F)
-                )
-            }
-            Button(
-                onClick = {
-                    if (list.isEmpty() || text.value.isEmpty()) {
-                        Toast.makeText(
-                            context,
-                            "Add Exercise and Set Name of Workout",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        val editor = sharedPreferences.edit()
-                        allowed.value = true
-
-                        scopes.launch {
-                            try {
-                                itemRepos.updateItem(
-                                    ProjectFitnessWorkoutEntity(
-                                        workoutId = workoutIdNumber,
-                                        workoutName = text.value,
-                                        exercises = exercisesForWorkouts2
-                                    )
-                                )
-                                Log.d("UpdateItem", "Update successful")
-                            } catch (e: Exception) {
-                                Log.e("UpdateItem", "Update failed", e)
-                            }
-                        }
-                        //Firebase insert workout
-
-                        if (uid != null) {
-
-                                val docRef = db.collection("Workouts").document("$uid").collection("HasWorkout").document("${workoutIdNumber}")
-                                val hashMapOf = hashMapOf(
-                                    "workoutid" to workoutIdNumber ,
-                                    "workoutname" to text.value ,
-                                    "exercises" to exercisesForWorkouts2
-                                )
-                                docRef.set(hashMapOf)
-                            }
-                        Log.d(
-                            "IDFLAG",
-                            idFlags.value.toString() + " " + text.value + " " + exercisesForWorkouts2.toList()
-                                .toString()
-                        )
-                        editor.putInt("number",workoutIdNumber + 1 )
-                        editor.apply()
-                        navController.navigate(route = "home")
-                    }
-
-                },
-                modifier = Modifier
-                    .padding(top = screenheightDp.dp / 3.4f, start = marginWidthDp / 20)
-                    .width(100.dp)
-                    .height(25.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
-                contentPadding = PaddingValues(0.dp),
-                shape = RoundedCornerShape(5.dp)
-            ) {
-                Text(
-                    text = "CREATE",
-                    fontFamily = FontFamily(Font(R.font.postnobillscolombo)),
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(letterSpacing = 1.sp, fontSize = 10.sp),
-                    color = Color(0xFF21282F)
-                )
-            }
+        if (itemToDeleteId != null) {
+            LongClickModalBottomChooseExercises(
+                sheetState = deleteSheetState,
+                onDismiss = { itemToDeleteId = null }, // Kapatılınca ID'yi sıfırla
+                onDeleteClick = {
+                    // ViewModel'den silme işlemini yap
+                    createWorkoutViewModel.removeDraftExercise(itemToDeleteId!!)
+                    itemToDeleteId = null // İşlem bitince kapat
+                }
+            )
         }
-        // Modal Bar settings-----------------------------------------------------------------------
-            if (showBottomSheetSetting) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        clicked = false
-                        showBottomSheetSetting = false },
-                    sheetState = sheetState,
-                    containerColor = Color(0xFF283747)
-                ) {
-                    LaunchedEffect(Unit) {
-                        scope.launch { sheetState.expand() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                clicked = false
-                                showBottomSheetSetting = false
-                            }
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(77.dp)
-                    )
-                    {
-                        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                            Button(
-                                onClick = { navController.navigate(Screens.LoginScreen.route) },
-                                modifier = Modifier
-                                    .align(Alignment.End)
-                                    .padding(bottom = 25.dp)
-                                    .fillMaxWidth()
-                                    .height(60.dp),
-                                shape = RoundedCornerShape(0.dp),
-                                contentPadding = PaddingValues(0.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                            ) {
-                                Text(
-                                    text = "Logout",
-                                    style = TextStyle(
-                                        fontSize = 25.sp,
-                                        fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold))
-                                    ),
-                                    color = Color(0xFFF1C40F)
-                                )
-                            }
+}
+}
 
-                        }
-                    }
-                }
-            }
+@Composable
+private fun HomeTopBarChooseExercises(navController: NavController, chooseExercisesViewModel: ChooseExercisesViewModel) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
-            if (showBottomSheetSettingSetting) {
-                ModalBottomSheet(
-                    onDismissRequest = { showBottomSheetSettingSetting = false },
-                    sheetState = sheetStateState,
-                    containerColor = Color(0xFF283747)
-                ) {
-                    LaunchedEffect(Unit) {
-                        scope.launch { sheetStateState.expand() }.invokeOnCompletion {
-                            if (!sheetStateState.isVisible) {
-                                showBottomSheetSettingSetting = false
-                            }
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(230.dp)
-                    )
-                    {
-                        Column(modifier = Modifier.align(Alignment.BottomCenter)) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(230.dp)
-                            )
-                            {
-                                Row(modifier = Modifier.align(Alignment.TopCenter)) {
-                                    Text(
-                                        text = "SET",
-                                        style = TextStyle(
-                                            fontSize = 20.sp,
-                                            letterSpacing = 2.sp,
-                                            fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
-                                            color = Color.White
-                                        ),
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .padding(end = 140.dp)
-
-                                    )
-                                    Text(
-                                        text = "REP",
-                                        style = TextStyle(
-                                            fontSize = 20.sp,
-                                            letterSpacing = 2.sp,
-                                            fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
-                                            color = Color.White
-                                        ),
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .padding(end = 15.dp)
-
-                                    )
-                                }
-
-                                Row(modifier = Modifier.align(Alignment.Center)) {
-                                    NumberPicker(
-                                        value = 0,
-                                        onValueChange = { 0 },
-                                        range = 0..500,
-                                        dividersColor = Color(0xFFF1C40F),
-                                        textStyle = TextStyle(color = Color.White),
-
-                                        )
-                                    Spacer(modifier = Modifier.size(130.dp))
-                                    NumberPicker(
-                                        value = 0,
-                                        onValueChange = {
-                                        },
-                                        range = 0..50,
-                                        dividersColor = Color(0xFFF1C40F),
-                                        textStyle = TextStyle(color = Color.White),
-
-                                        )
-                                }
-
-
-                                Row(modifier = Modifier.align(Alignment.BottomEnd)) {
-                                    Text(text = "LOG",
-                                        style = TextStyle(
-                                            fontSize = 20.sp,
-                                            letterSpacing = 2.sp,
-                                            fontFamily = FontFamily(Font(R.font.postnobillscolombobold)),
-                                            color = Color.White,
-                                            textAlign = TextAlign.Center
-                                        ),
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .padding(end = 15.dp, bottom = 15.dp)
-                                            .clickable {}
-                                            .width(50.dp)
-                                            .height(25.dp)
-                                            .background(
-                                                shape = RoundedCornerShape(10.dp),
-                                                color = Color(0xFF181F26)
-                                            )
-
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        //------------------------------------------------------------------------------------------
-
-        if (list.isEmpty()) {
-            Text(
-                text = "Add Exercises",
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = screenheightDp.dp / 1.8f)
-                    .alpha(0.6f),
-                fontSize = 20.sp, color = Color(0xFFD9D9D9),
-                fontFamily = FontFamily(Font(R.font.postnobillscolombosemibold)),
-                style = TextStyle(letterSpacing = 1.sp)
+        IconButton(onClick = {navController.navigate(Screens.Activity.route)
+        chooseExercisesViewModel.setName("")
+        }) {
+            Icon(
+                painter = painterResource(R.drawable.left),
+                contentDescription = null,
+                modifier = Modifier.size(25.dp),
+                tint = Color.White
             )
         }
 
+        Spacer(Modifier.weight(1f))
+
+        Text(
+            text = "PROJECT FITNESS",
+            color = Color(0xFFF1C40F),
+            fontSize = 14.sp,
+            letterSpacing = 6.sp,
+            fontFamily = FontFamily(Font(R.font.lexendregular))
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        IconButton(onClick = {}) {
+            Icon(
+                painter = painterResource(R.drawable.projectfitnesspointheavy),
+                contentDescription = null,
+                modifier = Modifier.size(25.dp),
+                tint = Color.Transparent
+            )
+        }
     }
 }
 
-
-@RequiresApi(Build.VERSION_CODES.R)
-@Preview(showSystemUi = true)
 @Composable
-fun PreviewChooseExercises() {
-    ChooseExercises(navController = rememberNavController(), arg = "", viewModel = viewModel())
+fun ExtendedCreateButtonAddExercise(onConfirmClick: () -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    ExtendedFloatingActionButton(
+        onClick = {
+            onConfirmClick()
+        },
+        icon = {
+            Icon(imageVector = Icons.Default.Check, "Extended create workout button", Modifier.size(40.dp))
+        },
+        text = {
+            Text("Add Exercise", style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendbold)), fontSize = 18.sp))
+        },
+        containerColor = Color(0xFFF1C40F),
+        expanded = expanded,
+        modifier = Modifier
+            .padding(bottom = 50.dp)
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class
+)
+@Composable
+fun ExerciseItem(
+    exerciseName: String,
+    index: Int,
+    exerciseSet: List<SetDraft>,
+    createWorkoutViewModel: CreateWorkoutViewModel,
+    catalogId: String,
+    onEditClick: (Int, Float, Int) -> Unit,
+    onLongClick: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .combinedClickable(
+                onLongClick = { onLongClick() },
+                onClick = {  }
+            )
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFF1C2126))
+            .animateContentSize() // ✅ daha smooth
+            .padding(16.dp)
+    ) {
+
+        // ÜST SATIR
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.width(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "${index + 1}",
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontFamily = FontFamily(Font(R.font.lexendregular)),
+                    fontSize = 12.sp
+                )
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Text(
+                text = exerciseName,
+                color = Color.White,
+                modifier = Modifier.weight(1f),
+                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontSize = 15.sp,
+                maxLines = 1
+            )
+
+            // ✅ sadece ok tıklanınca aç/kapa
+            Icon(
+                imageVector = if (expanded)
+                    Icons.Default.Info
+                else
+                    Icons.Default.Info,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable {  }
+            )
+            Spacer(Modifier.size(10.dp))
+            Icon(
+                imageVector = if (expanded)
+                    Icons.Default.KeyboardArrowUp
+                else
+                    Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { expanded = !expanded }
+            )
+        }
+
+        // AÇILAN ALAN
+        AnimatedVisibility(visible = expanded) {
+            Column(
+                modifier = Modifier.padding(top = 12.dp, start = 44.dp)
+            ) {
+                if (exerciseSet.isEmpty()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 70.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.clickable(onClick = {
+                                createWorkoutViewModel.addSetToExercise(catalogId)
+                            })
+                        )
+                        Text(
+                            text = "Henüz set yok",
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            fontSize = 13.sp
+                        )
+                    }
+                } else {
+                    exerciseSet.forEachIndexed { setIndex, item ->
+                        Spacer(modifier = Modifier.size(5.dp))
+                        if (setIndex + 1 == exerciseSet.size) {
+                            Row() {
+                                Icon(imageVector = Icons.Default.Edit, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp).clickable(onClick = {
+                                    onEditClick(setIndex, item.weight, item.weight.toInt())
+                                }))
+                                Spacer(modifier = Modifier.size(15.dp))
+                                Text(
+                                    text = "Set ${setIndex + 1} x ${item.reps} reps • ${item.weight} kg",
+                                    color = Color.White.copy(alpha = 0.65f),
+                                    fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                    fontSize = 13.sp
+                                )
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 70.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.clickable(onClick = {
+                                    createWorkoutViewModel.addSetToExercise(catalogId)
+                                }))
+                                Icon(painter = painterResource(R.drawable.minusicon128), contentDescription = null, tint = Color.Red, modifier = Modifier.clickable(onClick = {
+                                    createWorkoutViewModel.removeSetToExercise(catalogId,
+                                        SetDraft(item.reps, item.sets, item.weight)
+                                    )
+                                })
+                                    .size(30.dp)) }
+                        }else {
+                            Row() {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp).clickable(
+                                        onClick = {
+                                            onEditClick(setIndex, item.weight, item.weight.toInt())
+                                        }
+                                    )
+                                )
+                                Spacer(modifier = Modifier.size(15.dp))
+                                Text(
+                                    text = "Set ${setIndex + 1} x ${item.reps} reps • ${item.weight} kg",
+                                    color = Color.White.copy(alpha = 0.65f),
+                                    fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                    fontSize = 13.sp
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LongClickModalBottomChooseExercises(
+    sheetState: SheetState,
+    onDismiss: () -> Unit,      // Kapatma eylemi
+    onDeleteClick: () -> Unit   // Silme eylemi
+) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        sheetState = sheetState,
+        modifier = Modifier.height(250.dp),
+        containerColor = Color(0xFF1C2126)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Remove Workout",
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    fontFamily = FontFamily(Font(R.font.lexendbold))
+                )
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Silme Butonu Örneği
+            androidx.compose.material3.Button(
+                onClick = onDeleteClick,
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = Color.Red
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Delete", color = Color.White)
+            }
+        }
+    }
 }

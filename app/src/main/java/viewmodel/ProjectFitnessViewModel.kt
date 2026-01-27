@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import database.Exercises
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,14 +14,11 @@ import kotlinx.coroutines.tasks.await
 
 class ProjectFitnessViewModel : ViewModel() {
     val firestoreData = MutableLiveData<String>()
-    val firestoreExercisesData = MutableLiveData<List<Exercises>>() // Egzersiz verileri için MutableLiveData güncellendi
     private val firestore = Firebase.firestore
     private val itemsCollection = firestore.collection("exercises")
-    val firestoreItems: MutableLiveData<List<Exercises>> = MutableLiveData() // Egzersiz verileri için MutableLiveData güncellendi
 
     init {
         loadDataFromFirestore()
-        loadExercisesDataFromFirestore()
     }
 
     fun loadDataFromFirestore() {
@@ -44,7 +40,7 @@ class ProjectFitnessViewModel : ViewModel() {
             }
         }
     }
-
+/*
     private fun loadExercisesDataFromFirestore() {
         itemsCollection.addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -68,5 +64,5 @@ class ProjectFitnessViewModel : ViewModel() {
                 }
             }
         }
-    }
+    }*/
 }

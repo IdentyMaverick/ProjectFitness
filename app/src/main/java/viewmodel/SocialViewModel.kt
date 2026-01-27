@@ -4,7 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import database.FirestoreRepository
+import data.remote.FirestoreRepository
+import data.remote.User
 import kotlinx.coroutines.launch
 
 class SocialViewModel(private val repository: FirestoreRepository) : ViewModel() {
@@ -27,8 +28,8 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
     }
 
     @SuppressLint("RestrictedApi")
-    fun getUserByNicknameLive(nickname: String): LiveData<database.User?> {
-        val userLiveData = MutableLiveData<database.User?>()
+    fun getUserByNicknameLive(nickname: String): LiveData<User?> {
+        val userLiveData = MutableLiveData<User?>()
         viewModelScope.launch {
             val user = repository.getUserByNickname(nickname)
             userLiveData.postValue(user)
@@ -36,8 +37,8 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         return userLiveData
     }
     @SuppressLint("RestrictedApi")
-    fun getUserByIdLive(id: String): LiveData<database.User?> {
-        val userLiveData = MutableLiveData<database.User?>()
+    fun getUserByIdLive(id: String): LiveData<User?> {
+        val userLiveData = MutableLiveData<User?>()
         viewModelScope.launch {
             val user = repository.getUserById(id)
             userLiveData.postValue(user)
@@ -45,7 +46,7 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         return userLiveData
     }
     @SuppressLint("RestrictedApi")
-    fun getAllUsers(): LiveData<List<database.User>> {
+    fun getAllUsers(): LiveData<List<User>> {
         return repository.getAllUsers()
     }
 }

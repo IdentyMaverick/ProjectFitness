@@ -4,32 +4,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
-import database.Exercise
-import database.ProjectCompletedExerciseEntity
-import database.ProjectFitnessWorkoutEntity
-import database.SetRep
-import database.Workout
 import kotlinx.coroutines.delay
 
-class ViewModelSave() : ViewModel() {
+class ViewModelSave : ViewModel() {
+
+    // -----------------------------
+    // Create Workout
+    // -----------------------------
     val name = mutableStateOf("")
     val exercises = mutableStateListOf<String?>()
     val setRepString = mutableStateListOf<String?>()
     val flag = mutableStateOf(true)
     var allowed = mutableStateOf(true)
-    var set = mutableStateListOf<String>("0", "0", "0", "0", "0", "0", "0", "0", "0")
-    var reps = mutableStateListOf<String>("0", "0", "0", "0", "0", "0", "0", "0", "0")
+
+    var set = mutableStateListOf("0", "0", "0", "0", "0", "0", "0", "0", "0")
+    var reps = mutableStateListOf("0", "0", "0", "0", "0", "0", "0", "0", "0")
+
     var count = mutableStateOf(0)
-    var workoutList = mutableListOf<Workout>()
-    var selectedItemName =
-        mutableStateOf("")   // Create Workout --> Exercise selected --> Workout Details --> ADD EXERCISES --> (selectedItemName = Exercise Name)
+
+    // Create Workout --> Exercise selected --> Workout Details --> ADD EXERCISES
+    var selectedItemName = mutableStateOf("")
     var selectedItemUpdatedName = mutableStateOf("")
 
+    // -----------------------------
+    // Selected workout / completed
+    // -----------------------------
     var selectedWorkoutName = mutableStateOf("")
     var selectedCompletedName = mutableStateOf("")
 
-    var exercisesForWorkouts2 = mutableStateListOf<Exercise>()
 
     var idFlag = mutableStateOf(1)
     var idFlag2 = mutableStateOf(3)
@@ -53,9 +57,12 @@ class ViewModelSave() : ViewModel() {
     var totalRepsOfCompletedWorkout = mutableStateOf(0)
     var totalWeightOfCompletedWorkout = mutableStateOf(0)
 
-    var completedWorkoutTime = mutableStateOf("") // Workout bitince zamanı kaydeden değişken
+    var completedWorkoutTime = mutableStateOf("")
     var hours = mutableStateOf("")
 
+    // -----------------------------
+    // Timer
+    // -----------------------------
     var hour = mutableStateOf("")
     var minutes = mutableStateOf("")
     var seconds = mutableStateOf("")
@@ -64,81 +71,75 @@ class ViewModelSave() : ViewModel() {
     var secondInt = mutableStateOf(0)
     var minuteInt = mutableStateOf(0)
 
-    var selectedWorkoutItem = mutableStateOf(ProjectFitnessWorkoutEntity(0, "", mutableListOf()))
+    // -----------------------------
+    // Selected workout item
+    // -----------------------------
 
     var ticked = mutableStateOf(false)
 
-    var setrepList = mutableStateListOf<SetRep>()
-    var setrepCoach = mutableStateListOf<SetRep>()
     var readyBackFinisher = mutableListOf("Lat Pulldown", "Lat Pulldown 2", "Lat Pulldown 3")
     var coachProjectMain = mutableListOf("")
 
     var lastSet = mutableStateOf(0)
     var lastRep = mutableStateOf(0)
 
-    var challangesSelectedIndex = mutableStateOf(0)
+    // -----------------------------
+    // Challenge selection (Senin mevcut)
+    // -----------------------------
+    var challangesSelectedIndex = mutableStateOf(0) // artık challengeId gibi kullan
     var challangesSelectedName = mutableStateOf("")
     var challangesSelectedDifficulty = mutableStateOf(0)
+    var challangesSelectedDetail = mutableStateOf("")
 
+    // ✅ Challenge detail ekranında kullanmak için:
+    // (Room relation ile gelen challenge + exercises)
+
+    // -----------------------------
+    // Coach selection
+    // -----------------------------
+    var coachesSelectedIndex = mutableStateOf(0)
     var coachesSelectedName = mutableStateOf("")
     var coachesSelectedDifficulty = mutableStateOf(0)
+    var coachesSelectedDetail = mutableStateOf("")
 
+    // -----------------------------
+    // Misc
+    // -----------------------------
     var alertDialogSpecificExerciseName = mutableStateOf("")
-
     var pastExerciseVolume = mutableStateOf("")
-    var improvedExercising = mutableMapOf<ProjectCompletedExerciseEntity, Int>()
 
     fun updateSelectedItemName(newName: String) {
         selectedItemName.value = newName
     }
 
-    fun workouts(): List<Workout> {
-        var exerciseList = exercises.filterNotNull()
-        val repsList = reps.map { it.toIntOrNull() ?: 0 }
-        val setsList = set.map { it.toIntOrNull() ?: 0 }
-
-        if (exerciseList.isNotEmpty() && allowed.value) {
-            var exercisesForWorkout = mutableListOf<Exercise>()
-            for (i in exerciseList.indices) {
-                val exercise = Exercise(
-                    name = exerciseList[i],
-                    reps = repsList[i],
-                    sets = setsList[i]
-                )
-                exercisesForWorkout.add(exercise)
-
-            }
-            val workout = Workout(name = name.value, exercises = exercisesForWorkout)
-            if (workout !in workoutList) {
-                workoutList.add(workout)
-            }
-
-
-        }
-
-        return workoutList
-    }
+    /**
+     * ✅ Challenge details ekranında çağır:
+     * repo.getChallengeWithExercises(challengeId) Flow'unu collect eder ve
+     * selectedChallengeWithExercises state'ini günceller.
+     *
+     * Kullanım:
+     * viewModelSave.CollectSelectedChallenge(repo)
+     */
 
     @Composable
     fun RestTimer() {
-        LaunchedEffect(key1 = secondInt.value)
-        {
+        LaunchedEffect(key1 = secondInt.value) {
             while (hourInt.value >= 0) {
                 delay(1000L)
                 secondInt.value++
+
                 if (minuteInt.value == 60) {
                     hourInt.value++
                     minuteInt.value = 0
-                } else if (secondInt.equals(60)) {
+                } else if (secondInt.value == 60) {
                     minuteInt.value++
                     secondInt.value = 0
                 }
             }
-
         }
+
         hour.value = "%2dh ".format(hourInt.value)
         minutes.value = "%2dm ".format(minuteInt.value)
         seconds.value = "%2ds ".format(secondInt.value)
     }
-
 }
