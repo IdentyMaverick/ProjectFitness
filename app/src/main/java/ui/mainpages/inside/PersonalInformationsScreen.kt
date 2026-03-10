@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -68,7 +70,11 @@ fun PersonalInformationsScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            HomeTopBarPersonalInformationsScreen(navController, personalInformationsScreenViewModel)
+            HomeTopBarPersonalInformationsScreen(
+                navController,
+                personalInformationsScreenViewModel,
+                topPadding
+            )
         },
         containerColor = Color(0xFF121417),
         floatingActionButtonPosition = FabPosition.EndOverlay,
@@ -493,11 +499,14 @@ fun BirthDateField(birthDate: String, setBirthDate: (String) -> Unit) {
 @Composable
 fun HomeTopBarPersonalInformationsScreen(
     navController: NavController,
-    personalInformationsScreenViewModel: PersonalInformationsScreenViewModel
+    personalInformationsScreenViewModel: PersonalInformationsScreenViewModel,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

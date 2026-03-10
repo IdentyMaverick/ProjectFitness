@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -145,6 +147,7 @@ fun Profile(
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val weeklyData =
         remember(allHistoricalWorkouts) { prepareWeeklyVolumeData(allHistoricalWorkouts) }
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
     LaunchedEffect(weeklyData) {
         if (weeklyData.any { it > 0f }) {
@@ -157,14 +160,14 @@ fun Profile(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBarProfile(navController)
+            HomeTopBarProfile(navController, topPadding = topPadding)
         },
         containerColor = Color(0xFF121417),
         bottomBar = {},
         floatingActionButtonPosition = FabPosition.EndOverlay,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { paddingValues ->
         var tabTitles = listOf("Stats", "Activity")
         var selectedTabIndex by remember { mutableStateOf(0) }
@@ -867,11 +870,14 @@ fun Profile(
 
 @Composable
 fun HomeTopBarProfile(
-    navController: NavController
+    navController: NavController,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

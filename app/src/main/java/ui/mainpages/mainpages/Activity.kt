@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -104,10 +106,11 @@ fun Activity(
     val screenWidth = configuration.screenWidthDp.dp
     val cardWidth = screenWidth * 0.85f
     val challengePagerState = rememberPagerState(pageCount = { workouts.size })
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
     // UI Codes ------------------------------------------------------------------------------------
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopBarActivity(
                 clickedProfile = clickedProfile,
@@ -115,7 +118,8 @@ fun Activity(
                     clickedProfile = true
                     navController.navigate("profile")
                 },
-                onMenuClick = { showMenuSheetActivity = true }
+                onMenuClick = { showMenuSheetActivity = true },
+                topPadding = topPadding
             )
         },
         containerColor = Color(0xFF121417),
@@ -519,10 +523,13 @@ private fun HomeTopBarActivity(
     clickedProfile: Boolean,
     onProfileClick: () -> Unit,
     onMenuClick: () -> Unit,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

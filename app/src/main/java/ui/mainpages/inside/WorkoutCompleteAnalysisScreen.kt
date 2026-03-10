@@ -147,6 +147,7 @@ private fun HomeTopBarWorkoutCompleteAnalysisScreen(navController: NavController
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

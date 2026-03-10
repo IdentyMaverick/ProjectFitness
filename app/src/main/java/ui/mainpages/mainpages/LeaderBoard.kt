@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -91,6 +93,8 @@ fun LeaderBoard(
     val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val leaderboardEntries by leaderboardViewModel.leaderboardData.collectAsState()
     val rankInfo by leaderboardViewModel.currentUserRankInfo.collectAsState()
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+
     LaunchedEffect(selectedExercise) {
         if (selectedExercise != "Exercise") {
             leaderboardViewModel.fetchLeaderboard(selectedExercise)
@@ -98,11 +102,12 @@ fun LeaderBoard(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBar(
+            HomeTopBarLeaderboard(
                 onProfileClick = { navController.navigate("profile") },
-                onMenuClick = { showMenuSheetLeaderBoard = true }
+                onMenuClick = { showMenuSheetLeaderBoard = true },
+                topPadding = topPadding
             )
         },
         containerColor = Color(0xFF121417),
@@ -272,10 +277,12 @@ fun FilterDropdown(
 }
 
 @Composable
-fun HomeTopBar(onProfileClick: () -> Unit, onMenuClick: () -> Unit) {
+fun HomeTopBarLeaderboard(onProfileClick: () -> Unit, onMenuClick: () -> Unit, topPadding: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

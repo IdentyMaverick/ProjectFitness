@@ -150,6 +150,8 @@ fun WorkoutLog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
+                .padding(top = topPadding)
                 .background(Color(0xFF121417))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },

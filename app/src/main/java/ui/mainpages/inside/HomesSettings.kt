@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -42,6 +44,8 @@ import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
 
+val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+
 @Composable
 fun HomesSettings(
     navController: NavController,
@@ -51,9 +55,9 @@ fun HomesSettings(
     authViewModel: AuthViewModel
 ) {
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBar(navController)
+            HomeTopBar(navController, topPadding = topPadding)
         },
         containerColor = Color(0xFF121417),
         floatingActionButtonPosition = FabPosition.EndOverlay,
@@ -114,10 +118,12 @@ fun HomesSettings(
 }
 
 @Composable
-fun HomeTopBar(navController: NavController) {
+fun HomeTopBar(navController: NavController, topPadding: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

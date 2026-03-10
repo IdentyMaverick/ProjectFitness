@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -82,7 +83,7 @@ fun WorkoutSettingScreen(
     var editingSet by remember { mutableStateOf<SetEntity?>(null) }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopBarWorkoutSettingScreen(if (image != null) image else 0, navController)
         },
@@ -445,6 +446,8 @@ private fun HomeTopBarWorkoutSettingScreen(_workoutSetting: Int, navController: 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .height(80.dp) // TopBar yüksekliğini sabitliyoruz
     ) {
         // 2. Arka plan görseli (En altta kalır)

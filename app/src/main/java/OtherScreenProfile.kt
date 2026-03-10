@@ -100,6 +100,7 @@ fun OtherScreenProfile(
     val tabTitles = listOf("Stats", "Activity")
     val scrollState = rememberScrollState()
     val workoutHistoryFull by profileViewModel.workoutHistoryFull.collectAsState()
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
     // Antrenmanları çekme (ownerUid filtresiyle)
     LaunchedEffect(user?.id) {
@@ -137,7 +138,7 @@ fun OtherScreenProfile(
             val target by authViewModel.target.collectAsState()
 
             Scaffold(
-                topBar = { HomeTopBarProfile(navController) },
+                topBar = { HomeTopBarProfile(navController, topPadding = topPadding) },
                 containerColor = Color(0xFF121417)
             ) { paddingValues ->
                 Column(

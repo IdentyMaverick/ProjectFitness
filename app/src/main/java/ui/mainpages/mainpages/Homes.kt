@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -73,6 +74,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -181,6 +183,7 @@ fun Home(
     socialViewModel.setNickname(nickname)
     val challengePagerState = rememberPagerState(pageCount = { challangesWorkouts.size })
     val coachPagerState = rememberPagerState(pageCount = { coachWorkouts.size })
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
 
     LaunchedEffect(uid) {
@@ -201,7 +204,7 @@ fun Home(
     }
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopBarHomes(
                 clickedProfile = clickedProfile,
@@ -211,12 +214,12 @@ fun Home(
                 },
                 onMenuClick = { showMenuSheet = true },
                 navController = navController,
-                unreadCount = unReadCount
+                unreadCount = unReadCount,
+                topPadding = topPadding
             )
         },
         containerColor = Color(0xFF121417),
         bottomBar = {
-            // senin NavigationBar fonksiyonun zaten hazır
             val indexs = 0
             val flag = true
             val flag2 = false
@@ -561,7 +564,6 @@ fun Home(
                     .fillMaxWidth()
                     .padding(top = 16.dp, bottom = 40.dp)
             ) {
-                // Başlık (Opsiyonel)
                 Text(
                     text = "Menu",
                     style = TextStyle(
@@ -615,11 +617,14 @@ private fun HomeTopBarHomes(
     onProfileClick: () -> Unit,
     onMenuClick: () -> Unit,
     navController: NavController,
-    unreadCount: Int
+    unreadCount: Int,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 0.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
