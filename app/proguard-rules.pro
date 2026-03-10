@@ -1,21 +1,31 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+-keepattributes Signature, Annotation, InnerClasses, EnclosingMethod
+-dontwarn androidx.compose.**
+-dontwarn androidx.compose.runtime.ParcelableSnapshotMutationPolicy
+-keep class androidx.compose.runtime.ParcelableSnapshotMutationPolicy { *; }
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keep class com.grozzbear.data.models.** { *; }
+-keep class com.google.gson.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keep class dagger.hilt.** { *; }
+-keepattributes *Annotation*
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-keep class * extends androidx.room.RoomDatabase
+-dontwarn androidx.room.**
+
+-keep class com.airbnb.lottie.** { *; }
+-keep class coil.** { *; }
+-dontwarn coil.**
+-keep class com.patrykandpatrick.vico.** { *; }
+
+-keep class com.google.firebase.** { *; }
+
+-assumenosideeffects class android.util.Log {
+    public static *** v(...);
+    public static *** d(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}

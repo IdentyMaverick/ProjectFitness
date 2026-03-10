@@ -1,4 +1,4 @@
-package com.example.projectfitness.data.local.entity
+package com.grozzbear.projectfitness.data.local.entity
 
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -13,7 +13,8 @@ data class WorkoutEntity(
     val workoutType: String = "",
     val workoutRating: Int = 0,
     val ownerUid: String? = "",
-    val syncState: Boolean = false
+    val syncState: Boolean = false,
+    val image: Int = 0
 )
 
 data class WorkoutWithExercises(
@@ -44,16 +45,14 @@ data class WorkoutFull(
     val exercises: List<ExerciseWithSets>
 )
 
-// GLOBAL EXERCISES
-
 @Entity(
     tableName = "workout_exercise_crossref",
     primaryKeys = ["workoutId", "exerciseId"]
 )
 data class WorkoutExerciseCrossRef(
-    val workoutId: String,   // WorkoutEntity.workoutId
-    val exerciseId: String,  // ExerciseCatalogEntity.id (Firestore docId)
-    val orderIndex: Int = 0  // opsiyonel: workout içinde sıra
+    val workoutId: String,
+    val exerciseId: String,
+    val orderIndex: Int = 0
 )
 
 data class WorkoutWithCatalogExercises(

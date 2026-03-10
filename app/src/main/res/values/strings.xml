@@ -1,9 +1,3 @@
 <resources>
-    <string name="app_name">ProjectFitness</string>
-    <string name="title_activity_info_screen">InfoScreen</string>
-    <string name="title_activity_second_info_screen">SecondInfoScreen</string>
-    <string name="title_activity_third_info_screen">ThirdInfoScreen</string>
-    <string name="title_activity_login">Login</string>
-    <string name="title_activity_register">Register</string>
-    <string name="title_activity_">Activity</string>
+    <string name="app_name">Grozz</string>
 </resources>

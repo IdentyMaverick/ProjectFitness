@@ -1,11 +1,10 @@
-// WorkoutExerciseEntity.kt
-package com.example.projectfitness.data.local.entity
+package com.grozzbear.projectfitness.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.google.firebase.firestore.PropertyName // Bu importu ekle
+import com.google.firebase.firestore.PropertyName
 import java.util.UUID
 
 @Entity(
@@ -26,9 +25,10 @@ data class WorkoutExerciseEntity(
 
     @get:PropertyName("workoutId")
     @set:PropertyName("workoutId")
-    var workoutOwnerId: String = "", // Varsayılan değer MUTLAKA olmalı
-
-    var exerciseName: String = "",   // Varsayılan değer MUTLAKA olmalı
-
-    var catalogExerciseId: String? = null
+    var workoutOwnerId: String = "",
+    var exerciseName: String = "",
+    var catalogExerciseId: String? = null,
+    var exerciseImage: String? = null,
+    val bodyPart: String = "",
+    val secondaryMuscles: List<String> = emptyList()
 )

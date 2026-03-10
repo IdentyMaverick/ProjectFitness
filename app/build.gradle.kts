@@ -7,22 +7,22 @@ plugins {
 }
 
 android {
-    namespace = "com.example.projectfitness"
+    namespace = "com.grozzbear"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.projectfitness"
+        applicationId = "com.grozzbear"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         vectorDrawables {
             useSupportLibrary = true
         }
 
-        // ✅ ROOM İÇİN ÇOK ÖNEMLİ - EKLEYIN
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += mapOf(
@@ -34,142 +34,115 @@ android {
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
 
-    kotlin {
-        jvmToolchain(17)
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Uygulama boyutunu optimize etmek için yapılandırma
+    bundle {
+        language { enableSplit = true }
+        density { enableSplit = true }
+        abi { enableSplit = true }
+    }
 }
 
 dependencies {
-    val nav_version = "2.7.7"
+    val nav_version = "2.8.5"
+    val room_version = "2.6.1"
+    val hilt_version = "2.51"
+    val vico_version = "2.0.0-alpha.28"
 
-    // Core Android - Versiyon kilitlemesi
-    implementation("androidx.core:core-ktx:1.13.1") {
-        version {
-            strictly("1.13.1")
-        }
-    }
-    implementation("androidx.core:core:1.13.1") {
-        version {
-            strictly("1.13.1")
-        }
-    }
+    // Core & Lifecycle
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.activity:activity-compose:1.9.3")
 
-    // Room - ✅ SIRALAMAYI DEĞİŞTİRDİM
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1") // ← Önce compiler
-    implementation("androidx.room:room-ktx:2.6.1") // ← Sonra ktx
-
-    // Compose BOM - API 34 ile uyumlu versiyon
-    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
-
-    // Core Android - Stabil versiyonlar
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
-
-    // Compose
+    // Jetpack Compose [cite: 8]
+    implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui-tooling:1.6.4")
-    implementation("androidx.compose.runtime:runtime-livedata:1.6.1")
+    implementation("androidx.compose.material3:material3-window-size-class")
+    implementation("androidx.compose.runtime:runtime-livedata")
 
-    // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
-
-    // Splash Screen
-    implementation("androidx.core:core-splashscreen:1.0.1")
-
-    // Accompanist
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.1-alpha")
-
-    // Material 3 - API 34 uyumlu versiyon
-    implementation("androidx.compose.material3:material3-window-size-class:1.2.0")
-
-    // Navigation
+    // Navigation & Room
     implementation("androidx.navigation:navigation-compose:$nav_version")
-
-    // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-
-    // Reorderable
-    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
-
-    // Number Picker
-    implementation("com.chargemap.compose:numberpicker:1.0.3")
-
-    // Hilt
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
-
-    // Gson
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    // Vico Charts
-    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.19")
-    implementation("com.patrykandpatrick.vico:compose-m2:2.0.0-alpha.19")
-    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.19")
-    implementation("com.patrykandpatrick.vico:core:2.0.0-alpha.19")
-    implementation("com.patrykandpatrick.vico:views:2.0.0-alpha.19")
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-messaging")
 
-    // Coil
-    implementation("io.coil-kt:coil-compose:2.1.0")
+    // Google Auth & Hilt
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.dagger:hilt-android:$hilt_version")
+    kapt("com.google.dagger:hilt-android-compiler:$hilt_version")
 
-    // DataStore
+    // Üçüncü Parti Kütüphaneler [cite: 9]
+    implementation("com.chargemap.compose:numberpicker:1.0.3")
+    implementation("dev.chrisbanes.snapper:snapper:0.3.0")
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+    implementation("com.airbnb.android:lottie-compose:6.5.2")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("com.google.code.gson:gson:2.11.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("androidx.datastore:datastore:1.1.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
 
-    // Snapper
-    implementation("dev.chrisbanes.snapper:snapper:0.2.0")
+    // Vico Charts
+    implementation("com.patrykandpatrick.vico:compose:$vico_version")
+    implementation("com.patrykandpatrick.vico:compose-m3:$vico_version")
+    implementation("com.patrykandpatrick.vico:core:$vico_version")
+
+    // Test
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 }
 
-// ✅ KAPT KONFİGÜRASYONU - ÇOK ÖNEMLİ
 kapt {
     correctErrorTypes = true
-    useBuildCache = true
-    arguments {
-        arg("room.schemaLocation", "$projectDir/schemas")
-        arg("room.incremental", "true")
-        arg("room.expandProjection", "true")
-    }
 }

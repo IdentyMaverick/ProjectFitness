@@ -6,26 +6,21 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -35,34 +30,25 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.projectfitness.R
-import com.example.projectfitness.data.local.viewmodel.HomesViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.checkerframework.checker.units.qual.h
-import ui.mainpages.navigation.NavigationBar
-import ui.mainpages.navigation.Screens
-import viewmodel.AuthViewModel
-import viewmodel.ProjectFitnessViewModel
-import viewmodel.ViewModelProfile
-import viewmodel.ViewModelSave
+import com.grozzbear.R
+import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,20 +67,12 @@ fun AllWorkouts(
         topBar = {
             HomeTopBarAllWorkouts(
                 clickedProfile = clickedProfile,
-                onProfileClick = {navController.navigate(Screens.Home.route)},
+                onProfileClick = { navController.popBackStack() },
                 onMenuClick = { showMenuSheet = true }
             )
         },
         containerColor = Color(0xFF121417),
         bottomBar = {},
-        floatingActionButton = {
-            ExtendedStartButtonAllWorkouts {
-                navController.navigate(Screens.CreateWorkout.route) {
-                    popUpTo(Screens.AllWorkouts.route)
-                }
-            }
-        },
-        floatingActionButtonPosition = FabPosition.EndOverlay,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
 
@@ -104,386 +82,158 @@ fun AllWorkouts(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier
-                .padding(top = 30.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(horizontal = 10.dp)
+            Spacer(
+                modifier = Modifier
+                    .padding(top = 30.dp)
+            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("All Workouts",
+                Text(
+                    text = "ALL",
                     color = Color.White,
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    fontSize = 25.sp)
+                    fontFamily = FontFamily(Font(R.font.oswaldbold)),
+                    fontSize = 40.sp, // Görsele uygun olarak biraz büyüttüm
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(
+                            includeFontPadding = false // Android'in otomatik eklediği tepe boşluğunu siler
+                        ),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Bottom,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    )
+                )
+
+                Text(
+                    text = "WORKOUTS",
+                    color = Color(0xFFF1C40F),
+                    fontFamily = FontFamily(Font(R.font.oswaldbold)),
+                    fontSize = 40.sp,
+                    modifier = Modifier.offset(y = (-8).dp), // İki metni iyice birbirine yaklaştırır
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(
+                            includeFontPadding = false // Alt boşluğu siler
+                        ),
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Top,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                // Sarı kısa çizgi
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(Color.White)
+                )
             }
-            Spacer(modifier = Modifier
-                .padding(top = 50.dp))
+            Spacer(
+                modifier = Modifier
+                    .padding(top = 20.dp)
+            )
 
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
-            ){
-                itemsIndexed(allWorkouts) {index, item ->
+            ) {
+                itemsIndexed(allWorkouts) { index, item ->
                     val totalIcons = 5
                     val challengeDifficulty = item.component1().workoutRating
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .height(100.dp)
-                            .width(350.dp)
+                            .fillMaxWidth()
+                            .height(120.dp) // Yüksekliği görsele uygun artırdım
+                            .clip(RoundedCornerShape(24.dp)) // Daha yumuşak köşeler
                             .background(
                                 Color(0xFF1C2126),
                                 shape = RoundedCornerShape(0.dp)
                             )
-                            .clickable(onClick = {navController.navigate("workoutsettingscreen/${item.workout.workoutId}")}),
+                            .clickable(onClick = { navController.navigate("workoutsettingscreen/${item.workout.workoutId}") }),
                         contentAlignment = Alignment.Center
                     ) {
-
-                        if (index == 0) {
-                            Image(
-                                painterResource(id = R.drawable.secondinfo),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.5f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
+                        Image(
+                            painter = painterResource(id = item.workout.image),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.9f)
+                                        ),
+                                        startY = 100f // Kararmanın başladığı nokta
+                                    )
+                                )
+                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(20.dp),
+                            verticalArrangement = Arrangement.Bottom // İçeriği aşağı yasla
+                        ) {
+                            Text(
+                                text = item.workout.workoutType.uppercase(), // Kategori ismi
+                                color = Color(0xFFF1C40F),
+                                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                                fontFamily = FontFamily(Font(R.font.oswaldbold))
                             )
                             Text(
                                 text = item.component1().workoutName,
+                                color = Color.White,
                                 style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
+                                    fontSize = 24.sp,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold))
                                 ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
+                                fontFamily = FontFamily(Font(R.font.oswaldbold))
                             )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                WorkoutTag(
+                                    text = "45 mins",
+                                    icon = R.drawable.shutterspeedfilledicon128,
+                                    Color.Gray,
+                                    Color.Gray
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
                                 for (i in 1..totalIcons) {
                                     val iconColor =
                                         if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
 
                                     Icon(
-                                        painter = painterResource(id = R.drawable.skull),
+                                        painter = painterResource(id = R.drawable.skullicon128),
                                         contentDescription = null,
                                         modifier = Modifier
-                                            .size(20.dp),
+                                            .size(15.dp),
                                         tint = iconColor
                                     )
 
                                     if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                    }
-                                }
-                            }
-
-
-                        } else if (index == 1) {
-                            Image(
-                                painterResource(id = R.drawable.login),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.7f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
-                            ) {
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skull),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                    }
-                                }
-                            }
-                        } else if (index == 2) {
-                            Image(
-                                painterResource(id = R.drawable.gym),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.7f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
-                            ) {
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skull),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                    }
-                                }
-                            }
-                        } else if (index == 3) {
-                            Image(
-                                painterResource(id = R.drawable.gymroomwith),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.7f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
-                            ) {
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skull),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                    }
-                                }
-                            }
-                        } else if (index == 4) {
-                            Image(
-                                painterResource(id = R.drawable.gymroomwithgym),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.7f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
-                            ) {
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skull),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                    }
-                                }
-                            }
-                        } else if (index == 5) {
-                            Image(
-                                painterResource(id = R.drawable.gymroomgym),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.7f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
-                            ) {
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skull),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
-                                    }
-                                }
-                            }
-                        } else if (index == 6) {
-                            Image(
-                                painterResource(id = R.drawable.login),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.7f,
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                style = TextStyle(
-                                    fontSize = 25.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    letterSpacing = 0.sp,
-                                    textAlign = TextAlign.Center
-                                ),
-                                color = Color.White.copy(alpha = 0.7f),
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(bottom = 50.dp)
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 30.dp)
-                            ) {
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skull),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(10.dp))
+                                        Spacer(modifier = Modifier.size(2.dp))
                                     }
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.size(30.dp))
+                    Spacer(Modifier.size(10.dp))
                 }
             }
-        }}
-}
-
-@Composable
-fun ExtendedStartButtonAllWorkouts(onConfirmClick: () -> Unit) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    ExtendedFloatingActionButton(
-        onClick = {
-            if (!expanded) {
-                expanded = true
-            } else {
-                CoroutineScope(Dispatchers.IO).launch {
-                    onConfirmClick()
-                    delay(500)
-                    expanded = false
-                }
-            }
-        },
-        icon = {
-            Icon(painter = painterResource(R.drawable.projectfitnessplus), "Extended create workout button", Modifier.size(40.dp))
-        },
-        text = {
-            Text("Create Workout", style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendbold)), fontSize = 18.sp))
-        },
-        containerColor = Color(0xFFF1C40F),
-        expanded = expanded,
-        modifier = Modifier
-            .padding(bottom = 50.dp)
-    )
+        }
+    }
 }
 
 @Composable
@@ -511,11 +261,11 @@ private fun HomeTopBarAllWorkouts(
         Spacer(Modifier.weight(1f))
 
         Text(
-            text = "PROJECT FITNESS",
+            text = "GROZZ",
             color = Color(0xFFF1C40F),
-            fontSize = 14.sp,
-            letterSpacing = 6.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular))
+            fontSize = 24.sp,
+            letterSpacing = 0.sp,
+            fontFamily = FontFamily(Font(R.font.oswaldbold))
         )
 
         Spacer(Modifier.weight(1f))
@@ -528,5 +278,24 @@ private fun HomeTopBarAllWorkouts(
                 tint = Color.Transparent
             )
         }
+    }
+}
+
+@Composable
+fun WorkoutTag(text: String, icon: Int, textColor: Color, iconColor: Color) {
+    Row(
+        modifier = Modifier
+            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(50.dp))
+            .padding(horizontal = 12.dp, vertical = 0.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            tint = iconColor,
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(text = text, color = textColor, fontSize = 12.sp)
     }
 }

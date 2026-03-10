@@ -1,10 +1,9 @@
-package com.example.projectfitness.data.local.entity
+package com.grozzbear.projectfitness.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.util.UUID
 
 @Entity(
     tableName = "exercise_set",
@@ -21,8 +20,9 @@ import java.util.UUID
 data class SetEntity(
     @PrimaryKey
     val setId: String = "",
-    val exerciseOwnerId: String, // WorkoutExerciseEntity.exerciseId (String)
+    val exerciseOwnerId: String,
     val reps: Int,
     val weight: Float,
-    val note: String? = null
+    val note: String? = null,
+    val isClicked: Boolean = false
 )

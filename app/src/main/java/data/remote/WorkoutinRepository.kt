@@ -1,7 +1,7 @@
 package data.remote
 
-import com.example.projectfitness.data.remote.Workoutin
 import com.google.firebase.firestore.FirebaseFirestore
+import com.grozzbear.projectfitness.data.remote.Workoutin
 import kotlinx.coroutines.tasks.await
 
 class WorkoutinRepository(

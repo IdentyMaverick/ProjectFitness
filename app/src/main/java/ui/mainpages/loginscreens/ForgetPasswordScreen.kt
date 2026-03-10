@@ -1,40 +1,38 @@
 package ui.mainpages.loginscreens
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,189 +42,188 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.projectfitness.R
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.launch
+import com.grozzbear.R
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.ResetUiState
 
 @Composable
 fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewModel) {
-    val resetState = authViewModel.resetUiState.collectAsState().value
-    val coroutineScope = rememberCoroutineScope()
+    val resetState by authViewModel.resetUiState.collectAsState()
     val context = LocalContext.current
+    val emailText = remember { mutableStateOf("") }
+    val maxLength = 35
+
+    // Durum Takibi: Şifre sıfırlama başarılı olduğunda yapılacaklar
+    LaunchedEffect(resetState) {
+        when (resetState) {
+            is ResetUiState.Success -> {
+                Toast.makeText(context, "Reset mail sent to ${emailText.value}", Toast.LENGTH_LONG)
+                    .show()
+                navController.navigate(Screens.LoginScreen.route) {
+                    popUpTo(Screens.LoginScreen.ForgetPasswordScreen.route) { inclusive = true }
+                }
+                authViewModel.resetState()
+            }
+
+            is ResetUiState.Error -> {
+                val errorMsg = (resetState as ResetUiState.Error).message
+                Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                authViewModel.resetState()
+            }
+
+            else -> {}
+        }
+    }
+
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(color = Color(0xFF181F26))
     ) {
         Image(
             modifier = Modifier.fillMaxSize(),
-            painter = painterResource(id = R.drawable.login),
+            painter = painterResource(id = R.drawable.registerandforgetpasswordscreenphoto),
             contentDescription = null,
-            alpha = 0.09f,
-            contentScale = ContentScale.FillHeight
+            alpha = 0.8f, // Metinlerin daha iyi okunması için hafifçe düşürdüm
+            contentScale = ContentScale.Crop // Boşlukları kapatır
         )
+
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars), // Uçtan uca tasarım için güvenli alan
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier
-                .size(100.dp))
             Image(
-                painter = painterResource(id = R.drawable.projectfitnesslogologin),
+                painter = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(200.dp)
+                    .graphicsLayer(translationY = 100f),
+                colorFilter = ColorFilter.tint(Color(0xFFF1C40F))
             )
-            Spacer(modifier = Modifier
-                .height(16.dp))
-        Text(
-            text = "Forget Password ?",
-            color = Color.White,
-            modifier = Modifier,
-            fontSize = 25.sp,
-            fontFamily = FontFamily(
-                Font(R.font.lexendbold)
-            ),
-            textAlign = TextAlign.Center,
-            style = TextStyle(letterSpacing = 1.sp)
-        )
-        val annotedText = buildAnnotatedString {
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,fontFamily = FontFamily(Font(R.font.lexendbold)), color = Color(0xFFF1C40F)),) {
-                append("No worries,")
-            }
-            withStyle(style = SpanStyle(fontFamily = FontFamily(Font(R.font.lexendregular))) )
-            {
-                append(" we’ll send you reset instruction")
-            }
 
-        }
-        Spacer(modifier = Modifier
-            .padding(20.dp))
+            Spacer(modifier = Modifier.height(30.dp))
+
             Text(
-            text = annotedText, color = Color.White,
-            modifier = Modifier
-                , fontSize = 15.sp, fontFamily = FontFamily(Font(R.font.lexendregular)),
-                textAlign = TextAlign.Center
-        )
-        Box(
-            modifier = Modifier
-                .size(400.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFF182129).copy(alpha = 0.0f))
-        ) {
+                text = "RESET",
+                fontFamily = FontFamily(Font(R.font.oswaldbold)),
+                color = Color.White,
+                fontSize = 60.sp
+            )
+            Text(
+                text = "PASSWORD",
+                fontFamily = FontFamily(Font(R.font.oswaldbold)),
+                color = Color(0xFFF1C40F),
+                fontSize = 60.sp
+            )
 
-            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                var maxLength = 35
-                var emailText = remember { mutableStateOf("") }
-                Text(
-                    text = "E-Mail Address",
-                    fontFamily = FontFamily(Font(R.font.lexendregular)),
-                    modifier = Modifier.padding(top = 30.dp, end = 150.dp),
-                    color = Color(0xFFD9D9D9),
-                    style = TextStyle(letterSpacing = 1.sp),
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                BasicTextField(
-                    value = emailText.value,
-                    onValueChange = { newValue ->
-                        val limited = newValue.take(maxLength)
-                        if (limited != emailText.value) emailText.value = limited},
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    modifier = Modifier
-                        .height(40.dp)
-                        .width(270.dp)
-                        .background(Color(0xFF2C3E50), shape = RoundedCornerShape(10.dp)),
-                    maxLines = 1,
-                    textStyle = TextStyle(
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendregular)),
-                        color = Color.White
-                    ),
-                    decorationBox = { innerTextField ->
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = 20.dp)
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color(0xFF2C3E50),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .border(
-                                    width = 2.dp,
-                                    color = Color(0xFF2C3E50),
-                                    shape = RoundedCornerShape(10.dp)
-                                ),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = "Favorite icon",
-                                tint = Color.Black
-                            )
-                            Spacer(modifier = Modifier.width(width = 10.dp))
-                            innerTextField()
-
-                        }
-                    }
-
-                )
-                Spacer(modifier = Modifier.size(15.dp))
-                //Checkbox(checked = false, onCheckedChange = { check(true) }, modifier = Modifier.scale(scaleMultiplier).padding(end = 320.dp))
-                Button(
-                    onClick = { authViewModel.reset(emailText.value)
-                        if (resetState is ResetUiState.Success) {
-                            coroutineScope.launch {
-                                Toast.makeText(context, "Reset maili gönderildi", Toast.LENGTH_SHORT).show()
-                                navController.navigate(Screens.LoginScreen.route) {
-                                    popUpTo(Screens.LoginScreen.ForgetPasswordScreen.route) { inclusive = true }
-                                }
-                            }
-                            authViewModel.resetState()
-                        }
-                    }
-                ) { Text("Reset Password") }
-
-                Spacer(modifier = Modifier.size(14.dp))
-                val annotedText = buildAnnotatedString{
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFD9D9D9),fontFamily = FontFamily(Font(
-                        R.font.lexendregular
-                    )))) {
-                        append("<- Back to ")
-                    }
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFF1C40F), fontFamily = FontFamily(Font(
-                        R.font.lexendbold
-                    )))) {
-                        append("Login ")
-                    }
+            // Bilgilendirme Metni
+            val infoText = buildAnnotatedString {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFF1C40F))) {
+                    append("No worries, ")
                 }
-                //Text(text = annotedText, modifier = Modifier.clickable { })
-                ClickableText(text = annotedText, onClick = { offset ->
-                        navController.navigate(Screens.LoginScreen.route)
-
-                })
-
+                append("we’ll send you reset instructions.")
             }
-        }
+
+            Text(
+                text = infoText,
+                color = Color.White,
+                fontSize = 15.sp,
+                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 40.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // E-Mail Giriş Alanı
+            OutlinedTextField(
+                value = emailText.value,
+                onValueChange = { if (it.length <= maxLength) emailText.value = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = {
+                    Text(
+                        "E-Mail Address",
+                        color = Color(0xFF4B5F71),
+                        fontFamily = FontFamily(Font(R.font.lexendregular))
+                    )
+                },
+                textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF1C2126),
+                    unfocusedContainerColor = Color(0xFF1C2126),
+                    focusedBorderColor = Color(0xFF4B5F71),
+                    unfocusedBorderColor = Color(0xFF2E353D),
+                    cursorColor = Color(0xFFF1C40F),
+                    focusedLabelColor = Color.Transparent,
+                    unfocusedLabelColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(25.dp))
+
+            // Reset Butonu
+            Button(
+                onClick = {
+                    if (emailText.value.isEmpty()) {
+                        Toast.makeText(
+                            context,
+                            "Please enter your e-mail address",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        authViewModel.reset(emailText.value)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
+                shape = RoundedCornerShape(20.dp),
+                enabled = resetState !is ResetUiState.Loading
+            ) {
+                if (resetState is ResetUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.Black)
+                } else {
+                    Text("Reset Password", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Geri Dönüş Linki
+            val backToLoginText = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = Color(0xFFD9D9D9),
+                        fontFamily = FontFamily(Font(R.font.lexendregular))
+                    )
+                ) {
+                    append("Back to ")
+                }
+                withStyle(
+                    SpanStyle(
+                        color = Color(0xFFF1C40F),
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily(Font(R.font.lexendbold))
+                    )
+                ) {
+                    append("Login")
+                }
+            }
+
+            ClickableText(
+                text = backToLoginText,
+                onClick = { navController.navigate(Screens.LoginScreen.route) }
+            )
         }
     }
-}
-
-
-fun PasswordReset(email:String){
-    val emails = email
-
-    Firebase.auth.sendPasswordResetEmail(emails).addOnCompleteListener({task -> if (task.isSuccessful){ Log.d("Reset","Reset email sent") }  })
-
 }

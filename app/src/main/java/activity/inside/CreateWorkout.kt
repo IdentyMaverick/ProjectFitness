@@ -1,9 +1,16 @@
-package com.example.projectfitness.activity.inside
+package activity.inside
 
-import android.util.Log
+import android.annotation.SuppressLint
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,92 +23,138 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.projectfitness.R
+import com.chargemap.compose.numberpicker.NumberPicker
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.grozzbear.R
+import data.local.viewmodel.ChooseExercisesViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
+import data.local.viewmodel.ExerciseDraft
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import ui.mainpages.navigation.Screens
-import viewmodel.ViewModelSave
-import viewmodel.WorkoutUiState
-import viewmodel.WorkoutinViewModel
+import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@SuppressLint("UnrememberedMutableState")
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun CreateWorkout(navController: NavController, viewModelSave: ViewModelSave, workoutinViewModel: WorkoutinViewModel, createWorkoutViewModel: CreateWorkoutViewModel) {
+fun CreateWorkout(
+    navController: NavController,
+    createWorkoutViewModel: CreateWorkoutViewModel,
+    chooseExercisesViewModel: ChooseExercisesViewModel
+) {
+    val draft = createWorkoutViewModel.draftExercises.collectAsState().value
+    val modalBottomSheetState = rememberModalBottomSheetState()
+    var expandBottomSheet by remember { mutableStateOf(false) }
 
-    // Database Initialize *****************************************************************************************************************************************************************
+    var editingCatalogId by remember { mutableStateOf("") }
+    var editingSetIndex by remember { mutableStateOf(0) }
+    var tempReps by remember { mutableStateOf(0) }
+    var tempWeight by remember { mutableStateOf(0) }
 
-    // Variable Initialize *****************************************************************************************************************************************************************
-    var text = remember{ mutableStateOf("") }
-    val searchText = rememberSaveable { mutableStateOf("") }
-    var selected by rememberSaveable { mutableStateOf(setOf<String>()) }
-
-    // Firebase---------------------------------------
-    val catalogExercisesList = createWorkoutViewModel.catalogWorkoutList.collectAsState(initial = emptyList()).value
-    val filteredExercises = remember(catalogExercisesList, selected, searchText.value) {
-        val query = searchText.value.trim()
-
-        catalogExercisesList.filter { item ->
-            val muscleOk =
-                selected.isEmpty() || selected.contains(item.bodyPart) // bodyPart ile seçenekler birebir aynı olmalı
-
-            val searchOk =
-                query.isBlank() || item.name.contains(query, ignoreCase = true)
-
-            muscleOk && searchOk
-        }
-    }
-    val selectedExerciseIds = createWorkoutViewModel.selectedCatalogExercises.collectAsState().value
-    Log.d("drafted1:", selectedExerciseIds.toString())
-
-    // UI Coding ****************************************************************************************************************************************************************************
+    val context = LocalContext.current
+    val workoutNameInput = chooseExercisesViewModel.workoutName.collectAsState().value
+    val currentUser = Firebase.auth.currentUser
+    val verticalScroll = rememberScrollState()
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = {
-            HomeTopBarCreateWorkout(navController)
-        },
+        topBar = { HomeTopBarChooseExercises(navController, chooseExercisesViewModel) },
         containerColor = Color(0xFF121417),
-        bottomBar = {},
-        floatingActionButton = {ExtendedStartButtonCreateWorkout {
-            createWorkoutViewModel.onConfirmSelection()
-            navController.navigate(Screens.ChooseExercises.route)
-        }},
-        floatingActionButtonPosition = FabPosition.EndOverlay,
-        modifier = Modifier.fillMaxSize()
+        floatingActionButton = {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.verticalScroll(verticalScroll)
+            ) {
+                FloatingActionButton(
+                    onClick = { navController.navigate(Screens.CreateWorkout.route) },
+                    containerColor = Color(0xFF1C2126),
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                }
+
+                ExtendedCreateButtonAddExercise {
+                    if (currentUser != null && workoutNameInput.isNotBlank() && draft.isNotEmpty()) {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            createWorkoutViewModel.saveWorkout(
+                                workoutId = UUID.randomUUID().toString(),
+                                workoutName = workoutNameInput,
+                                workoutType = "User",
+                                workoutRating = 0,
+                                ownerUid = currentUser.uid,
+                                syncState = true,
+                                image = 0,
+                                onDone = {
+                                    Toast.makeText(context, "Workout Saved!", Toast.LENGTH_SHORT)
+                                        .show()
+                                    navController.navigate(Screens.Activity.route)
+                                    chooseExercisesViewModel.setName("")
+                                },
+                                onError = { e ->
+                                    Toast.makeText(
+                                        context,
+                                        "Error: ${e.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Please enter a name and add exercises.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.EndOverlay
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -109,278 +162,356 @@ fun CreateWorkout(navController: NavController, viewModelSave: ViewModelSave, wo
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Add Exercises",
+            Text(
+                "Create Workout",
                 color = Color.White,
                 fontFamily = FontFamily(Font(R.font.lexendbold)),
-                fontSize = 25.sp)
-            Spacer(Modifier.size(20.dp))
-            Text("Muscle Group",
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
-                fontSize = 15.sp)
-            Spacer(Modifier.size(5.dp))
-            MuscleGroupMultiSelect3(selected = selected, onSelectedChange = { selected = it })
-            Spacer(Modifier.size(20.dp))
-            SearchBox(text)
-            Spacer(Modifier.size(20.dp))
+                fontSize = 25.sp,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(20.dp)
+            )
 
-                    val selectedIds = remember { mutableStateOf(setOf<String>()) }
-            Log.d("selected exercises is", selectedIds.toString())
-                    LazyColumn(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
+            Text(
+                "Workout Name",
+                color = Color.White.copy(alpha = 0.7f),
+                fontFamily = FontFamily(Font(R.font.lexendsemibold)),
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(horizontal = 20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = workoutNameInput,
+                onValueChange = { chooseExercisesViewModel.setName(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = { Text("e.g. Monday Leg Day", color = Color(0xFF4B5F71)) },
+                textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF1C2126),
+                    unfocusedContainerColor = Color(0xFF1C2126),
+                    focusedBorderColor = Color(0xFF4B5F71),
+                    unfocusedBorderColor = Color(0xFF2E353D),
+                    cursorColor = Color(0xFFF1C40F)
+                ),
+                trailingIcon = {
+                    IconButton(onClick = { chooseExercisesViewModel.setName(RandomName()) }) {
+                        Icon(
+                            painter = painterResource(R.drawable.casinoicon128),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            if (draft.isNotEmpty()) {
+                LazyColumn(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    itemsIndexed(draft) { _, item ->
+                        ExerciseExpandableCardChooseExercises(
+                            onEditClick = { setIndex, weight, reps ->
+                                editingCatalogId = item.catalogId
+                                editingSetIndex = setIndex
+                                tempWeight = weight.toInt()
+                                tempReps = reps
+                                expandBottomSheet = true
+                            },
+                            exerciseDraft = item,
+                            createWorkoutViewModel = createWorkoutViewModel,
+                            catalogId = item.catalogId
+                        )
+                        Spacer(Modifier.size(10.dp))
+                    }
+                }
+            } else {
+                EmptyExercisesPlaceholder()
+            }
+        }
+
+        if (expandBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { expandBottomSheet = false },
+                sheetState = modalBottomSheetState,
+                containerColor = Color(0xFF121417)
+            ) {
+                var currentRepsPicker by remember(tempReps) { mutableIntStateOf(tempReps) }
+                var currentWeightPicker by remember(tempWeight) { mutableIntStateOf(tempWeight) }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        itemsIndexed(filteredExercises) { index, item ->
-                            val clicked = selectedIds.value.contains(item.name)
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF1C2126))
-                                    .clickable(true, onClick = {
-                                        if (!clicked) {
-                                            selectedIds.value += item.name
-                                            createWorkoutViewModel.addExercise(item.id)
-                                        } else {
-                                            selectedIds.value -= item.name
-                                            createWorkoutViewModel.removeExercise(item.id)
-                                        }
-                                    })
-                                    .border(
-                                        width = if (clicked) 2.dp else 0.dp,
-                                        color = if (clicked) Color(0xFFF1C40F) else Color.Transparent,
-                                        shape = RoundedCornerShape(12.dp)
-                                    ),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(
-                                    modifier = Modifier.width(32.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = "${index + 1}",
-                                        color = Color.White.copy(alpha = 0.6f),
-                                        fontFamily = FontFamily(Font(R.font.lexendregular)),
-                                        fontSize = 12.sp
-                                    )
-                                }
+                        PickerComponent("REPS", currentRepsPicker) { currentRepsPicker = it }
+                        Spacer(modifier = Modifier.width(40.dp))
+                        PickerComponent("KG", currentWeightPicker) { currentWeightPicker = it }
+                    }
 
-                                Spacer(Modifier.width(12.dp))
-                                Column(
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        text = item.name,
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        fontSize = 16.sp,
-                                        maxLines = 1
-                                    )
+                    Spacer(modifier = Modifier.height(30.dp))
 
-                                    Spacer(Modifier.height(4.dp))
-
-                                    Text(
-                                        text = "${item.bodyPart} • ${item.equipment}",
-                                        color = Color.White.copy(alpha = 0.65f),
-                                        fontFamily = FontFamily(Font(R.font.lexendregular)),
-                                        fontSize = 12.sp,
-                                        maxLines = 1
-                                    )
-
-                                    // secondaryMuscles list ise:
-                                    val secondary = item.secondaryMuscles
-                                        ?.takeIf { it.isNotEmpty() }
-                                        ?.joinToString(", ")
-                                        ?: "—"
-
-                                    Spacer(Modifier.height(2.dp))
-
-                                    Text(
-                                        text = "Secondary: $secondary",
-                                        color = Color.White.copy(alpha = 0.45f),
-                                        fontFamily = FontFamily(Font(R.font.lexendregular)),
-                                        fontSize = 12.sp,
-                                        maxLines = 1
-                                    )
-                                }
-
-                                Spacer(Modifier.width(12.dp))
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.padding(end = 20.dp)
-                                ) {
-                                    // burada seçili state’in varsa ona göre + / ✓ değiştir
-                                    Icon(
-                                        painter = painterResource(R.drawable.infoicon128),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(25.dp).clickable(enabled = true,
-                                            onClick = {
-                                            navController.navigate("workoutdetails")
-                                        }),
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        }
+                    Button(
+                        onClick = {
+                            createWorkoutViewModel.updateSet(
+                                editingCatalogId,
+                                editingSetIndex,
+                                currentRepsPicker,
+                                currentWeightPicker.toFloat()
+                            )
+                            expandBottomSheet = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C2126)),
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        Text(
+                            "Update Set",
+                            fontFamily = FontFamily(Font(R.font.lexendbold)),
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
     }
-
-
 }
-/*@Composable
-fun imager(projectFitnessViewModel: ProjectFitnessViewModel,item : Exercises) : Int {
-
-     var items = item
-
-    if (items.index == "0")
-    {
-        return R.drawable.barbellbenchpress
-    }
-    else if (items.index == "1")
-    {
-        return R.drawable.cablecrossover
-    }
-    else if (items.index == "2")
-    {
-        return R.drawable.calfraises
-    }
-    else if (items.index == "3")
-    {
-        return R.drawable.chestdip
-    }
-    else if (items.index == "4")
-    {
-        return R.drawable.chestpro
-    }
-    else if (items.index == "5")
-    {
-        return R.drawable.cablecrossover
-    }
-    // QUADRICEPS EXERCISES
-    else if (items.index == "15")
-    {
-        return R.drawable.legpress
-    }
-    else if (items.index == "21")
-    {
-        return R.drawable.squat
-    }
-    else if (items.index == "22")
-    {
-        return R.drawable.legextension
-    }
-    else if (items.index == "23")
-    {
-        return R.drawable.machinehacksquat
-    }
-    else if (items.index == "24")
-    {
-        return R.drawable.dumbbellsquat
-    }
-    else if (items.index == "25")
-    {
-        return R.drawable.dumbbelllunge
-    }
-    else if (items.index == "26") {
-        return R.drawable.frontsquat
-    }
-    else if (items.index == "27") {
-        return R.drawable.dumbbellbulgariansplitsquat
-    }
-    else if (items.index == "28") {
-        return R.drawable.dumbbellsplitsquat
-    }
-    else if (items.index == "29") {
-        return R.drawable.pliesquat
-    }
-    else if (items.index == "30") {
-        return R.drawable.smithmachinesquat
-    }
-    else if (items.index == "31") {
-        return R.drawable.singlelegextension
-    }
-    else if (items.index == "32") {
-        return R.drawable.boxjump
-    }
-    //HAMSTRING EXERCISES
-    else if (items.index == "33") {
-        return R.drawable.stifflegdeadlift
-    }
-    else if (items.index == "34") {
-        return R.drawable.dumbbellhamstringcurl
-    }
-    else if (items.index == "35") {
-        return R.drawable.trapbardeadlift
-    }
-    else if (items.index == "36") {
-        return R.drawable.seatedlegcurl
-    }
-    else if (items.index == "37") {
-        return R.drawable.kettlebellswing
-    }
-    else if (items.index == "38") {
-        return R.drawable.sumodeadlift
-    }
-    else if (items.index == "39") {
-        return R.drawable.lyinglegcurl
-    }
-    else if (items.index == "40") {
-        return R.drawable.nordichamstringcurl
-    }
-    // CALF EXERCISES
-    else if (items.index == "41") {
-        return R.drawable.seatedcalfraise
-    }
-    else if (items.index == "42") {
-        return R.drawable.legpresscalfraise
-    }
-    else if (items.index == "43") {
-        return R.drawable.standingmachinecalfraise
-    }
-    //GLUTES
-    else if (items.index == "44") {
-        return R.drawable.hyperextension
-    }
-    else if (items.index == "45") {
-        return R.drawable.barbellhipthrust
-    }
-    else if (items.index == "46") {
-        return R.drawable.standinggoodmorning
-    }
-    //EXTENSION
-    else if (items.index == "47") {
-        return R.drawable.itbandfoamrolling
-    }
-    else if (items.index == "48") {
-        return R.drawable.plantarfascialacrosseball
-    }
-    else if (items.index == "49") {
-        return R.drawable.kneelingposteriorhipcapsulemobilization
-    }
-    //ABDUCTORS
-    else if (items.index == "50") {
-        return R.drawable.hipabductionmachine
-    }
-    //ADDUCTORS
-    else if (items.index == "51") {
-        return R.drawable.hipadductionmachine
-    }
-        return R.drawable.down
-}*/
 
 @Composable
-fun HomeTopBarCreateWorkout(navController: NavController) {
+fun PickerComponent(label: String, value: Int, onValueChange: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(label, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(10.dp))
+        NumberPicker(
+            value = value,
+            onValueChange = onValueChange,
+            range = 0..300,
+            dividersColor = Color(0xFFF1C40F),
+            textStyle = TextStyle(color = Color.White)
+        )
+    }
+}
+
+@Composable
+fun ExerciseExpandableCardChooseExercises(
+    onEditClick: (Int, Float, Int) -> Unit,
+    exerciseDraft: ExerciseDraft,
+    createWorkoutViewModel: CreateWorkoutViewModel,
+    catalogId: String
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF1C2126))
+            .clickable { expanded = !expanded }
+            .animateContentSize()
+            .padding(16.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(44.dp)
+                    .background(Color(0xFFF1C40F), RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painterResource(R.drawable.dumbbellicon128),
+                    null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = exerciseDraft.name,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = "${exerciseDraft.bodyPart.uppercase()}",
+                    color = Color.Gray,
+                    fontSize = 12.sp
+                )
+            }
+            Icon(
+                painter = painterResource(if (expanded) R.drawable.down else R.drawable.down),
+                contentDescription = null,
+                tint = Color(0xFFF1C40F),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        AnimatedVisibility(visible = expanded) {
+            Column {
+                Spacer(Modifier.height(20.dp))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text(
+                        "SET",
+                        color = Color.Gray,
+                        fontSize = 11.sp,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        "KG",
+                        color = Color.Gray,
+                        fontSize = 11.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "REPS",
+                        color = Color.Gray,
+                        fontSize = 11.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "ACTION",
+                        color = Color.Gray,
+                        fontSize = 11.sp,
+                        modifier = Modifier.weight(1.5f),
+                        textAlign = TextAlign.End
+                    )
+                }
+
+                exerciseDraft.sets.forEachIndexed { index, set ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "${index + 1}",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            "${set.weight}",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            "${set.reps}",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Row(Modifier.weight(1.5f), horizontalArrangement = Arrangement.End) {
+                            Icon(
+                                painter = painterResource(R.drawable.editnote),
+                                contentDescription = null,
+                                tint = Color(0xFFF1C40F),
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clickable { onEditClick(index, set.weight, set.reps) }
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.minusicon128),
+                                contentDescription = null,
+                                tint = Color.Red,
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clickable {
+                                        createWorkoutViewModel.removeSetToExercise(
+                                            catalogId,
+                                            set
+                                        )
+                                    }
+                            )
+                        }
+                    }
+                }
+
+                IconButton(
+                    onClick = { createWorkoutViewModel.addSetToExercise(catalogId) },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = "Add Set",
+                        tint = Color(0xFFF1C40F)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyExercisesPlaceholder() {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 100.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.dumbbell),
+            contentDescription = null,
+            tint = Color(0xFF2C3138),
+            modifier = Modifier.size(150.dp)
+        )
+        Spacer(Modifier.size(50.dp))
+        Text(
+            "No Exercise Yet",
+            color = Color.White,
+            fontFamily = FontFamily(Font(R.font.lexendbold)),
+            fontSize = 22.sp
+        )
+        Text(
+            "Add your first exercise right below",
+            color = Color.Gray,
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun HomeTopBarChooseExercises(
+    navController: NavController,
+    chooseExercisesViewModel: ChooseExercisesViewModel
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        IconButton(onClick = { navController.navigate("chooseexercises") { popUpTo("createworkout") { inclusive = true } } }) {
+        IconButton(onClick = {
+            navController.navigate(Screens.Activity.route)
+            chooseExercisesViewModel.setName("")
+        }) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = null,
@@ -388,162 +519,35 @@ fun HomeTopBarCreateWorkout(navController: NavController) {
                 tint = Color.White
             )
         }
-
         Spacer(Modifier.weight(1f))
-
         Text(
-            text = "PROJECT FITNESS",
+            text = "GROZZ",
             color = Color(0xFFF1C40F),
-            fontSize = 14.sp,
-            letterSpacing = 6.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular))
+            fontSize = 24.sp,
+            fontFamily = FontFamily(Font(R.font.oswaldbold))
         )
-
         Spacer(Modifier.weight(1f))
-        Text("Spacer",
-            color = Color.Transparent)
+        Box(Modifier.size(25.dp))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MuscleGroupMultiSelect() {
-    val options = listOf("All", "Popular", "New")
-    var selected by rememberSaveable { mutableStateOf(setOf<String>()) }
-
-    MultiChoiceSegmentedButtonRow {
-        options.forEachIndexed { index, label ->
-            SegmentedButton(
-                checked = selected.contains(label),
-                onCheckedChange = { isChecked ->
-                    selected = if (isChecked) selected + label else selected - label
-                },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                icon = {
-                    // İstersen seçili ikonu koy:
-                    if (selected.contains(label)) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                    }
-                },
-                label = { Text(label) },
-                modifier = Modifier.width(80.dp).height(40.dp),
-                colors = SegmentedButtonDefaults.colors(activeContainerColor = Color(0xFFF1C40F))
+fun ExtendedCreateButtonAddExercise(onConfirmClick: () -> Unit) {
+    ExtendedFloatingActionButton(
+        onClick = onConfirmClick,
+        icon = { Icon(Icons.Default.Check, null, Modifier.size(30.dp)) },
+        text = {
+            Text(
+                "Save Workout",
+                style = TextStyle(
+                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    fontSize = 16.sp
+                )
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MuscleGroupMultiSelect2() {
-    val options = listOf("All", "Cardio", "Strength", "Label")
-    var selected by rememberSaveable { mutableStateOf(setOf<String>()) }
-
-    MultiChoiceSegmentedButtonRow {
-        options.forEachIndexed { index, label ->
-            SegmentedButton(
-                checked = selected.contains(label),
-                onCheckedChange = { isChecked ->
-                    selected = if (isChecked) selected + label else selected - label
-                },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                icon = {
-                    // İstersen seçili ikonu koy:
-                    if (selected.contains(label)) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                    }
-                },
-                label = { Text(label) },
-                modifier = Modifier.width(80.dp).height(40.dp),
-                colors = SegmentedButtonDefaults.colors(activeContainerColor = Color(0xFFF1C40F))
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MuscleGroupMultiSelect3(selected: Set<String>, onSelectedChange: (Set<String>) -> Unit) {
-    val options = listOf("Chest", "Back", "Leg", "Arm", "Shoulders")
-
-    MultiChoiceSegmentedButtonRow {
-        options.forEachIndexed { index, label ->
-            SegmentedButton(
-                checked = selected.contains(label),
-                onCheckedChange = { isChecked ->
-                    val newSet = if (isChecked) selected + label else selected - label
-                    onSelectedChange(newSet)
-                },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                icon = {
-                    if (selected.contains(label)) {
-                        Icon(Icons.Default.Check, contentDescription = null)
-                    }
-                },
-                label = { Text(label) },
-                modifier = Modifier.width(80.dp).height(40.dp),
-                colors = SegmentedButtonDefaults.colors(activeContainerColor = Color(0xFFF1C40F))
-            )
-        }
-    }
-}
-
-@Composable
-fun SearchBox(text: MutableState<String>) {
-    Row() {
-        BasicTextField(
-            value = text.value,
-            onValueChange = { text.value = it },
-            modifier = Modifier
-                .height(41.dp)
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp)
-                .background(Color(0xFF21282F), shape = RoundedCornerShape(15.dp)),
-            textStyle = TextStyle(
-                fontSize = 12.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
-                color = Color(0xFFD9D9D9)
-            ),
-            maxLines = 1,
-            decorationBox = { innerTextField ->
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 20.dp)
-                        .fillMaxWidth()
-                        .background(
-                            color = Color(0xFF21282F),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .border(
-                            width = 2.dp,
-                            color = Color(0xFF21282F),
-                            shape = RoundedCornerShape(10.dp)
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
-
-                    ) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Favorite icon",
-                        tint = Color(0xFFD9D9D9)
-                    )
-                    Spacer(modifier = Modifier.width(width = 10.dp))
-                    innerTextField()
-                }
-            }
-
-        )
-    }
-}
-
-@Composable
-fun ExtendedStartButtonCreateWorkout(onConfirmClick: () -> Unit) {
-    FloatingActionButton(
-        onClick = { onConfirmClick() },
-        containerColor = Color(0xFFF1C40F)
+        },
+        containerColor = Color(0xFFF1C40F),
+        modifier = Modifier.padding(bottom = 50.dp)
     )
-    {
-        Icon(painter = painterResource(R.drawable.projectfitnessplus),
-            contentDescription = null)
-    }
 }
+
+fun RandomName(): String = listOf("Rock it!", "Dumbbell Day!", "Power Hour", "Leg Legend").random()

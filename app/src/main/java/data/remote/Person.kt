@@ -1,3 +1,3 @@
 package data.remote
 
-data class Person(var username:String? = "")
+data class Person(var username: String? = "")

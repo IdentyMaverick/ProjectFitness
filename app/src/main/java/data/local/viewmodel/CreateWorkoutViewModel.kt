@@ -3,22 +3,22 @@ package data.local.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.projectfitness.data.local.entity.ExerciseCatalogEntity
-import com.example.projectfitness.data.local.entity.SetEntity
-import com.example.projectfitness.data.local.entity.WorkoutEntity
-import com.example.projectfitness.data.local.entity.WorkoutExerciseEntity
-import com.example.projectfitness.data.local.repository.WorkoutRepository
+import com.grozzbear.projectfitness.data.local.entity.ExerciseCatalogEntity
+import com.grozzbear.projectfitness.data.local.entity.SetEntity
+import com.grozzbear.projectfitness.data.local.entity.WorkoutEntity
+import com.grozzbear.projectfitness.data.local.entity.WorkoutExerciseEntity
+import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-// Draft sınıfları aynı kalabilir
 data class ExerciseDraft(
     val catalogId: String,
     val name: String,
@@ -42,9 +42,18 @@ class CreateWorkoutViewModel(
     private val _selectedExerciseIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
     val selectedExerciseIds: StateFlow<Set<String>> = _selectedExerciseIds.asStateFlow()
 
-    val selectedCatalogExercises: StateFlow<List<ExerciseCatalogEntity>> = combine(catalogWorkoutList, selectedExerciseIds) { list, ids ->
-        list.filter { it.id in ids }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val selectedCatalogExercises: StateFlow<List<ExerciseCatalogEntity>> = combine(
+        catalogWorkoutList,
+        _selectedExerciseIds
+    ) { list, ids ->
+        list.filter { item ->
+            ids.any { selectedId -> selectedId.trim() == item.id.trim() }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     private val _draftExercises = MutableStateFlow<List<ExerciseDraft>>(emptyList())
     val draftExercises: StateFlow<List<ExerciseDraft>> = _draftExercises.asStateFlow()
@@ -58,22 +67,38 @@ class CreateWorkoutViewModel(
     }
 
     fun onConfirmSelection() {
-        val selected = selectedCatalogExercises.value
-        val current = _draftExercises.value.associateBy { it.catalogId }
+        viewModelScope.launch {
+            val allCatalog = catalogWorkoutList.first()
+            val selectedIds = _selectedExerciseIds.value
 
-        val merged = selected.map { e ->
-            current[e.id] ?: ExerciseDraft(
-                catalogId = e.id,
-                name = e.name,
-                bodyPart = e.bodyPart,
-                equipment = e.equipment,
-                sets = listOf(SetDraft(), SetDraft(), SetDraft())
-            )
+            val selected = allCatalog.filter { item ->
+                selectedIds.contains(item.id)
+            }
+
+            Log.d("CreateWorkout", "Seçili ID sayısı: ${selectedIds.size}")
+            Log.d("CreateWorkout", "Eşleşen Katalog sayısı: ${selected.size}")
+
+            if (selected.isEmpty() && selectedIds.isNotEmpty()) {
+                Log.e("CreateWorkout", "Hata: Seçili ID'ler katalogdaki ID'lerle eşleşmiyor!")
+                return@launch
+            }
+
+            val currentDrafts = _draftExercises.value.associateBy { it.catalogId }
+            val merged = selected.map { e ->
+                currentDrafts[e.id] ?: ExerciseDraft(
+                    catalogId = e.id,
+                    name = e.name,
+                    bodyPart = e.bodyPart,
+                    equipment = e.equipment,
+                    sets = listOf(SetDraft(), SetDraft(), SetDraft())
+                )
+            }
+
+            _draftExercises.value = merged
+            Log.d("CreateWorkout", "Taslaklar güncellendi: ${merged.size} egzersiz hazır.")
         }
-        _draftExercises.value = merged
     }
 
-    // Diğer yardımcı fonksiyonlar (removeDraftExercise, addSetToExercise vb.) aynı kalabilir...
     fun removeDraftExercise(catalogId: String) {
         _draftExercises.update { list -> list.filterNot { it.catalogId == catalogId } }
         _selectedExerciseIds.update { it - catalogId }
@@ -115,19 +140,20 @@ class CreateWorkoutViewModel(
         workoutRating: Int,
         ownerUid: String?,
         syncState: Boolean,
+        image: Int,
         onDone: () -> Unit,
         onError: (Throwable) -> Unit
     ) {
         viewModelScope.launch {
             try {
-                // 1. Önce Workout'u lokale kaydet
                 repo.createWorkout(
                     workoutId = workoutId,
                     name = workoutName,
                     workoutType = workoutType,
                     workoutRating = workoutRating,
                     ownerUid = ownerUid,
-                    syncState = syncState
+                    syncState = syncState,
+                    image = image
                 )
 
                 val exercisesForSync = mutableListOf<WorkoutExerciseEntity>()
@@ -136,15 +162,15 @@ class CreateWorkoutViewModel(
                 for (draft in _draftExercises.value) {
                     val newExerciseId = UUID.randomUUID().toString()
 
-                    // Lokale Ekle (Repository'de güncellediğimiz String alan metodunu kullanıyoruz)
                     repo.addExercise(
                         exerciseId = newExerciseId,
                         workoutId = workoutId,
                         name = draft.name,
-                        catalogExerciseId = draft.catalogId
+                        catalogExerciseId = draft.catalogId,
+                        bodyPart = draft.bodyPart,
+                        secondaryMuscles = listOf(draft.equipment)
                     )
 
-                    // Sync listesine ekle
                     exercisesForSync.add(
                         WorkoutExerciseEntity(
                             exerciseId = newExerciseId,
@@ -154,7 +180,6 @@ class CreateWorkoutViewModel(
                         )
                     )
 
-                    // Setleri Kaydet
                     for (set in draft.sets) {
                         val newSetId = UUID.randomUUID().toString()
                         val newSetEntity = SetEntity(
@@ -166,18 +191,17 @@ class CreateWorkoutViewModel(
                         )
 
 
-                            repo.addSet(
-                                setId = newSetId,
-                                exerciseId = newExerciseId,
-                                reps = newSetEntity.reps,
-                                weight = newSetEntity.weight,
-                                note = newSetEntity.note
-                            )
+                        repo.addSet(
+                            setId = newSetId,
+                            exerciseId = newExerciseId,
+                            reps = newSetEntity.reps,
+                            weight = newSetEntity.weight,
+                            note = newSetEntity.note
+                        )
                         setForSync.add(newSetEntity)
                     }
                 }
 
-                // 3. Firebase Sync
                 val newWorkout = WorkoutEntity(
                     workoutId = workoutId,
                     workoutName = workoutName,

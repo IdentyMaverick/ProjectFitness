@@ -1,950 +1,1212 @@
 package ui.mainpages.inside
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.chargemap.compose.numberpicker.NumberPicker
-import com.example.projectfitness.R
-import com.google.firebase.firestore.FirebaseFirestore
-
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.grozzbear.R
+import data.local.viewmodel.WorkoutCompleteScreenViewModel
+import data.local.viewmodel.WorkoutLogViewModel
+import data.remote.FirebaseStorageHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import viewmodel.ViewModelSave
-import java.time.LocalDate
+import ui.mainpages.navigation.Screens
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("SuspiciousIndentation", "MutableCollectionMutableState")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "DefaultLocale")
 @Composable
-fun WorkoutLog(navController: NavController, viewModelSave: ViewModelSave) {}
-/*
-viewModelSave.RestTimer()
+fun WorkoutLog(
+    navController: NavController,
+    workoutLogViewModel: WorkoutLogViewModel,
+    workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel
+) {
+    val workout = workoutLogViewModel.workoutFlow.collectAsState(null).value
+    val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    val clickedSetsNumber = remember { mutableStateOf(0) }
+    val clickedRepsNumber = remember { mutableStateOf(0) }
 
-//Database Creation*************************************************************************************************************************************************************
-val db = FirebaseFirestore.getInstance()
-val context = LocalContext.current
-var projectFitnessContainer = ProjectFitnessContainer(context)
-val itemRepos = projectFitnessContainer.itemsRepository
-var itemRepoList by remember {
-    mutableStateOf<List<ProjectFitnessWorkoutWithExercises?>>(
-        emptyList()
-    )
-}
-val itemsState by itemRepos.getAllCompletedWorkouts().collectAsState(initial = emptyList())
-var itemrepolist by remember { mutableStateOf(0) }
-var index by remember { mutableStateOf(0) }
-var setRepIndex by remember { mutableStateOf(0) }
-var exerciseList by remember { mutableStateOf<List<ProjectFitnessExerciseEntity?>>(emptyList()) }
-var getWorkoutId by remember { mutableStateOf(0) }
-var getExerciseId = viewModelSave.exerciseId.value
-var getExerciseIds = viewModelSave.exerciseIds.value
-var setrepId by remember { mutableStateOf(0) }
-val scopes = rememberCoroutineScope()
-var weight by remember { mutableFloatStateOf(0f) }
-var exerciseListLoaded by remember { mutableStateOf(false) }
-var setrepList by remember { mutableStateOf<List<ProjectFitnessExerciseEntity>>(emptyList()) }
-var currentExercise by remember { mutableStateOf("") }
-
-var modalBottomBarWeightValue by remember { mutableStateOf(0) }
-var modalBottomBarRepsValue by remember { mutableStateOf(0) }
-var modalBottomBarSetNumber by remember { mutableStateOf("") }
-var modalBottomBarName by remember { mutableStateOf("") }
-
-val sheetState = rememberModalBottomSheetState()
-var scope = rememberCoroutineScope()
-var showBottomSheet by remember { mutableStateOf(true) }
-
-var changedProjectFitnessExerciseEntityList by remember {
-    mutableStateOf(
-        ProjectFitnessExerciseEntity(0, 1, "", 1, 1, mutableListOf())
-    )
-}
-
-var isClicked by remember { mutableStateOf(false) }
-
-var now: LocalDate = LocalDate.now()
-var year = now.year
-var month = now.monthValue
-var day = now.dayOfMonth
-
-var calculateTotalVolume by remember { mutableStateOf(0) }
-var calculatetotalVolume by remember { mutableStateOf(0) }
-
-
-LaunchedEffect(key1 = null) {
-    CoroutineScope(Dispatchers.IO).launch {
-
-        projectFitnessContainer = ProjectFitnessContainer(context)
-        var itemRepo = itemRepos
-
-        itemRepoList = itemRepo.getWorkoutWithExercises(viewModelSave.selectedWorkoutName.value)
-        getWorkoutId =
-            itemRepo.getWorkoutId(viewModelSave.selectedWorkoutName.value)[0]?.workoutId!!
-        exerciseList = itemRepo.getExerciseList(getWorkoutId)
-        setrepList = itemRepo.getSetRepList(getWorkoutId)
-
-
-        itemrepolist = itemRepoList.size
-        selectedexerciseNameFunction(itemRepoList, index)
-
-        exerciseListLoaded = true
+    LaunchedEffect(workout?.workout?.workoutId) {
+        workout?.let {
+            workoutLogViewModel.startWorkout(it.workout.workoutId, it.workout.workoutName)
+            workoutLogViewModel.startWorkout()
+            workoutLogViewModel.prepareInitialWorkoutData(it)
+        }
     }
-}
 
-//******************************************************************************************************************************************************************************
-
-val sheetStateSettingChange = rememberModalBottomSheetState()
-var showBottomSheetSettingChange by remember { mutableStateOf(true) }
-
-/* Tasarım Kodları *******************************************************************/
-
-Box( // Tüm ekran box'ı
-    modifier = Modifier
-        .fillMaxWidth()
-        .fillMaxHeight()
-        .background(Color(0xFF181F26))
-)
-{
-    Box( // Üst Bar için Box
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(Color.Transparent)
-    )
-    {
-        Row( // Üst Bar için Row -> üst bardaki içerikleri tutuyor
-            Modifier
-                .align(Alignment.CenterStart)
-                .background(Color.Transparent)
-        ) {
-            Icon(painter = painterResource(id = R.drawable.projectfitnessprevious),
-                contentDescription = null,
-                tint = Color(0xFFF1C40F),
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(30.dp)
-                    .clickable {
-                        viewModelSave.hourInt.value = 0
-                        viewModelSave.minuteInt.value = 0
-                        viewModelSave.secondInt.value = 0
-                        showBottomSheet = true
-                        scopes.launch { sheetState.expand() }
-                    }
-                    .align(Alignment.CenterVertically)
-            )
-
-            Text(
-                text = "Workout",
-                color = Color(0xFFF1C40F),
-                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                style = TextStyle(fontSize = 30.sp),
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(start = 20.dp),
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = timerWorkout(viewModelSave),
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                style = TextStyle(fontSize = 15.sp, letterSpacing = 2.sp),
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(end = 30.dp),
-            )
-
+    if (workout != null) {
+        val pagerState = rememberPagerState(pageCount = { workout.exercises.size })
+        val seconds by workoutLogViewModel.elapsedTime.collectAsState()
+        val formattedTime = remember(seconds) {
+            String.format("%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60)
         }
 
+        // Sheet States
+        val sheetState = rememberModalBottomSheetState()
+        var showBottomSheet by remember { mutableStateOf(false) }
+        val sheetStateFinish = rememberModalBottomSheetState()
+        var showBottomSheetFinish by remember { mutableStateOf(false) }
+        val sheetStateLog = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var showBottomSheetLog by remember { mutableStateOf(false) }
+        var showTimerSheet by remember { mutableStateOf(false) }
+        val showTimerSheetModalBottom = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    }
+        val flag = remember { mutableStateOf(0) }
+        val setIndex = remember { mutableIntStateOf(0) }
 
-    Box(
-        modifier = Modifier // Lazy column ve geri kalan ögeleri tutan box
-            .fillMaxWidth()
-            .height(550.dp)
-            .align(Alignment.Center)
-            .background(Color.Transparent)
-    ) {
+        BackHandler { showBottomSheet = true }
 
-        LazyColumn(
-            state = rememberLazyListState(),
+        Box(
             modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxHeight()
-
+                .fillMaxSize()
+                .background(Color(0xFF121417))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { focusManager.clearFocus() }
         ) {
-            itemsIndexed(exerciseList) { index, item ->
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { pageIndex ->
+                val exercise = workout.exercises[pageIndex]
 
-                Column(  // Egzersiz ismi ve altındaki 3 lü Row ögelerini taşıyan Column
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    if (item != null) {
-                        currentExercise = item.exercisesName
+                val currentSets = remember(exercise.exercise.exerciseId) {
+                    workoutLogViewModel.getOrInitSets(exercise.exercise.exerciseName, exercise.sets)
+                }
+                Log.d("currentsets", "${currentSets.size}")
+                // Sayfa aktif olduğunda ViewModel'deki activeExerciseId'yi güncelle
+                LaunchedEffect(pagerState.currentPage) {
+                    if (pagerState.currentPage == pageIndex) {
+                        workoutLogViewModel.addExercise(
+                            exercise.exercise.exerciseName,
+                            exercise.exercise.bodyPart,
+                            exercise.exercise.secondaryMuscles
+                        )
                     }
-                    if (item != null) {
+                }
 
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        ExerciseImageHeader(
+                            exercise.exercise.exerciseName,
+                            exercise.exercise.exerciseImage
+                        )
+                    }
+
+                    item {
+                        LogPlace(
+                            onLogClick = { showBottomSheetLog = it },
+                            flag = { flag.value = it })
+                    }
+
+                    item {
+                        Spacer(Modifier.size(30.dp))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 10.dp)
+                                .padding(horizontal = 25.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Box(modifier = Modifier.width(30.dp))
                             Text(
-                                text = item.exercisesName,
-                                modifier = Modifier.padding(top = 10.dp, start = 20.dp),
-                                color = Color(0xFFF1C40F),
-                                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                style = TextStyle(fontSize = 25.sp),
+                                "Weight",
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                color = Color.White
                             )
-                            Spacer(modifier = Modifier.weight(1f))
-                            Icon(painter = painterResource(id = R.drawable.question),
-                                contentDescription = null,
-                                tint = Color(0xFFF1C40F),
-                                modifier = Modifier
-                                    .padding(end = 20.dp)
-                                    .size(25.dp)
-                                    .align(Alignment.CenterVertically)
-                                    .clickable {
-                                        viewModelSave.flagA.value = false
-                                        viewModelSave.flagB.value = true
-                                        viewModelSave.flagC.value = false
-                                        viewModelSave.flagD.value = false
-                                        navController.navigate("workoutsettingdetails")
-                                    }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                "Reps",
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center,
+                                color = Color.White
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.size(5.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 10.dp)
-                    ) {
-                        Text(
-                            text = "Prev Season",
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                letterSpacing = 2.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                color = (Color.White).copy(alpha = 0.5f)
-                            ),
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(start = 40.dp)
 
+                    // 3. SET LİSTESİ (ITEMS)
+                    itemsIndexed(
+                        items = currentSets,
+                        key = { _, item -> item.setId }
+                    ) { index, item ->
+                        val isDone = item.isClicked
+                        var rowWeight by remember(item.setId) { mutableStateOf(if (item.weight > 0) item.weight.toString() else "") }
+                        var rowReps by remember(item.setId) { mutableStateOf(if (item.reps > 0) item.reps.toString() else "") }
+                        var isDeleting by remember { mutableStateOf(false) }
+
+                        val dismissBoxState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { dismissValue ->
+                                if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                    isDeleting = true
+                                    false
+                                } else if (dismissValue == SwipeToDismissBoxValue.StartToEnd) {
+                                    showBottomSheetLog = true
+                                    flag.value = 1
+                                    setIndex.intValue = index
+                                    false
+                                } else false
+                            }
                         )
-                        Spacer(modifier = Modifier.size(10.dp))
-                        Text(
-                            text = "Weight (kg)",
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                letterSpacing = 2.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                color = (Color.White).copy(alpha = 0.5f)
-                            ),
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(end = 15.dp)
 
+                        LaunchedEffect(isDeleting) {
+                            if (isDeleting) {
+                                // ViewModel: DB'den sil ve alttaki indeksleri kaydır
+                                workoutLogViewModel.deleteSet(index, exercise.exercise.exerciseName)
+                                // UI: Listeden anında kaldır
+                                currentSets.remove(item)
+                                isDeleting = false
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize()
+                        ) {
+                            SwipeToDismissBox(
+                                state = dismissBoxState,
+                                backgroundContent = {
+                                    val color by animateColorAsState(
+                                        when (dismissBoxState.targetValue) {
+                                            SwipeToDismissBoxValue.EndToStart -> Color(0xFFE53935)
+                                            SwipeToDismissBoxValue.StartToEnd -> Color(0xFF4CAF50)
+                                            else -> Color.Transparent
+                                        }, label = ""
+                                    )
+                                    Box(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .padding(horizontal = 25.dp, vertical = 4.dp)
+                                            .background(color, RoundedCornerShape(14.dp))
+                                    )
+                                },
+                                content = {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color(0xFF121417))
+                                            .padding(horizontal = 25.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            "${index + 1}",
+                                            modifier = Modifier.width(30.dp),
+                                            color = Color.White,
+                                            fontSize = 20.sp
+                                        )
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            SetLogItemWeight(rowWeight, {
+                                                rowWeight = it; scope.launch {
+                                                //workoutLogViewModel.saveSetToDb(rowReps, it, index, exercise.exercise.exerciseName)
+                                                workoutLogViewModel.toggleSetDone(
+                                                    exercise.exercise.exerciseName,
+                                                    index,
+                                                    false
+                                                )
+                                            }
+                                            }, Modifier.fillMaxWidth(), isDone)
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            SetLogItemReps(rowReps, {
+                                                rowReps = it; scope.launch {
+                                                //workoutLogViewModel.saveSetToDb(it, rowWeight, index, exercise.exercise.exerciseName)
+                                                workoutLogViewModel.toggleSetDone(
+                                                    exercise.exercise.exerciseName,
+                                                    index,
+                                                    false
+                                                )
+                                            }
+                                            }, Modifier.fillMaxWidth(), isDone)
+                                        }
+                                        Spacer(modifier = Modifier.width(15.dp))
+                                        IconButton(
+                                            onClick = {
+                                                scope.launch {
+                                                    clickedSetsNumber.value += 1
+                                                    clickedRepsNumber.value += rowReps.toInt()
+                                                    workoutLogViewModel.saveSetToDb(
+                                                        rowReps,
+                                                        rowWeight,
+                                                        index,
+                                                        exercise.exercise.exerciseName
+                                                    )
+                                                    workoutLogViewModel.toggleSetDone(
+                                                        exercise.exercise.exerciseName,
+                                                        index,
+                                                        !isDone
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(RoundedCornerShape(50))
+                                                .background(if (isDone) Color(0xFFF1C40F) else Color.Transparent)
+                                                .border(
+                                                    1.dp,
+                                                    Color.Gray.copy(0.5f),
+                                                    RoundedCornerShape(50)
+                                                )
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                null,
+                                                tint = if (isDone) Color.Black else Color.Gray.copy(
+                                                    0.5f
+                                                ),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    item {
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    val nextIdx = currentSets.size
+                                    Log.d("currentsetsize", "${currentSets.toList()}")
+                                    workoutLogViewModel.saveSetToDb(
+                                        reps = "0",
+                                        weight = "0",
+                                        setIndex = nextIdx,
+                                        exerciseName = exercise.exercise.exerciseName
+                                    )
+                                }
+                            },
+                            modifier = Modifier.padding(vertical = 16.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                        ) {
+                            Text("+ Add Set", color = Color.White)
+                        }
+                    }
+                    item { Spacer(Modifier.height(100.dp)) }
+                }
+            }
+
+            // 4. ÜST BAR VE BOTTOM SHEETS
+            HomeTopBarWorkoutLog(
+                pagerState = pagerState,
+                totalSegments = workout.exercises.size,
+                workoutLogViewModel = workoutLogViewModel,
+                onBackClick = { showBottomSheet = true },
+                formattedTime = formattedTime,
+                showTimerSheet = showTimerSheet,
+                setShowTimerSheet = { showTimerSheet = it }
+            )
+
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showBottomSheet = false },
+                    sheetState = sheetState,
+                    containerColor = Color(0xFF1C2126),
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+                ) {
+                    WorkoutExitDialog(
+                        onConfirm = {
+                            workoutLogViewModel.cancelAndExitWorkout {
+                                showBottomSheet = false
+                                navController.navigate(Screens.Home.route)
+                            }
+                        },
+                        onDismiss = {
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) showBottomSheet = false
+                            }
+                        },
+                        flag = 0
+                    )
+                }
+            } else if (showBottomSheetLog) {
+                ModalBottomSheet(
+                    onDismissRequest = { showBottomSheetLog = false; },
+                    sheetState = sheetStateLog,
+                    containerColor = Color(0xFF1C2126),
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFF1C40F)) }
+                ) {
+                    if (flag.value == 0) {
+                        WorkoutLogDialog(
+                            onConfirm = {
+                                showBottomSheetLog = false;
+                                workoutLogViewModel.updateExerciseNote(it)
+                            },
+                            onDismiss = {
+                                scope.launch { sheetStateLog.hide() }.invokeOnCompletion {
+                                    if (!sheetStateLog.isVisible) showBottomSheetLog = false
+                                }
+                            },
+                            setLog = { },
+                            flag = 0
                         )
-                        Spacer(modifier = Modifier.size(0.dp))
-                        Text(
-                            text = "Reps",
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                letterSpacing = 2.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                color = (Color.White).copy(alpha = 0.5f)
-                            ),
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .padding(end = 15.dp)
-
+                    } else if (flag.value == 1) {
+                        WorkoutLogDialog(
+                            onConfirm = {
+                                showBottomSheetLog = false
+                                workoutLogViewModel.updateSetNote(it, setIndex.value)
+                            },
+                            onDismiss = {
+                                scope.launch { sheetStateLog.hide() }.invokeOnCompletion {
+                                    if (!sheetStateLog.isVisible) showBottomSheetLog = false
+                                }
+                            },
+                            setLog = { },
+                            flag = 1
                         )
                     }
                 }
-
+            } else if (showBottomSheetFinish) {
+                ModalBottomSheet(
+                    onDismissRequest = { showBottomSheetFinish = false },
+                    sheetState = sheetStateFinish,
+                    containerColor = Color(0xFF1C2126),
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFF1C40F)) }
+                ) {
+                    WorkoutExitDialog(
+                        onConfirm = {
+                            workoutCompleteScreenViewModel._totalSetsCompleted.value =
+                                clickedSetsNumber.value
+                            workoutCompleteScreenViewModel._totalRepsCompleted.value =
+                                clickedRepsNumber.value
+                            workoutLogViewModel.stopWorkout()
+                            workoutLogViewModel.finishWorkout({
+                                showBottomSheetFinish = false
+                                navController.navigate(Screens.WorkoutCompleteScreen.route) {
+                                    popUpTo(Screens.WorkoutCompleteScreen.route) {
+                                        inclusive = true
+                                    }
+                                }
+                            })
+                        },
+                        onDismiss = {
+                            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                if (!sheetState.isVisible) showBottomSheetFinish = false
+                            }
+                        },
+                        flag = 1
+                    )
+                }
+            }
+            if (!pagerState.canScrollForward) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .background(
-                            Color.Transparent
-                        )
-                )
-                {
-                    Column(
+                        .fillMaxSize()
+                        .padding(bottom = 30.dp), // Ekranın en altından biraz yukarıda
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Button(
+                        onClick = {
+                            showBottomSheetFinish = true
+                        },
                         modifier = Modifier
-                            .fillMaxHeight()
                             .fillMaxWidth()
-                            .background(Color.Transparent)
+                            .height(36.dp)
+                            .padding(horizontal = 90.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFF1C40F),
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = ButtonDefaults.buttonElevation(8.dp)
                     ) {
-                        if (item != null) {
-                            setrepList.forEachIndexed { index, item ->
-                                if (item.exercisesName == currentExercise) {
-                                    for (i in item.setrepList) {
-                                        /*
-                                        val annotatedString = buildAnnotatedString {
-                                            append("${i.setNumber.last()}            ")
-                                            withStyle(
-                                                style = SpanStyle(
-                                                    color = Color.White.copy(
-                                                        alpha = 0.5f
-                                                    )
-                                                )
-                                            ) {
-                                                append("${i.weight}")
-                                            }
-
-                                            append("                   ${i.weight.toInt()}                   ")
-                                            append("${i.setRep}")
-
-                                        }
-                                        */
-                                        Row {
-                                            Text(
-                                                text = i.setNumber.last().toString(),
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                    fontSize = 17.sp
-                                                ),
-                                                modifier = Modifier
-                                                    .padding(start = 20.dp),
-                                                color = Color.White
-                                            )
-                                            Spacer(modifier = Modifier.size(30.dp))
-                                            Text(
-                                                text = i.weight.toInt().toString() + " kg",
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                    fontSize = 17.sp
-                                                ),
-                                                modifier = Modifier
-                                                    .padding(start = 20.dp),
-                                                color = Color.White
-                                            )
-                                            Spacer(modifier = Modifier.size(30.dp))
-                                            Text(
-                                                text = i.weight.toInt().toString() + " kg",
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                    fontSize = 17.sp
-                                                ),
-                                                modifier = Modifier
-                                                    .padding(start = 20.dp),
-                                                color = Color.White
-                                            )
-                                            Spacer(modifier = Modifier.size(40.dp))
-                                            Text(
-                                                text = i.setRep.toString(),
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                    fontSize = 17.sp
-                                                ),
-                                                modifier = Modifier
-                                                    .padding(start = 20.dp),
-                                                color = Color.White
-                                            )
-                                            Spacer(modifier = Modifier.size(40.dp))
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.projectfitnesssetting),
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .size(20.dp)
-                                                    .clickable {
-                                                        modalBottomBarWeightValue =
-                                                            i.weight.toInt()
-                                                        modalBottomBarRepsValue = i.setRep
-                                                        modalBottomBarSetNumber =
-                                                            i.setNumber
-                                                        modalBottomBarName =
-                                                            item.exercisesName
-                                                        changedProjectFitnessExerciseEntityList =
-                                                            item // Seçilen itemin entity bilgilerini çeker
-                                                        showBottomSheetSettingChange = true
-                                                    },
-                                                tint = Color.White.copy(alpha = 0.8f)
-                                            )
-                                        }
-
-                                        Spacer(modifier = Modifier.size(20.dp))
-                                    }
-                                    Box(
-                                        modifier = Modifier
-                                            .clickable {
-                                                val newSetRep = SetRep(
-                                                    setNumber = "${item.setrepList.size + 1}",
-                                                    setRep = 12,
-                                                    ticked = false,
-                                                    weight = 0.0f
-                                                )
-                                                item.setrepList
-                                                    .toMutableList()
-                                                    .apply { add(newSetRep) }
-                                                scopes.launch { itemrepolist }
-                                                item.setrepList.add(
-                                                    SetRep(
-                                                        "${item.setrepList.size + 1}",
-                                                        12,
-                                                        ticked = false,
-                                                        0.0f
-                                                    )
-                                                )
-
-
-                                            }
-                                            .padding(start = 16.dp, end = 16.dp)
-                                            .fillMaxWidth()// İsteğe bağlı: kutuyu etrafında bir boşluk bırakır
-                                        , contentAlignment = Alignment.TopCenter
-                                    )
-                                    {
-                                        Text(
-                                            text = "Add Set",
-                                            style = TextStyle(
-                                                fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                fontSize = 17.sp
-                                            ),
-                                            modifier = Modifier
-                                                .align(Alignment.Center),
-                                            color = Color(0xFFF1C40F)
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        Text(
+                            text = "FINISH WORKOUT",
+                            style = TextStyle(
+                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.size(50.dp))
             }
-
         }
-        Button(
-            onClick = { },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp)
-                .size(40.dp),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-
-            Icon(painter = painterResource(id = R.drawable.projectfitnesstick),
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier
-                    .size(25.dp)
-                    .clickable {
-                        scopes.launch {
-                            setrepList.forEachIndexed { index, item ->
-                                item.setrepList.forEachIndexed { index, setRep ->
-                                    calculateTotalVolume += (setRep.weight.toInt() * setRep.setRep)
-                                }
-                                // Completed Workout Database Insert
-                                itemRepos.insertCompletedWorkout(
-                                    completedWorkout = ProjectCompletedWorkoutEntity(
-                                        completedWorkoutId = viewModelSave.completedWorkoutId.value,
-                                        workoutId = getWorkoutId,
-                                        completionDate = "${day}.${month}.${year}",
-                                        durationMinutes = viewModelSave.hour.value + viewModelSave.minutes.value + viewModelSave.seconds.value,
-                                        totalSets = 0,
-                                        totalReps = 0,
-                                        rateOfWorkout = 0,
-                                        notesAboutWorkout = "",
-                                        completedWorkoutName = viewModelSave.selectedWorkoutName.value,
-                                        totalWorkoutVolume = calculateTotalVolume
-                                    )
-                                )
-                            }
-                            itemRepos.insertCompletedSetting(
-                                savedcompletedWorkoutId = ProjectCompletedSetting(
-                                    viewModelSave.completedWorkoutId.value
-                                )
-                            )
-                            // Completed Exercise Database Insert
-                            setrepList.forEachIndexed { index, item ->
-                                calculatetotalVolume = 0
-                                item.setrepList.forEachIndexed { index, setRep ->
-                                    calculatetotalVolume += (setRep.weight.toInt() * setRep.setRep)
-                                }
-                                itemRepos.insertCompletedExercise(
-                                    ProjectCompletedExerciseEntity(
-                                        completedWorkoutId = viewModelSave.completedWorkoutId.value,
-                                        completedExerciseId = getExerciseId,
-                                        exerciseName = item.exercisesName,
-                                        exerciseRep = 12,
-                                        exerciseSet = 3,
-                                        setrepListCompleted = item.setrepList,
-                                        totalExerciseVolume = calculatetotalVolume
-                                    )
-                                )
-                                getExerciseId += 1
-                                Log.d("KAYIT", "id $getExerciseId")
-                                viewModelSave.exerciseId.value = getExerciseId
-                                // Some features of Workout
-                                viewModelSave.totalSetsOfCompletedWorkout.value += item.setrepList.size
-                                for (i in item.setrepList) {
-                                    viewModelSave.totalRepsOfCompletedWorkout.value += i.setRep
-                                    viewModelSave.totalWeightOfCompletedWorkout.value += (i.weight.toInt() * i.setRep)
-                                }
-                                Log.d(
-                                    "lolsa",
-                                    viewModelSave.totalSetsOfCompletedWorkout.value.toString()
-                                )
-
-                            }
-                        }
-                        navController.navigate(route = "workoutcompletescreen")
-                        viewModelSave.completedWorkoutId.value += 1
-                    })
+        if (showTimerSheet == true) {
+            ModalBottomSheet(
+                onDismissRequest = { showTimerSheet = false },
+                sheetState = showTimerSheetModalBottom,
+                containerColor = Color(0xFF1C2126)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 40.dp)
+                ) {
+                    FinalWorkoutTimer()
+                }
+            }
         }
     }
 }
 
-if (showBottomSheetSettingChange) {
-    ModalBottomSheet(
-        onDismissRequest = { showBottomSheetSettingChange = false },
-        sheetState = sheetStateSettingChange,
-        containerColor = Color(0xFF283747)
+@Composable
+fun ExerciseImageHeader(exerciseName: String, exerciseImage: String? = null) {
+    val fullUrl = remember(exerciseImage)
+    {
+        FirebaseStorageHelper.getImageUrl(exerciseImage ?: "")
+    }
+    Log.d("fullUrl", "$fullUrl")
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
     ) {
-        LaunchedEffect(Unit) {
-            scopes.launch { sheetStateSettingChange.expand() }.invokeOnCompletion {
-                if (!sheetStateSettingChange.isVisible) {
-                    showBottomSheetSettingChange = false
-                }
-            }
-        }
-        Box(
+        AsyncImage(
+            model = fullUrl,
+            contentDescription = exerciseName,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(230.dp)
+                .fillMaxSize()
+                .padding(bottom = 30.dp),
+            placeholder = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
+            error = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml)
         )
-        {
-            Row(modifier = Modifier.align(Alignment.TopCenter)) {
-                Text(
-                    text = "WEIGHT",
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        letterSpacing = 2.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                        color = Color.White
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 140.dp)
 
-                )
-                Text(
-                    text = "REP",
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        letterSpacing = 2.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                        color = Color.White
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 15.dp)
-
-                )
-            }
-            Row(modifier = Modifier.align(Alignment.Center)) {
-                NumberPicker(
-                    value = modalBottomBarWeightValue,
-                    onValueChange = {
-                        modalBottomBarWeightValue = it
-
-                        scopes.launch {
-                            val newSetRepList = SetRep(
-                                modalBottomBarSetNumber,
-                                modalBottomBarRepsValue,
-                                ticked = false,
-                                modalBottomBarWeightValue.toFloat()
-                            )
-                            val updatedEntity =
-                                changedProjectFitnessExerciseEntityList // Seçilen egzersiz entity'sini çeker
-                            updatedEntity.setrepList.forEachIndexed { index, item ->
-                                if (index == modalBottomBarSetNumber.last().digitToInt() - 1) {
-                                    Log.d("values", modalBottomBarSetNumber.last().toString())
-                                    item.weight =
-                                        modalBottomBarWeightValue.toFloat()
-                                }
-                            }
-                            // updatedEntity.setrepList.toMutableList().apply { add(newSetRepList) }
-                            itemRepos.updateSetRepList(updatedEntity)
-                            Log.d("value", "${newSetRepList} and $updatedEntity")
-                        }
-                    },
-                    range = 0..500 step (5), // step fonkisyonu ile 5'er arttırma yapıldı
-                    dividersColor = Color(0xFFF1C40F),
-                    textStyle = TextStyle(color = Color.White),
-
-                    )
-                Text(
-                    text = "KG",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        letterSpacing = 2.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                        color = Color.White
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(start = 10.dp, bottom = 7.dp)
-                )
-                Spacer(modifier = Modifier.size(130.dp))
-                NumberPicker(
-                    value = modalBottomBarRepsValue,
-                    onValueChange = {
-                        modalBottomBarRepsValue = it
-                        scopes.launch {
-                            val newSetRepList = SetRep(
-                                modalBottomBarSetNumber,
-                                modalBottomBarRepsValue,
-                                ticked = false,
-                                modalBottomBarWeightValue.toFloat()
-                            )
-                            val updatedEntity =
-                                changedProjectFitnessExerciseEntityList // Seçilen egzersiz entity'sini çeker
-                            updatedEntity.setrepList.forEachIndexed { index, item ->
-                                if (index == modalBottomBarSetNumber.last().digitToInt() - 1) {
-                                    Log.d("values", modalBottomBarSetNumber.last().toString())
-                                    item.setRep =
-                                        modalBottomBarRepsValue
-                                }
-                            }
-                            // updatedEntity.setrepList.toMutableList().apply { add(newSetRepList) }
-                            itemRepos.updateSetRepList(updatedEntity)
-                            Log.d("value", "${newSetRepList} and $updatedEntity")
-                        }
-                    },
-                    range = 0..50,
-                    dividersColor = Color(0xFFF1C40F),
-                    textStyle = TextStyle(color = Color.White),
-
-                    )
-            }
-            Row(modifier = Modifier.align(Alignment.BottomEnd)) {
-                Text(text = "Remove Set",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        letterSpacing = 2.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                        color = Color.Red.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 15.dp, bottom = 15.dp)
-                        .clickable {
-                            scopes.launch {
-                                val removedEntity =
-                                    changedProjectFitnessExerciseEntityList // elemanı silinecek olan entity
-                                removedEntity.setrepList.forEachIndexed { index, item ->
-                                    if (index == modalBottomBarSetNumber
-                                            .last()
-                                            .digitToInt() - 1
-                                    ) {
-                                        removedEntity.setrepList.remove(item)
-                                    }
-                                }
-                                itemRepos.updateSetRepList(removedEntity)
-                                sheetStateSettingChange.hide()
-                                showBottomSheetSettingChange = false
-                            }
-                        }
-                        .width(100.dp)
-                        .height(25.dp)
-                        .background(
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color.Transparent
-                        )
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "LOG",
-                    style = TextStyle(
-                        fontSize = 20.sp,
-                        letterSpacing = 2.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 15.dp, bottom = 15.dp)
-                        .clickable {
-                            scopes.launch {
-                                sheetStateSettingChange.hide()
-                                showBottomSheetSettingChange = false
-                            }
-                        }
-                        .width(50.dp)
-                        .height(25.dp)
-                        .background(
-                            shape = RoundedCornerShape(10.dp),
-                            color = Color.Transparent
-                        )
-
-                )
-            }
-        }
-    }
-}
-
-if (showBottomSheet) {
-    ModalBottomSheet(
-        onDismissRequest = { showBottomSheet = false },
-        sheetState = sheetState,
-        containerColor = Color(0xFF283747)
-    ) {
-        LaunchedEffect(Unit) {
-            scope.launch { sheetState.expand() }.invokeOnCompletion {
-                if (!sheetState.isVisible) {
-                    showBottomSheet = false
-                }
-            }
-        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-        )
-        {
-            Column(modifier = Modifier.align(Alignment.TopCenter))
-            {
-                Text(
-                    text = "Do you want to leave workout ?",
-                    style = TextStyle(
-                        fontSize = 25.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendextralight))
-                    ),
-                    color = Color(0xFFF1C40F),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                        .align(Alignment.CenterHorizontally)
-                        .background(Color.Transparent)
-                        .padding(top = 20.dp)
-                ) {
-                    Text(text = "Yes",
-                        style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendextralight))),
-                        fontSize = 25.sp,
-                        modifier = Modifier
-                            .padding(start = 100.dp)
-                            .clickable { navController.navigate("home") },
-                        color = Color(0xFFF1C40F)
+                .align(Alignment.TopCenter)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(text = "No",
-                        style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendextralight))),
-                        fontSize = 25.sp,
-                        modifier = Modifier
-                            .padding(end = 100.dp)
-                            .clickable {
-                                showBottomSheet = false
-                                scopes.launch { sheetState.hide() }
-                            },
-                        color = Color(0xFFF1C40F)
+                )
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color.Transparent, Color(0xFF121417))
+                    )
+                )
+        )
+    }
+
+    Text(
+        text = exerciseName,
+        color = Color.White.copy(alpha = 0.9f),
+        fontSize = 25.sp,
+        fontFamily = FontFamily(Font(R.font.lexendbold)),
+        modifier = Modifier.padding(16.dp),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun LogPlace(
+    onLogClick: (Boolean) -> Unit,
+    flag: (Int) -> Unit
+) {
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 25.dp)
+        ) {
+            IconButton(onClick = {}, modifier = Modifier.size(20.dp)) {
+                Icon(
+                    painter = painterResource(R.drawable.historyicon128),
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                "Log your Progress",
+                color = Color(0xFFF1C40F),
+                fontSize = 15.sp,
+                fontFamily = FontFamily(Font(R.font.lexendregular))
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = { onLogClick(true); flag(0) }, modifier = Modifier.size(30.dp)) {
+                Icon(
+                    painter = painterResource(R.drawable.editnote),
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun HomeTopBarWorkoutLog(
+    pagerState: PagerState,
+    totalSegments: Int,
+    workoutLogViewModel: WorkoutLogViewModel,
+    onBackClick: () -> Unit,
+    formattedTime: String,
+    showTimerSheet: Boolean,
+    setShowTimerSheet: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBackClick) {
+            Icon(
+                painter = painterResource(R.drawable.left),
+                contentDescription = "Back",
+                modifier = Modifier.size(25.dp),
+                tint = Color.White
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "GROZZ",
+                    color = Color(0xFFF1C40F),
+                    fontSize = 24.sp,
+                    letterSpacing = 0.sp,
+                    fontFamily = FontFamily(Font(R.font.oswaldbold))
+                )
+
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = formattedTime,
+                color = Color.White,
+                fontSize = 14.sp,
+                fontFamily = FontFamily(Font(R.font.lexendregular))
+            )
+            Spacer(Modifier.height(16.dp))
+            SegmentedProgressIndicator(totalSegments, pagerState.currentPage)
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        IconButton(
+            onClick = { setShowTimerSheet(true) },
+            modifier = Modifier.size(25.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.shutterspeedfilledicon128),
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun WorkoutExitDialog(onConfirm: () -> Unit, onDismiss: () -> Unit, flag: Int) {
+    if (flag == 0) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 48.dp, start = 24.dp, end = 24.dp, top = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Do you want to leave workout?",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontFamily = FontFamily(Font(R.font.lexendregular))
+            )
+            Spacer(Modifier.height(32.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(
+                    "Yes",
+                    color = Color.Red,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    modifier = Modifier.clickable { onConfirm() }
+                )
+                Text(
+                    "No",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendregular)),
+                    modifier = Modifier.clickable { onDismiss() }
+                )
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 48.dp, start = 24.dp, end = 24.dp, top = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                "Do you want to finish workout?",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontFamily = FontFamily(Font(R.font.lexendregular))
+            )
+            Spacer(Modifier.height(32.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(
+                    "Yes",
+                    color = Color.Red,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    modifier = Modifier.clickable { onConfirm() }
+                )
+                Text(
+                    "No",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendregular)),
+                    modifier = Modifier.clickable { onDismiss() }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun WorkoutLogDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+    setLog: (String) -> Unit,
+    flag: Int
+) {
+    val flag = remember { mutableIntStateOf(flag) }
+    val initialText = "" // Eğer varsa eski notu buraya ViewModel'den çekebilirsin
+    val logValue = remember { mutableStateOf(initialText) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = if (flag.value == 0) {
+                "Log about Exercise"
+            } else {
+                "Log about Set"
+            },
+            color = Color.White,
+            fontSize = 18.sp,
+            fontFamily = FontFamily(Font(R.font.lexendregular))
+        )
+        Spacer(Modifier.height(32.dp))
+        Text(
+            text = logValue.value,
+            color = Color.White,
+            fontSize = 18.sp,
+            fontFamily = FontFamily(Font(R.font.lexendregular))
+        )
+        Spacer(Modifier.height(32.dp))
+        OutlinedTextField(
+            value = logValue.value,
+            onValueChange = { logValue.value = it },
+            modifier = Modifier.height(300.dp),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.White.copy(alpha = 0.2f),
+                focusedIndicatorColor = Color(0xFFF1C40F),
+                cursorColor = Color(0xFFF1C40F),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            ),
+            textStyle = TextStyle(
+                textAlign = TextAlign.Start,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            ),
+            placeholder = {
+                Text("Write here")
+            }
+        )
+        Spacer(Modifier.height(50.dp))
+        Button(
+            onClick = { onConfirm(logValue.value) },
+            colors = ButtonColors(
+                containerColor = Color(0xFFF1C40F),
+                contentColor = Color(0xFFF1C40F),
+                disabledContainerColor = Color(0xFFF1C40F),
+                disabledContentColor = Color(0xFFF1C40F)
+            )
+        ) {
+            Text(
+                "Save",
+                color = Color(0xFF121417),
+                fontSize = 15.sp,
+                fontFamily = FontFamily(Font(R.font.lexendbold))
+            )
+        }
+        Spacer(Modifier.height(50.dp))
+    }
+}
+
+@Composable
+fun SegmentedProgressIndicator(totalSegments: Int, currentSegment: Int) {
+    Row(
+        modifier = Modifier
+            .height(14.dp)
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        for (i in 0 until totalSegments) {
+            val isCompleted = i < currentSegment
+
+            val animatedColor by animateColorAsState(
+                targetValue = if (isCompleted) Color(0xFFF1C40F) else Color.White.copy(alpha = 0.15f),
+                animationSpec = tween(durationMillis = 600),
+                label = "colorAnim"
+            )
+
+            val glowAlpha by animateFloatAsState(
+                targetValue = if (isCompleted) 0.8f else 0f,
+                animationSpec = tween(durationMillis = 800),
+                label = "glowAnim"
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(50.dp)
+                    .height(3.dp)
+                    .graphicsLayer {
+                        scaleY = if (isCompleted) 1.1f else 1.0f
+                    }
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(animatedColor)
+                    .shadow(
+                        elevation = if (isCompleted) 10.dp else 0.dp,
+                        shape = RoundedCornerShape(8.dp),
+                        spotColor = Color(0xFFF1C40F).copy(alpha = glowAlpha),
+                        ambientColor = Color(0xFFF1C40F).copy(alpha = glowAlpha)
+                    )
+                    .border(
+                        width = 0.5.dp,
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+fun SetLogItemWeight(
+    weight: String,
+    setWeight: (String) -> Unit,
+    modifier: Modifier,
+    isDone: Boolean
+) {
+    var weightOutlined = weight
+    OutlinedTextField(
+        value = weightOutlined,
+        onValueChange = { input ->
+
+            val filteredInput = input.filter { it.isDigit() || it == '.' }.replace(" ", "")
+
+            val isValid = filteredInput.length <= 5 &&
+                    (filteredInput.isEmpty() || filteredInput.first() != '.' || filteredInput.last() != '.') &&
+                    filteredInput.count { it == '.' } <= 1
+
+            if (isValid) {
+                weightOutlined = filteredInput
+                setWeight(filteredInput)
+            }
+        },
+        placeholder = {
+            Text(
+                "Type",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        modifier = modifier
+            .width(100.dp)
+            .height(52.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            unfocusedIndicatorColor = if (isDone) {
+                Color(0xFFF1C40F)
+            } else {
+                Color.White.copy(alpha = 0.2f)
+            },
+            focusedIndicatorColor = Color(0xFFF1C40F),
+            cursorColor = Color(0xFFF1C40F),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        textStyle = TextStyle(
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        ),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
+}
+
+@Composable
+fun SetLogItemReps(
+    reps: String,
+    setReps: (String) -> Unit,
+    modifier: Modifier,
+    isDone: Boolean
+) {
+    var repsOutlined = reps
+    OutlinedTextField(
+        value = repsOutlined,
+        onValueChange = { input ->
+
+            val filteredInput = input.filter { it.isDigit() || it == '.' }.replace(" ", "")
+
+            val isValid = filteredInput.length <= 5 &&
+                    (filteredInput.isEmpty() || filteredInput.first() != '.' || filteredInput.last() != '.') &&
+                    filteredInput.count { it == '.' } <= 1
+
+            if (isValid) {
+                repsOutlined = filteredInput
+                setReps(filteredInput)
+            }
+        },
+        placeholder = {
+            Text(
+                "Type",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        modifier = modifier
+            .width(100.dp)
+            .height(52.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            unfocusedIndicatorColor = if (isDone) {
+                Color(0xFFF1C40F)
+            } else {
+                Color.White.copy(alpha = 0.2f)
+            },
+            focusedIndicatorColor = Color(0xFFF1C40F),
+            cursorColor = Color(0xFFF1C40F),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        textStyle = TextStyle(
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        ),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
+}
+
+@Composable
+fun FinalWorkoutTimer() {
+    val context = LocalContext.current
+
+    // Durum Yönetimi
+    var selectedSeconds by remember { mutableLongStateOf(60L) }
+    var timeLeft by remember { mutableLongStateOf(60L) }
+    var isRunning by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    // Lottie Ayarları
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.clocktimer))
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        isPlaying = isRunning,
+        iterations = LottieConstants.IterateForever
+    )
+
+    // Zamanlayıcı Mantığı
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
+            while (timeLeft > 0) {
+                delay(1000)
+                timeLeft--
+            }
+            if (timeLeft == 0L) {
+                isRunning = false
+                vibratePhone(context)
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 1. Lottie Animasyonu
+        LottieAnimation(
+            composition = composition,
+            progress = { progress },
+            modifier = Modifier.size(220.dp)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 2. Dijital Saat (Tıklanabilir)
+        Text(
+            text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+            modifier = Modifier.clickable {
+                if (!isRunning) showEditDialog = true
+            },
+            style = TextStyle(
+                color = if (!isRunning) Color(0xFFF1C40F) else Color.White,
+                fontSize = 54.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily(Font(R.font.lexendbold))
+            )
+        )
+
+        if (!isRunning) {
+            Text(
+                text = "Tap to edit time",
+                color = Color.Gray,
+                fontSize = 12.sp,
+                fontFamily = FontFamily(Font(R.font.lexendregular))
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 3. Hızlı Ayar Butonları
+        if (!isRunning) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                TimeButton("-30s") {
+                    if (timeLeft > 30) {
+                        timeLeft -= 30; selectedSeconds -= 30
+                    }
+                }
+                TimeButton("+30s") { timeLeft += 30; selectedSeconds += 30 }
+                TimeButton("Reset") { timeLeft = 60; selectedSeconds = 60 }
+            }
+        }
+
+        // 4. Ana Kontrol Butonu
+        Button(
+            onClick = {
+                if (timeLeft == 0L) {
+                    timeLeft = selectedSeconds
+                }
+                isRunning = !isRunning
+            },
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .height(56.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isRunning) Color(0xFFE53935) else Color(0xFFF1C40F)
+            )
+        ) {
+            Text(
+                text = if (isRunning) "STOP WORKOUT" else "START TIMER",
+                color = Color.Black,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily(Font(R.font.lexendbold))
+            )
+        }
+    }
+
+    // --- Manuel Süre Giriş Diyalogu ---
+    if (showEditDialog) {
+        var tempMinutes by remember { mutableStateOf((selectedSeconds / 60).toString()) }
+        var tempSeconds by remember { mutableStateOf((selectedSeconds % 60).toString()) }
+
+
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            containerColor = Color(0xFF1C2126),
+            title = { Text("Set Timer", color = Color.White) },
+            text = {
+                Column() {
+                    OutlinedTextField(
+                        value = tempMinutes,
+                        onValueChange = { if (it.isDigitsOnly()) tempMinutes = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        textStyle = TextStyle(color = Color.White),
+                        label = { Text("Minutes") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFF1C40F),
+                            unfocusedBorderColor = Color.Gray
+                        )
+                    )
+                    OutlinedTextField(
+                        value = tempSeconds,
+                        onValueChange = { if (it.isDigitsOnly()) tempSeconds = it },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        textStyle = TextStyle(color = Color.White),
+                        label = { Text("Seconds") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFF1C40F),
+                            unfocusedBorderColor = Color.Gray
+                        )
                     )
                 }
-            }
 
-        }
-    }
-}
-*/
-}
-
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun timerWorkout(viewModelSave: ViewModelSave): String {
-var hour by remember { mutableStateOf(viewModelSave.hourInt) }
-var second by remember { mutableStateOf(viewModelSave.secondInt) }
-var minute by remember { mutableStateOf(viewModelSave.minuteInt) }
-LaunchedEffect(key1 = second)
-{
-    while (hour.value >= 0) {
-        delay(1000L)
-        second.value++
-        if (minute.value == 60) {
-            hour.value++
-            minute.value = 0
-        } else if (second.value == 60) {
-            minute.value++
-            second.value = 0
-        }
-    }
-}
-return " %2d h : %2d m : %2d s ".format(hour.value, minute.value, second.value)
-}
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showSystemUi = false)
-@Composable
-fun WorkoutLogPreview() {
-WorkoutLog(navController = rememberNavController(), viewModel())
-}
-
-/*
-Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth()
-                            .background(Color.Transparent)
-                    ) {
-                        if (item != null) {
-                            setrepList.forEachIndexed { index, item ->
-                                if (item.exercisesName == currentExercise) {
-                                        for (i in item.setrepList) {
-                                            val annotatedString = buildAnnotatedString {
-                                                append("${i.setNumber.last()}            ")
-                                                withStyle(
-                                                    style = SpanStyle(
-                                                        color = Color.White.copy(
-                                                            alpha = 0.5f
-                                                        )
-                                                    )
-                                                ) {
-                                                    append("${i.weight}")
-                                                }
-
-                                                append("                   ${i.weight.toInt()}                   ")
-                                                append("${i.setRep}")
-
-                                            }
-                                            Row {
-                                                Text(
-                                                    text = annotatedString,
-                                                    style = TextStyle(
-                                                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                        fontSize = 17.sp
-                                                    ),
-                                                    modifier = Modifier
-                                                        .padding(start = 20.dp),
-                                                    color = Color.White
-                                                )
-                                                Spacer(modifier = Modifier.size(40.dp))
-                                                Icon(painter = painterResource(id = R.drawable.projectfitnesssetting),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .size(20.dp)
-                                                        .clickable {
-                                                            modalBottomBarWeightValue =
-                                                                i.weight.toInt()
-                                                            modalBottomBarRepsValue = i.setRep
-                                                            modalBottomBarSetNumber =
-                                                                i.setNumber
-                                                            modalBottomBarName =
-                                                                item.exercisesName
-                                                            changedProjectFitnessExerciseEntityList =
-                                                                item // Seçilen itemin entity bilgilerini çeker
-                                                            showBottomSheetSettingChange = true
-                                                        },
-                                                    tint = Color.White.copy(alpha = 0.8f))
-                                            }
-
-                                            Spacer(modifier = Modifier.size(20.dp))
-                                        }
-                                        Box(
-                                            modifier = Modifier
-                                                .clickable {
-                                                    val newSetRep = SetRep(
-                                                        setNumber = "${item.setrepList.size + 1}",
-                                                        setRep = 12,
-                                                        ticked = false,
-                                                        weight = 0.0f
-                                                    )
-                                                    item.setrepList
-                                                        .toMutableList()
-                                                        .apply { add(newSetRep) }
-                                                    scopes.launch { itemrepolist }
-                                                    item.setrepList.add(
-                                                        SetRep(
-                                                            "${item.setrepList.size + 1}",
-                                                            12,
-                                                            ticked = false,
-                                                            0.0f
-                                                        )
-                                                    )
-
-
-                                                }
-                                                .padding(start = 16.dp, end = 16.dp)
-                                                .fillMaxWidth()// İsteğe bağlı: kutuyu etrafında bir boşluk bırakır
-                                            , contentAlignment = Alignment.TopCenter
-                                        )
-                                        {
-                                            Text(
-                                                text = "Add Set",
-                                                style = TextStyle(
-                                                    fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                                                    fontSize = 17.sp
-                                                ),
-                                                modifier = Modifier
-                                                    .align(Alignment.Center),
-                                                color = Color(0xFFF1C40F)
-                                            )
-                                        }
-                                }
-                            }
-                        }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val mins = tempMinutes.toLongOrNull() ?: 0L
+                    val seconds = tempSeconds.toLongOrNull() ?: 0L
+                    if (mins != 0L && seconds == 0L) {
+                        selectedSeconds = mins * 60
+                    } else if (mins == 0L && seconds != 0L) {
+                        selectedSeconds = seconds
+                    } else if (mins != 0L && seconds != 0L) {
+                        selectedSeconds = (mins * 60) + seconds
                     }
-*/
+                    timeLeft = selectedSeconds
+                    showEditDialog = false
+                }) {
+                    Text("SET", color = Color(0xFFF1C40F))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("CANCEL", color = Color.Gray)
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun TimeButton(label: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
+    ) {
+        Text(label, color = Color.White, fontSize = 12.sp)
+    }
+}
+
+fun vibratePhone(context: Context) {
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+    } else {
+        @Suppress("DEPRECATION")
+        vibrator.vibrate(500)
+    }
+}

@@ -16,12 +16,13 @@ class WorkoutinViewModel(
 
     fun loadExercises(limit: Long = 100) {
         viewModelScope.launch {
-                _workoutUiState.value = WorkoutUiState.Loading
+            _workoutUiState.value = WorkoutUiState.Loading
             try {
                 val list = workoutinRepository.getExercises(limit)
                 _workoutUiState.value = WorkoutUiState.Success(list)
             } catch (e: Exception) {
-                _workoutUiState.value = WorkoutUiState.Error(e.message ?: "Failed to load exercises")
+                _workoutUiState.value =
+                    WorkoutUiState.Error(e.message ?: "Failed to load exercises")
             }
         }
     }
@@ -34,7 +35,8 @@ class WorkoutinViewModel(
                 Log.d("selected", list.toString())
                 _workoutUiState.value = WorkoutUiState.Success(list)
             } catch (e: Exception) {
-                _workoutUiState.value = WorkoutUiState.Error(e.message ?: "Failed to load specific exercises")
+                _workoutUiState.value =
+                    WorkoutUiState.Error(e.message ?: "Failed to load specific exercises")
             }
         }
     }

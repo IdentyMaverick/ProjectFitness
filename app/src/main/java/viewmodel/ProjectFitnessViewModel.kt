@@ -40,29 +40,29 @@ class ProjectFitnessViewModel : ViewModel() {
             }
         }
     }
-/*
-    private fun loadExercisesDataFromFirestore() {
-        itemsCollection.addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                Log.e(TAG, "Error listening to exercises collection: ${error.message}")
-                return@addSnapshotListener
-            }
+    /*
+        private fun loadExercisesDataFromFirestore() {
+            itemsCollection.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error listening to exercises collection: ${error.message}")
+                    return@addSnapshotListener
+                }
 
-            if (snapshot != null && !snapshot.isEmpty) {
-                try {
-                    val itemList = snapshot.documents.map { document ->
-                        val data = document.data
-                        val name = data?.get("name") as? String?
-                        val bodypart = data?.get("bodypart") as? String
-                        val index = data?.get("index") as? String
-                        val secondarymuscles = data?.get("secondary muscles") as? String
-                        Exercises(name, bodypart, index, secondarymuscles)
+                if (snapshot != null && !snapshot.isEmpty) {
+                    try {
+                        val itemList = snapshot.documents.map { document ->
+                            val data = document.data
+                            val name = data?.get("name") as? String?
+                            val bodypart = data?.get("bodypart") as? String
+                            val index = data?.get("index") as? String
+                            val secondarymuscles = data?.get("secondary muscles") as? String
+                            Exercises(name, bodypart, index, secondarymuscles)
+                        }
+                        firestoreItems.value = itemList
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error processing exercises data: ${e.message}")
                     }
-                    firestoreItems.value = itemList
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error processing exercises data: ${e.message}")
                 }
             }
-        }
-    }*/
+        }*/
 }

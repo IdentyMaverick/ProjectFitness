@@ -16,13 +16,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import data.remote.Person
 
 class Database : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
@@ -39,8 +37,9 @@ class Database : ComponentActivity() {
             .addOnSuccessListener { Log.d(TAG, "Success") }
             .addOnFailureListener { Log.e(TAG, "Fail ") }
     }
-@SuppressLint("UnrememberedMutableState")
-@Composable
+
+    @SuppressLint("UnrememberedMutableState")
+    @Composable
     fun DatabaseReadName() {
         val db = Firebase.firestore
         val auth = Firebase.auth
@@ -54,7 +53,7 @@ class Database : ComponentActivity() {
                 courseList.add(p)
             }
         }
-        DataPreview(context = this@Database, courseList =courseList )
+        DataPreview(context = this@Database, courseList = courseList)
     }
 }
 
@@ -65,46 +64,6 @@ fun DataPreview(context: Context, courseList: SnapshotStateList<Person?>) {
             .background(color = Color.White)
             .fillMaxSize()
     ) {
-        Text(text = "User is : " +courseList.get(0), color = Color.Black, fontSize = 20.sp)
+        Text(text = "User is : " + courseList.get(0), color = Color.Black, fontSize = 20.sp)
     }
 }
-
-@Preview(name = "phone", device = "spec:shape=Normal,width=360,height=720,unit=dp,dpi=402")
-@Composable
-fun prewDataTake() {
-
-}
-
-/*
-docRef.get().addOnSuccessListener { document ->
-    if (document != null) {
-        var person = document.toObject(Person::class.java)
-        person?.username = document.data?.get("first").toString()
-        Log.d(TAG, "DocumentSnapshot data 2 is : " + nameofUser)
-    } else {
-        Log.d(TAG, "No such document")
-    }
-}
- */
-/*
-suspend fun DatabaseReadName(): String {
-        val db = Firebase.firestore
-        val auth = Firebase.auth
-        var currentUserInfo = auth.currentUser?.email
-        var nameofUser: String = ""
-        val docRef = db.collection("users")
-        val query = docRef.whereEqualTo("email", currentUserInfo)
-        CoroutineScope(Dispatchers.Main).launch {
-            async {
-                query.get().addOnSuccessListener { document ->
-                    for (document in document) {
-                        var usernameinfo = document.data.get("first").toString()
-                        nameofUser = usernameinfo
-                        Log.d(TAG, "Current Username is : " + nameofUser)
-                    }
-                }
-            }.await()
-        }
-        return nameofUser
-    }
- */

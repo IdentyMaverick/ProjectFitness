@@ -7,20 +7,20 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 data class User(
-    val id: String = "",
+    var id: String = "",
     val first: String = "",
     val email: String = "",
     val nickname: String = "",
     val password: String = "",
     val isOnline: Boolean = false,
-    val userPhotoUri : String = ""
+    val userPhotoUri: String = ""
 ) {
     constructor() : this("", "", "", "", "", false)
 }
 
 data class Follow(
-    val followerId: String = "", // takipçi id
-    val followingId: String = "" // takip edilen id
+    val followerId: String = "",
+    val followingId: String = ""
 )
 
 class FirestoreRepository {
@@ -28,37 +28,30 @@ class FirestoreRepository {
     val firestore = FirebaseFirestore.getInstance()
     val collectionReference = FirebaseFirestore.getInstance().collection("users")
 
-    fun getFirestoreUser(){
+    fun getFirestoreUser() {
         collectionReference.get()
             .addOnSuccessListener { querySnapshot ->
                 for (documentSnapshot in querySnapshot) {
-                    // Her bir belgeyi işleyin
-                    // documentSnapshot nesnesi, koleksiyondaki her bir belgeyi temsil eder
-                    // Belgeden verileri alabilir ve işleyebilirsiniz
                     val userId = documentSnapshot.id
                     val user = documentSnapshot.toObject(User::class.java)
 
-                    // Örneğin, kullanıcı adını yazdırma
                     println("User ID: $userId, Name: ${user?.first}")
                 }
             }
             .addOnFailureListener { exception ->
-                // Belge alınırken bir hata oluştuğunda burası çalışır
-                // Hata mesajını exception.message ile alabilirsiniz
                 println("Error getting documents: ${exception.message}")
             }
     }
 
-
-    fun followUser(followerId: String, followingId: String) {
-        val follow = Follow(followerId, followingId)
+    fun followUser(followerNickname: String, followingNickname: String) {
+        val follow = Follow(followerNickname, followingNickname)
         firestore.collection("followers").add(follow)
     }
 
-    fun unfollowUser(followerId: String, followingId: String) {
+    fun unfollowUser(followerNickname: String, followingNickname: String) {
         firestore.collection("followers")
-            .whereEqualTo("followerId", followerId)
-            .whereEqualTo("followingId", followingId)
+            .whereEqualTo("followerId", followerNickname)
+            .whereEqualTo("followingId", followingNickname)
             .get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
@@ -67,10 +60,10 @@ class FirestoreRepository {
             }
     }
 
-    fun getFollowers(userId: String): LiveData<List<String>> {
+    fun getFollowers(nickname: String): LiveData<List<String>> {
         val followersLiveData = MutableLiveData<List<String>>()
         firestore.collection("followers")
-            .whereEqualTo("followingId", userId)
+            .whereEqualTo("followingId", nickname)
             .addSnapshotListener { snapshots, e ->
                 if (e != null || snapshots == null) {
                     return@addSnapshotListener
@@ -81,10 +74,10 @@ class FirestoreRepository {
         return followersLiveData
     }
 
-    fun getFollowing(userId: String): LiveData<List<String>> {
+    fun getFollowing(nickname: String): LiveData<List<String>> {
         val followingLiveData = MutableLiveData<List<String>>()
         firestore.collection("followers")
-            .whereEqualTo("followerId", userId)
+            .whereEqualTo("followerId", nickname)
             .addSnapshotListener { snapshots, e ->
                 if (e != null || snapshots == null) {
                     return@addSnapshotListener
@@ -98,7 +91,7 @@ class FirestoreRepository {
     @SuppressLint("RestrictedApi")
     suspend fun getUserByNickname(nickname: String): User? {
         return try {
-            val querySnapshot = firestore.collection("users")
+            val querySnapshot = firestore.collection("googlecloudusers")
                 .whereEqualTo("nickname", nickname)
                 .get()
                 .await()
@@ -106,6 +99,7 @@ class FirestoreRepository {
             if (!querySnapshot.isEmpty) {
                 val documentSnapshot = querySnapshot.documents.first()
                 val user = documentSnapshot.toObject(User::class.java)
+                user?.id = documentSnapshot.id
                 user
             } else {
                 null
@@ -118,7 +112,7 @@ class FirestoreRepository {
     @SuppressLint("RestrictedApi")
     suspend fun getUserById(id: String): User? {
         return try {
-            val querySnapshot = firestore.collection("users")
+            val querySnapshot = firestore.collection("googlecloudusers")
                 .whereEqualTo("id", id)
                 .get()
                 .await()
@@ -139,9 +133,8 @@ class FirestoreRepository {
     @SuppressLint("RestrictedApi")
     fun getAllUsers(): LiveData<List<User>> {
         val usersLiveData = MutableLiveData<List<User>>()
-        firestore.collection("users").addSnapshotListener { snapshot, exception ->
+        firestore.collection("googlecloudusers").addSnapshotListener { snapshot, exception ->
             if (exception != null) {
-                // Hata yönetimi
                 return@addSnapshotListener
             }
             val users = mutableListOf<User>()
@@ -155,7 +148,6 @@ class FirestoreRepository {
         }
         return usersLiveData
     }
-
 
 
 }

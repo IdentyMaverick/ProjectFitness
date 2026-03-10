@@ -1,16 +1,15 @@
-package com.example.projectfitness.data.local.viewmodel
+package com.grozzbear.projectfitness.data.local.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.projectfitness.data.local.entity.WorkoutEntity
-import com.example.projectfitness.data.local.repository.WorkoutRepository
+import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import kotlinx.coroutines.launch
 
 class ActivityViewModel(
     private val repo: WorkoutRepository,
     userId: String
-): ViewModel() {
+) : ViewModel() {
     val workoutsFlow = repo.observeWorkouts()
     val myWorkoutsFlow = repo.observeMyWorkouts(userId)
 

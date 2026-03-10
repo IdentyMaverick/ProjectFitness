@@ -1,14 +1,12 @@
 package ui.mainpages.inside
 
 import SocialViewModel
-import android.util.Log
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,137 +14,244 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import com.example.projectfitness.R
-import com.google.firebase.Firebase
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.storage
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.grozzbear.R
+import viewmodel.AuthViewModel
 
 @Composable
-fun ProjectFollowersScreen(navController: NavController , socialViewModel: SocialViewModel){
-    val user = com.google.firebase.ktx.Firebase.auth.currentUser
+fun ProjectFollowersScreen(
+    navController: NavController,
+    socialViewModel: SocialViewModel,
+    authViewModel: AuthViewModel
+) {
+    val context = LocalContext.current
+    val myNickname by socialViewModel.nickname.collectAsState()
 
     val getAllUserState by socialViewModel.getAllUsers().observeAsState(initial = emptyList())
-    val getFollowers by socialViewModel.getFollowers(user?.uid ?: "").observeAsState(initial = emptyList())
-    val getFollowing by socialViewModel.getFollowing(user?.uid ?: "").observeAsState(initial = emptyList())
-    val filterUserState = getAllUserState.filterIndexed{index, item ->getFollowers.contains(item.id)}
-    val storageRef = Firebase.storage.reference
+    val getFollowers by socialViewModel.getFollowers(myNickname)
+        .observeAsState(initial = emptyList())
+    val getFollowing by socialViewModel.getFollowing(myNickname)
+        .observeAsState(initial = emptyList())
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color(0xFF181F26))){
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .background(Color.Transparent)) {
-            IconButton(onClick = { navController.navigate("profile") }) {
-                Icon(painter = painterResource(id = R.drawable.projectfitnessprevious), contentDescription = null ,
-                    tint = Color.White , modifier = Modifier.align(Alignment.CenterVertically))
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = "PROJECT FITNESS" , style = TextStyle(fontSize = 30.sp , fontFamily = FontFamily(Font(
-                R.font.lexendextralight)) , letterSpacing = 3.sp , color = Color.White) ,
-                modifier = Modifier
-                    .padding(end = 50.dp)
-                    .align(Alignment.CenterVertically))
+    val searchedText = remember { mutableStateOf("") }
+
+    // Takipçi listesini filtrele
+    val myFollowersList = remember(getAllUserState, getFollowers, searchedText.value) {
+        getAllUserState.filter { userItem ->
+            getFollowers.contains(userItem.nickname)
+        }.filter {
+            it.nickname.contains(searchedText.value, ignoreCase = true) ||
+                    it.first.contains(searchedText.value, ignoreCase = true)
         }
-        Column(modifier = Modifier
-            .padding(top = 100.dp)
-            .align(Alignment.TopCenter)) {
-            Text(text = "FOLLOWERS" , style = TextStyle(fontSize = 25.sp , fontFamily = FontFamily(Font(
-                R.font.lexendextralight)) , letterSpacing = 20.sp , color = Color.White.copy(alpha = 0.5f)) ,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally))
-            Spacer(modifier = Modifier.size(30.dp))
-            filterUserState.forEachIndexed{index , item ->
-                Row(modifier = Modifier.padding(end = 30.dp , start = 30.dp)) {
+    }
 
-                    var clicked by remember { mutableStateOf(false) }
-                    if (getFollowing.contains(item.id)){clicked = true}
-                    val uid = item.id
-                    var imageUrl by remember { mutableStateOf<String?>(null) }
-                    var profileRef : StorageReference = storageRef.child("gs://projectfitness-ddfeb.appspot.com/profile_photos/$uid/profile.jpg")
+    Scaffold(
+        topBar = { HomeTopBarProfileFollowers(navController) },
+        containerColor = Color(0xFF121417),
+        modifier = Modifier.fillMaxSize()
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
 
-                    LaunchedEffect(Unit) {
-                        profileRef.downloadUrl.addOnSuccessListener { uri ->
-                            imageUrl = uri.toString()
-                            Log.d("profileRef3",imageUrl.toString())
-                            Log.d("Firebase","Success to Download image URL")
-                        }.addOnFailureListener{ exception ->
-                            Log.d("profileRef3",imageUrl.toString())
-                            Log.e("Firebase", "Failed to download image URL",exception)
-                        }
-                    }
+            SearchBoxFollowers(searchedText)
 
-                    Image(painter = if (imageUrl!=null){
-                        rememberAsyncImagePainter(model = imageUrl , onError = { error ->
-                            Log.e("Image Loading Error", "Error: $error")
-                        })
-                    }else{
-                        painterResource(id = R.drawable.secondinfo)
-                    }, contentDescription = "loll" ,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .border(BorderStroke(1.dp, Color.White), CircleShape)
-                            .align(Alignment.CenterVertically)
-                            .clickable(onClick = {navController.navigate("otherscreenprofile/${item.nickname}")}))
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(text = "@" + item.nickname ,
-                        style = TextStyle(fontSize =25.sp ,
-                            color = Color.White ,
-                            fontFamily = FontFamily(Font(R.font.lexendextralight)) ,
-                            letterSpacing = 3.sp) ,
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .clickable(onClick = {navController.navigate("otherscreenprofile/${item.nickname}")}))
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        if (user != null && clicked == false) {
-                            socialViewModel.followUser(user.uid, item.id)
-                            clicked = true
-                        }
-                        else if (user != null && clicked == true){
-                            socialViewModel.unfollowUser(user.uid, item.id)
-                            clicked = false
-                        }
-                    }) {
-                        Icon(painter = if (!clicked) {painterResource(id = R.drawable.personadd)} else {painterResource(id = R.drawable.personcheck)},
-                            contentDescription =null ,
+            if (myFollowersList.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = if (searchedText.value.isEmpty()) "No followers yet." else "No results found.",
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontFamily = FontFamily(Font(R.font.lexendregular))
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp)
+                ) {
+                    items(myFollowersList) { item ->
+                        val iAmFollowingThem = getFollowing.contains(item.nickname)
+
+                        Row(
                             modifier = Modifier
-                                .size(24.dp)
-                                .align(Alignment.CenterVertically),
-                            tint = Color.White ,)
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .border(2.dp, Color(0xFFF1C40F), CircleShape)
+                                    .padding(2.dp)
+                                    .border(2.dp, Color.Black, CircleShape)
+                                    .padding(4.dp)
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(item.userPhotoUri.ifEmpty { R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml })
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape)
+                                        .clickable {
+                                            authViewModel._totalWorkoutNumber.value = 0
+                                            authViewModel._totalLiftedWeight.value = 0F
+                                            navController.navigate("otherscreenprofile/${item.nickname}")
+                                        },
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(15.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = item.first, color = Color.White, fontSize = 18.sp)
+                                Text(
+                                    text = "@${item.nickname}",
+                                    color = Color(0xFFF1C40F),
+                                    fontSize = 13.sp
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    if (iAmFollowingThem) {
+                                        socialViewModel.unfollowUser(myNickname, item.nickname)
+                                        Toast.makeText(
+                                            context,
+                                            "Unfollowed ${item.nickname}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        socialViewModel.followUser(myNickname, item.nickname)
+                                        Toast.makeText(
+                                            context,
+                                            "Following ${item.nickname}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (iAmFollowingThem) Color.White.copy(alpha = 0.1f) else Color(
+                                        0xFFF1C40F
+                                    )
+                                ),
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.height(36.dp)
+                            ) {
+                                Text(
+                                    text = if (iAmFollowingThem) "Following" else "Follow Back",
+                                    color = if (iAmFollowingThem) Color.White else Color.Black,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 }
-
-                Spacer(modifier = Modifier.size(30.dp))
             }
-
         }
     }
 }
 
+@Composable
+fun HomeTopBarProfileFollowers(navController: NavController) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { navController.popBackStack() }) {
+            Icon(
+                painterResource(R.drawable.left),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(30.dp)
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        Text(
+            "FOLLOWERS",
+            color = Color.White,
+            fontFamily = FontFamily(Font(R.font.oswaldbold)),
+            fontSize = 20.sp
+        )
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.size(48.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBoxFollowers(text: MutableState<String>) {
+    TextField(
+        value = text.value,
+        onValueChange = { text.value = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(56.dp),
+        placeholder = { Text("Search followers...", color = Color.White.copy(alpha = 0.3f)) },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.4f)
+            )
+        },
+        shape = RoundedCornerShape(15.dp),
+        singleLine = true,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color(0xFF21282F),
+            unfocusedContainerColor = Color(0xFF21282F),
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        ),
+        textStyle = TextStyle(color = Color.White, fontSize = 14.sp)
+    )
+}

@@ -1,10 +1,11 @@
-package com.example.projectfitness.data.local.db
+package com.grozzbear.projectfitness.data.local.db
 
 import android.content.Context
 import androidx.room.Room
 
 object DbProvider {
-    @Volatile private var INSTANCE: ProjectFitnessDb? = null
+    @Volatile
+    private var INSTANCE: ProjectFitnessDb? = null
 
     fun get(context: Context): ProjectFitnessDb =
         INSTANCE ?: synchronized(this) {

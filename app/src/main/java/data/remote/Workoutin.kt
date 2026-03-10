@@ -1,20 +1,27 @@
-package com.example.projectfitness.data.remote
+package com.grozzbear.projectfitness.data.remote
 
-import com.example.projectfitness.data.local.entity.ExerciseCatalogEntity
+import com.grozzbear.projectfitness.data.local.entity.ExerciseCatalogEntity
 
 
 data class Workoutin(
+    val instructions: String = "",
+    val level: String = "",
+    val gifUrl: String? = null,
     val name: String = "",
     val bodyPart: String = "",
     val equipment: String = "",
     val secondaryMuscles: List<String> = emptyList(),
     val movementType: String = "",
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val exerciseImage: String = ""
 )
 
-fun Workoutin.toEntity(id: String) : ExerciseCatalogEntity {
+fun Workoutin.toEntity(id: String): ExerciseCatalogEntity {
     return ExerciseCatalogEntity(
         id = id,
+        instructions = instructions,
+        level = level,
+        gifUrl = gifUrl,
         name = name,
         bodyPart = bodyPart,
         equipment = equipment,

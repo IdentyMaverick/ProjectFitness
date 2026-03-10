@@ -1,15 +1,11 @@
 package data.remote
 
-import android.widget.Toast
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
-class AuthRepository (private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
+class AuthRepository(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
 
-    val currentUser = auth.currentUser // Şu anki kullanıcıyı çağırır
+    val currentUser = auth.currentUser
 
     suspend fun register(email: String, password: String): String {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
