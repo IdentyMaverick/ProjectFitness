@@ -1,10 +1,10 @@
-# ⚡ Grozz: Strength & Meal Planner 🍲 (## 📍 Proje Durumu (Current Status) **Grozz** şu anda aktif geliştirme aşamasındadır ve **v1.0.0** sürümü ile Google Play Store için **Internal Test** sürecindedir.)
+# ⚡ Grozz: Strength & Meal Planner 🍲 (## 📍 Proje Durumu (Current Status) **Grozz** şu anda aktif geliştirme aşamasındadır ve **v1.0.1** sürümü ile Google Play Store için **Internal Test** sürecindedir.)
 
 ![Android](https://img.shields.io/badge/Platform-Android-brightgreen.svg) 
 ![Kotlin](https://img.shields.io/badge/Language-Kotlin-orange.svg)
 ![Compose](https://img.shields.io/badge/UI-Jetpack_Compose-blue.svg)
 ![Firebase](https://img.shields.io/badge/Backend-Firebase-ffca28.svg)
-![Version](https://img.shields.io/badge/Version-v1.0.0--internal-red.svg)
+![Version](https://img.shields.io/badge/Version-v1.0.1--internal-red.svg)
 
 **Grozz**, sporcuların antrenman rutinlerini yönetmelerini ve beslenme planlarını takip etmelerini sağlayan, modern ve performans odaklı bir Android uygulamasıdır. 
 
