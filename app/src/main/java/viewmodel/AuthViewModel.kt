@@ -2,6 +2,7 @@ package viewmodel
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -42,6 +43,7 @@ class AuthViewModel(
     val _target = MutableStateFlow<UserStats>(UserStats(0, 0f, 0L))
     val target: StateFlow<UserStats> = _target
 
+    @Keep
     data class UserStats(
         val count: Int,
         val weight: Float,

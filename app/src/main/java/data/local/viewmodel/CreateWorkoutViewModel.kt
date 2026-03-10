@@ -1,6 +1,7 @@
 package data.local.viewmodel
 
 import android.util.Log
+import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grozzbear.projectfitness.data.local.entity.ExerciseCatalogEntity
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+@Keep
 data class ExerciseDraft(
     val catalogId: String,
     val name: String,
@@ -27,6 +29,7 @@ data class ExerciseDraft(
     val sets: List<SetDraft> = listOf(SetDraft(), SetDraft(), SetDraft())
 )
 
+@Keep
 data class SetDraft(
     val reps: Int = 10,
     val sets: Float = 0f,

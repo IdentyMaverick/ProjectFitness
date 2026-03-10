@@ -1,5 +1,6 @@
 package data.local.entity
 
+import androidx.annotation.Keep
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -7,6 +8,7 @@ import androidx.room.Relation
 import java.util.UUID
 
 @Entity(tableName = "workout_history")
+@Keep
 data class WorkoutHistoryEntity(
     @PrimaryKey val sessionId: String = UUID.randomUUID().toString(),
     val workoutId: String = "",
@@ -29,6 +31,7 @@ data class WorkoutHistoryEntity(
         )
     ]
 )
+@Keep
 data class ExerciseLogEntity(
     @PrimaryKey(autoGenerate = true) val logId: Long = 0,
     val sessionOwnerId: String = "",
@@ -53,6 +56,7 @@ data class ExerciseLogEntity(
         )
     ]
 )
+@Keep
 data class SetLogEntity(
     @PrimaryKey(autoGenerate = true) val setId: Long = 0,
     val logOwnerId: Long = 0L,
@@ -63,6 +67,7 @@ data class SetLogEntity(
     val clicked: Boolean = false
 )
 
+@Keep
 data class ExerciseLogWithSets(
     @Embedded val exerciseLog: ExerciseLogEntity,
     @Relation(
@@ -72,6 +77,7 @@ data class ExerciseLogWithSets(
     val setLogs: List<SetLogEntity>
 )
 
+@Keep
 data class WorkoutHistoryFull(
     @Embedded val workoutHistory: WorkoutHistoryEntity,
     @Relation(

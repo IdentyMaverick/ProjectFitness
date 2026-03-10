@@ -1,11 +1,13 @@
 package com.grozzbear.projectfitness.data.local.entity
 
+import androidx.annotation.Keep
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 
+@Keep
 @Entity(tableName = "workout")
 data class WorkoutEntity(
     @PrimaryKey val workoutId: String = "",
@@ -17,6 +19,7 @@ data class WorkoutEntity(
     val image: Int = 0
 )
 
+@Keep
 data class WorkoutWithExercises(
     @Embedded val workout: WorkoutEntity,
     @Relation(
@@ -26,6 +29,7 @@ data class WorkoutWithExercises(
     val exercises: List<WorkoutExerciseEntity>
 )
 
+@Keep
 data class ExerciseWithSets(
     @Embedded val exercise: WorkoutExerciseEntity,
     @Relation(
@@ -35,6 +39,7 @@ data class ExerciseWithSets(
     val sets: List<SetEntity>
 )
 
+@Keep
 data class WorkoutFull(
     @Embedded val workout: WorkoutEntity,
     @Relation(
@@ -49,12 +54,14 @@ data class WorkoutFull(
     tableName = "workout_exercise_crossref",
     primaryKeys = ["workoutId", "exerciseId"]
 )
+@Keep
 data class WorkoutExerciseCrossRef(
     val workoutId: String,
     val exerciseId: String,
     val orderIndex: Int = 0
 )
 
+@Keep
 data class WorkoutWithCatalogExercises(
     @Embedded val workout: WorkoutEntity,
     @Relation(

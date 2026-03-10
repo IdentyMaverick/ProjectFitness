@@ -1,4 +1,5 @@
 import android.util.Log
+import androidx.annotation.Keep
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -60,6 +61,7 @@ import ui.mainpages.inside.HomeTopBarProfile
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
 
+@Keep
 data class WorkoutCompleteUser(
     var workoutname: String,
     var workoutdate: String,

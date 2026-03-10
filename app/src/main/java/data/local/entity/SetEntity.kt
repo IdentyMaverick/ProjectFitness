@@ -1,5 +1,6 @@
 package com.grozzbear.projectfitness.data.local.entity
 
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -17,6 +18,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("exerciseOwnerId")]
 )
+@Keep
 data class SetEntity(
     @PrimaryKey
     val setId: String = "",

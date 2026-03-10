@@ -1,8 +1,9 @@
 package com.grozzbear.projectfitness.data.remote
 
+import androidx.annotation.Keep
 import com.grozzbear.projectfitness.data.local.entity.ExerciseCatalogEntity
 
-
+@Keep
 data class Workoutin(
     val instructions: String = "",
     val level: String = "",

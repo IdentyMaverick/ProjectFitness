@@ -1,5 +1,8 @@
 package data.remote
 
+import androidx.annotation.Keep
+
+@Keep
 data class LeaderboardEntry(
     val userId: String = "",
     val exerciseName: String = "",

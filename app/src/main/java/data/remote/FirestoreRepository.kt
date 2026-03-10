@@ -1,11 +1,13 @@
 package data.remote
 
 import android.annotation.SuppressLint
+import androidx.annotation.Keep
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+@Keep
 data class User(
     var id: String = "",
     val first: String = "",
@@ -18,6 +20,7 @@ data class User(
     constructor() : this("", "", "", "", "", false)
 }
 
+@Keep
 data class Follow(
     val followerId: String = "",
     val followingId: String = ""

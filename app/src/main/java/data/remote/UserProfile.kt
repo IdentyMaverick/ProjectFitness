@@ -1,5 +1,8 @@
 package data.remote
 
+import androidx.annotation.Keep
+
+@Keep
 data class UserProfile(
     val first: String = "",
     val nickname: String = "",

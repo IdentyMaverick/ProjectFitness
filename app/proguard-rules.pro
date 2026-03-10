@@ -29,3 +29,10 @@
 
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+
+-keepnames class com.grozzbear.models.** { *; }
+
+-keepattributes Signature
+-keepattributes *Annotation*
+
+-keep class com.google.firebase.** { *; }

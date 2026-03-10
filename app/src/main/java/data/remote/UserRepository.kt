@@ -1,6 +1,7 @@
 package data.remote
 
 import android.util.Log
+import androidx.annotation.Keep
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -78,6 +79,7 @@ class UserRepository(
     }
 }
 
+@Keep
 data class UpdateUserIdea(
     val userId: String = "",
     val rating: String = "",

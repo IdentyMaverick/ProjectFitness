@@ -1,5 +1,6 @@
 package com.grozzbear.projectfitness.data.local.entity
 
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -19,6 +20,7 @@ import java.util.UUID
     ],
     indices = [Index("workoutOwnerId")]
 )
+@Keep
 data class WorkoutExerciseEntity(
     @PrimaryKey
     var exerciseId: String = UUID.randomUUID().toString(),
