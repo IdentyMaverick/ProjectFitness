@@ -1,5 +1,7 @@
 # ⚡ Grozz: Strength & Meal Planner 🍲
 
+![Grozz Logo](./app/src/main/res/drawable/grozzlogo.png)
+
 ## 📍 Proje Durumu (Current Status)
 **Grozz** şu anda aktif geliştirme aşamasındadır ve **v1.0.3** sürümü ile Google Play Store için **Internal Test** sürecindedir.
 
