@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -61,6 +63,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -99,10 +102,11 @@ fun CreateWorkout(
     val workoutNameInput = chooseExercisesViewModel.workoutName.collectAsState().value
     val currentUser = Firebase.auth.currentUser
     val verticalScroll = rememberScrollState()
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { HomeTopBarChooseExercises(navController, chooseExercisesViewModel) },
+        topBar = { HomeTopBarChooseExercises(navController, chooseExercisesViewModel, topPadding) },
         containerColor = Color(0xFF121417),
         floatingActionButton = {
             Column(
@@ -159,7 +163,10 @@ fun CreateWorkout(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .graphicsLayer(
+                    translationY = -100f
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -500,12 +507,14 @@ fun EmptyExercisesPlaceholder() {
 @Composable
 private fun HomeTopBarChooseExercises(
     navController: NavController,
-    chooseExercisesViewModel: ChooseExercisesViewModel
+    chooseExercisesViewModel: ChooseExercisesViewModel,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(top = topPadding)
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = {
@@ -520,14 +529,22 @@ private fun HomeTopBarChooseExercises(
             )
         }
         Spacer(Modifier.weight(1f))
-        Text(
-            text = "GROZZ",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
+        Image(
+            painter = painterResource(R.drawable.grozzlogo),
+            contentDescription = "Grozz Logo",
+            modifier = Modifier.size(100.dp))
         Spacer(Modifier.weight(1f))
-        Box(Modifier.size(25.dp))
+        IconButton(onClick = {
+            navController.navigate(Screens.Activity.route)
+            chooseExercisesViewModel.setName("")
+        }) {
+            Icon(
+                painter = painterResource(R.drawable.left),
+                contentDescription = null,
+                modifier = Modifier.size(25.dp),
+                tint = Color.Transparent
+            )
+        }
     }
 }
 

@@ -13,6 +13,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,10 +36,16 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
@@ -46,6 +54,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -54,6 +63,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -132,7 +142,6 @@ fun WorkoutLog(
             String.format("%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60)
         }
 
-        // Sheet States
         val sheetState = rememberModalBottomSheetState()
         var showBottomSheet by remember { mutableStateOf(false) }
         val sheetStateFinish = rememberModalBottomSheetState()
@@ -167,8 +176,6 @@ fun WorkoutLog(
                 val currentSets = remember(exercise.exercise.exerciseId) {
                     workoutLogViewModel.getOrInitSets(exercise.exercise.exerciseName, exercise.sets)
                 }
-                Log.d("currentsets", "${currentSets.size}")
-                // Sayfa aktif olduğunda ViewModel'deki activeExerciseId'yi güncelle
                 LaunchedEffect(pagerState.currentPage) {
                     if (pagerState.currentPage == pageIndex) {
                         workoutLogViewModel.addExercise(
@@ -184,51 +191,34 @@ fun WorkoutLog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
-                        ExerciseImageHeader(
+                            ExerciseImageHeader(
                             exercise.exercise.exerciseName,
                             exercise.exercise.exerciseImage
                         )
                     }
 
                     item {
-                        LogPlace(
-                            onLogClick = { showBottomSheetLog = it },
-                            flag = { flag.value = it })
-                    }
-
-                    item {
-                        Spacer(Modifier.size(30.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 25.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Box(
+                            modifier = Modifier.height(70.dp).fillMaxWidth().padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.1f), shape = RoundedCornerShape(10.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(modifier = Modifier.width(30.dp))
-                            Text(
-                                "Weight",
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                "Reps",
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
-                                color = Color.White
-                            )
+                            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                    FinalWorkoutTimer()
+                            }
                         }
                     }
 
-                    // 3. SET LİSTESİ (ITEMS)
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+
                     itemsIndexed(
                         items = currentSets,
                         key = { _, item -> item.setId }
                     ) { index, item ->
                         val isDone = item.isClicked
-                        var rowWeight by remember(item.setId) { mutableStateOf(if (item.weight > 0) item.weight.toString() else "") }
-                        var rowReps by remember(item.setId) { mutableStateOf(if (item.reps > 0) item.reps.toString() else "") }
+                        var rowWeight by remember(item.setId) { mutableStateOf(if (item.weight > 0) item.weight.toString() else "0") }
+                        var rowReps by remember(item.setId) { mutableStateOf(if (item.reps > 0) item.reps.toString() else "0") }
                         var isDeleting by remember { mutableStateOf(false) }
 
                         val dismissBoxState = rememberSwipeToDismissBoxState(
@@ -247,9 +237,7 @@ fun WorkoutLog(
 
                         LaunchedEffect(isDeleting) {
                             if (isDeleting) {
-                                // ViewModel: DB'den sil ve alttaki indeksleri kaydır
                                 workoutLogViewModel.deleteSet(index, exercise.exercise.exerciseName)
-                                // UI: Listeden anında kaldır
                                 currentSets.remove(item)
                                 isDeleting = false
                             }
@@ -281,7 +269,7 @@ fun WorkoutLog(
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(Color(0xFF121417))
+                                            .background(Color.Transparent)
                                             .padding(horizontal = 25.dp, vertical = 8.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
@@ -289,12 +277,11 @@ fun WorkoutLog(
                                             "${index + 1}",
                                             modifier = Modifier.width(30.dp),
                                             color = Color.White,
-                                            fontSize = 20.sp
+                                            fontSize = 15.sp
                                         )
                                         Box(modifier = Modifier.weight(1f)) {
                                             SetLogItemWeight(rowWeight, {
                                                 rowWeight = it; scope.launch {
-                                                //workoutLogViewModel.saveSetToDb(rowReps, it, index, exercise.exercise.exerciseName)
                                                 workoutLogViewModel.toggleSetDone(
                                                     exercise.exercise.exerciseName,
                                                     index,
@@ -307,7 +294,6 @@ fun WorkoutLog(
                                         Box(modifier = Modifier.weight(1f)) {
                                             SetLogItemReps(rowReps, {
                                                 rowReps = it; scope.launch {
-                                                //workoutLogViewModel.saveSetToDb(it, rowWeight, index, exercise.exercise.exerciseName)
                                                 workoutLogViewModel.toggleSetDone(
                                                     exercise.exercise.exerciseName,
                                                     index,
@@ -316,12 +302,12 @@ fun WorkoutLog(
                                             }
                                             }, Modifier.fillMaxWidth(), isDone)
                                         }
-                                        Spacer(modifier = Modifier.width(15.dp))
+                                        Spacer(modifier = Modifier.width(25.dp))
                                         IconButton(
                                             onClick = {
                                                 scope.launch {
                                                     clickedSetsNumber.value += 1
-                                                    clickedRepsNumber.value += rowReps.toInt()
+                                                    clickedRepsNumber.value += rowReps.toIntOrNull() ?: 0
                                                     workoutLogViewModel.saveSetToDb(
                                                         rowReps,
                                                         rowWeight,
@@ -336,14 +322,9 @@ fun WorkoutLog(
                                                 }
                                             },
                                             modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(50))
+                                                .size(18.dp)
+                                                .clip(RoundedCornerShape(25))
                                                 .background(if (isDone) Color(0xFFF1C40F) else Color.Transparent)
-                                                .border(
-                                                    1.dp,
-                                                    Color.Gray.copy(0.5f),
-                                                    RoundedCornerShape(50)
-                                                )
                                         ) {
                                             Icon(
                                                 Icons.Default.Check,
@@ -361,11 +342,11 @@ fun WorkoutLog(
                     }
 
                     item {
+                        Spacer(modifier = Modifier.height(20.dp))
                         Button(
                             onClick = {
                                 scope.launch {
                                     val nextIdx = currentSets.size
-                                    Log.d("currentsetsize", "${currentSets.toList()}")
                                     workoutLogViewModel.saveSetToDb(
                                         reps = "0",
                                         weight = "0",
@@ -374,17 +355,20 @@ fun WorkoutLog(
                                     )
                                 }
                             },
-                            modifier = Modifier.padding(vertical = 16.dp),
+                            modifier = Modifier.padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.3f), shape = RoundedCornerShape(12.dp)).fillMaxWidth().height(50.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
-                            Text("+ Add Set", color = Color.White)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                Text("+", color = Color(0xFFF1C40F), fontSize = 24.sp)
+                                Spacer(Modifier.width(10.dp))
+                                Text("ADD SET", color = Color.Gray, fontFamily = FontFamily(Font(R.font.lexendextrabold)))
+                            }
                         }
                     }
                     item { Spacer(Modifier.height(100.dp)) }
                 }
             }
 
-            // 4. ÜST BAR VE BOTTOM SHEETS
             HomeTopBarWorkoutLog(
                 pagerState = pagerState,
                 totalSegments = workout.exercises.size,
@@ -459,7 +443,7 @@ fun WorkoutLog(
                     onDismissRequest = { showBottomSheetFinish = false },
                     sheetState = sheetStateFinish,
                     containerColor = Color(0xFF1C2126),
-                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFF1C40F)) }
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
                 ) {
                     WorkoutExitDialog(
                         onConfirm = {
@@ -490,17 +474,14 @@ fun WorkoutLog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = 30.dp), // Ekranın en altından biraz yukarıda
+                        .padding(bottom = 30.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Button(
                         onClick = {
                             showBottomSheetFinish = true
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(36.dp)
-                            .padding(horizontal = 90.dp),
+                        modifier = Modifier.padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.3f), shape = RoundedCornerShape(12.dp)).fillMaxWidth().height(50.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFF1C40F),
                             contentColor = Color.Black
@@ -511,7 +492,7 @@ fun WorkoutLog(
                         Text(
                             text = "FINISH WORKOUT",
                             style = TextStyle(
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -540,59 +521,77 @@ fun WorkoutLog(
 
 @Composable
 fun ExerciseImageHeader(exerciseName: String, exerciseImage: String? = null) {
-    val fullUrl = remember(exerciseImage)
-    {
+    // String parçalama hatasını önlemek için kontrol (tek kelimelik isimlerde crash olmasın)
+    val wordList = exerciseName.split(" ", limit = 2)
+    val firstWord = wordList.getOrNull(0) ?: ""
+    val secondWord = wordList.getOrNull(1) ?: ""
+
+    val fullUrl = remember(exerciseImage) {
         FirebaseStorageHelper.getImageUrl(exerciseImage ?: "")
     }
-    Log.d("fullUrl", "$fullUrl")
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp)
+            .height(300.dp) // Toplam yükseklik
     ) {
+        // 1. En Altta: Görsel
         AsyncImage(
             model = fullUrl,
             contentDescription = exerciseName,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 30.dp),
-            placeholder = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
-            error = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml)
+            modifier = Modifier.fillMaxSize(), // Padding'i kaldırdım ki Box'ı tam doldursun
+            placeholder = painterResource(id = R.drawable.grozzlogo),
+            error = painterResource(id = R.drawable.grozzlogo)
         )
 
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .fillMaxHeight(0.5f)
                 .align(Alignment.TopCenter)
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.8f), Color.Transparent)
+                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
                     )
                 )
         )
 
+        // Alt Gradient (Yazının okunması için daha koyu)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color.Transparent, Color(0xFF121417))
+                        listOf(Color.Transparent, Color(0xFF121417).copy(alpha = 0.9f))
                     )
                 )
         )
-    }
 
-    Text(
-        text = exerciseName,
-        color = Color.White.copy(alpha = 0.9f),
-        fontSize = 25.sp,
-        fontFamily = FontFamily(Font(R.font.lexendbold)),
-        modifier = Modifier.padding(16.dp),
-        textAlign = TextAlign.Center
-    )
+        // 3. Yazı Katmanı (Şimdi Box içinde olduğu için resmin üstünde!)
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart) // Yazıyı sol alta hizalar
+                .padding(horizontal = 25.dp, vertical = 20.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = firstWord.uppercase(),
+                color = Color.White,
+                fontSize = 30.sp,
+                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
+                lineHeight = 30.sp
+            )
+            Text(
+                text = secondWord.uppercase(),
+                color = Color(0xFFF1C40F),
+                fontSize = 30.sp,
+                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
+                lineHeight = 30.sp,
+                modifier = Modifier.graphicsLayer(translationY = -10f) // Aradaki boşluğu daraltmak için
+            )
+        }
+    }
 }
 
 @Composable
@@ -610,7 +609,7 @@ fun LogPlace(
                 Icon(
                     painter = painterResource(R.drawable.historyicon128),
                     contentDescription = null,
-                    tint = Color.White
+                    tint = Color.Transparent
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -625,7 +624,7 @@ fun LogPlace(
                 Icon(
                     painter = painterResource(R.drawable.editnote),
                     contentDescription = null,
-                    tint = Color.White
+                    tint = Color.Transparent
                 )
             }
         }
@@ -643,57 +642,91 @@ private fun HomeTopBarWorkoutLog(
     showTimerSheet: Boolean,
     setShowTimerSheet: (Boolean) -> Unit
 ) {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .background(Color(0xFF121417))
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 12.dp, horizontal = 16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        IconButton(onClick = onBackClick) {
-            Icon(
-                painter = painterResource(R.drawable.left),
-                contentDescription = "Back",
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
+        // 1. SOL: Geri Butonu
+        Icon(
+            imageVector = Icons.Default.KeyboardArrowLeft,
+            contentDescription = null,
+            tint = Color(0xFFF1C40F),
+            modifier = Modifier
+                .size(24.dp)
+                .align(Alignment.CenterStart)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    onBackClick()
+                }
+        )
+
+        // 2. ORTA: Logo ve Sayaç (Dikey Hizalama)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            // Bu kısım önemli: Spacer yerine Arrangement kullanıyoruz
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = null,
+                modifier = Modifier
+                    .height(55.dp) // Genişlik yerine yükseklik sabitlemek daha dengeli durur
+                    .fillMaxWidth(0.4f), // Logonun ekranın %30'undan fazla yer kaplamasını engeller
+                contentScale = ContentScale.Fit
             )
-        }
 
-        Spacer(Modifier.weight(1f))
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "GROZZ",
-                    color = Color(0xFFF1C40F),
-                    fontSize = 24.sp,
-                    letterSpacing = 0.sp,
-                    fontFamily = FontFamily(Font(R.font.oswaldbold))
+            // Sayaç Barı (1 of 3)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .background(
+                        color = Color.Transparent, // Timer ile aynı arka plan rengi
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .background(Color(0xFFF1C40F), androidx.compose.foundation.shape.CircleShape)
                 )
 
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Text(
+                    text = "${pagerState.currentPage + 1} of $totalSegments",
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily(Font(R.font.lexendbold))
+                )
             }
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = formattedTime,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
-            )
-            Spacer(Modifier.height(16.dp))
-            SegmentedProgressIndicator(totalSegments, pagerState.currentPage)
         }
 
-        Spacer(Modifier.weight(1f))
-
-        IconButton(
-            onClick = { setShowTimerSheet(true) },
-            modifier = Modifier.size(25.dp)
+        // 3. SAĞ: Zamanlayıcı
+        Row(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .background(Color(0xFF1C2126), RoundedCornerShape(15.dp))
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+//                .clickable { onTimerClick() }
+            ,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(R.drawable.shutterspeedfilledicon128),
-                contentDescription = null,
-                tint = Color.White
+            Box(modifier = Modifier.size(4.dp).background(Color(0xFFF1C40F), androidx.compose.foundation.shape.CircleShape))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = formattedTime,
+                color = Color(0xFFF1C40F),
+                fontSize = 11.sp,
+                fontFamily = FontFamily(Font(R.font.lexendbold))
             )
         }
     }
@@ -708,30 +741,62 @@ fun WorkoutExitDialog(onConfirm: () -> Unit, onDismiss: () -> Unit, flag: Int) {
                 .padding(bottom = 48.dp, start = 24.dp, end = 24.dp, top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            IconButton(
+                onClick = { onDismiss() },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .background(color = Color(0xFFF1C40F), shape = CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+            Spacer(Modifier.height(20.dp))
             Text(
-                "Do you want to leave workout?",
+                "End Workout?",
                 color = Color.White,
+                fontSize = 24.sp,
+                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+            )
+            Spacer(Modifier.height(20.dp))
+            Text(
+                "You will lose all progress for this session. This action cannot be undone.",
+                color = Color.White.copy(alpha = 0.3f),
                 fontSize = 18.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            Button(
+                onClick = { onConfirm() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF1C40F),
+                    contentColor = Color.Black
+                ),
+                modifier = Modifier.fillMaxWidth() ) {
+                Text(
+                    "End",
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendbold))
+                )
+            }
+
+            Button(
+                onClick = { onDismiss() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent
+                )
             ) {
                 Text(
-                    "Yes",
-                    color = Color.Red,
+                    "Cancel",
+                    color = Color.Red.copy(alpha = 0.6f),
                     fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    modifier = Modifier.clickable { onConfirm() }
-                )
-                Text(
-                    "No",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendregular)),
-                    modifier = Modifier.clickable { onDismiss() }
+                    fontFamily = FontFamily(Font(R.font.lexendbold))
                 )
             }
         }
@@ -742,30 +807,52 @@ fun WorkoutExitDialog(onConfirm: () -> Unit, onDismiss: () -> Unit, flag: Int) {
                 .padding(bottom = 48.dp, start = 24.dp, end = 24.dp, top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            IconButton(
+                onClick = { onDismiss() },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .background(color = Color(0xFFF1C40F), shape = CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Done,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+            Spacer(Modifier.height(20.dp))
             Text(
-                "Do you want to finish workout?",
+                "Complete Workout?",
                 color = Color.White,
-                fontSize = 18.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                fontSize = 24.sp,
+                fontFamily = FontFamily(Font(R.font.lexendextrabold))
             )
             Spacer(Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            Button(
+                onClick = { onConfirm() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF1C40F),
+                    contentColor = Color.Black
+                ),
+                modifier = Modifier.fillMaxWidth() ) {
+                Text(
+                    "Complete",
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendbold))
+                )
+            }
+            Button(
+                onClick = { onDismiss() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent
+                )
             ) {
                 Text(
-                    "Yes",
-                    color = Color.Red,
+                    "Go Back",
+                    color = Color.Red.copy(alpha = 0.6f),
                     fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    modifier = Modifier.clickable { onConfirm() }
-                )
-                Text(
-                    "No",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendregular)),
-                    modifier = Modifier.clickable { onDismiss() }
+                    fontFamily = FontFamily(Font(R.font.lexendbold))
                 )
             }
         }
@@ -901,28 +988,24 @@ fun SegmentedProgressIndicator(totalSegments: Int, currentSegment: Int) {
 fun SetLogItemWeight(
     weight: String,
     setWeight: (String) -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     isDone: Boolean
 ) {
-    var weightOutlined = weight
-    OutlinedTextField(
-        value = weightOutlined,
+    TextField(
+        value = weight,
         onValueChange = { input ->
-
             val filteredInput = input.filter { it.isDigit() || it == '.' }.replace(" ", "")
-
             val isValid = filteredInput.length <= 5 &&
-                    (filteredInput.isEmpty() || filteredInput.first() != '.' || filteredInput.last() != '.') &&
+                    (filteredInput.isEmpty() || (filteredInput.isNotEmpty() && filteredInput.first() != '.')) &&
                     filteredInput.count { it == '.' } <= 1
 
             if (isValid) {
-                weightOutlined = filteredInput
                 setWeight(filteredInput)
             }
         },
         placeholder = {
             Text(
-                "Type",
+                "KG",
                 color = Color.Gray,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -930,26 +1013,21 @@ fun SetLogItemWeight(
             )
         },
         modifier = modifier
-            .width(100.dp)
-            .height(52.dp),
-        shape = RoundedCornerShape(12.dp),
+            .width(50.dp),
         colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
-            unfocusedIndicatorColor = if (isDone) {
-                Color(0xFFF1C40F)
-            } else {
-                Color.White.copy(alpha = 0.2f)
-            },
-            focusedIndicatorColor = Color(0xFFF1C40F),
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
             cursorColor = Color(0xFFF1C40F),
             focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
+            unfocusedTextColor = Color.White,
+            focusedIndicatorColor = Color(0xFFF1C40F),
+            unfocusedIndicatorColor = if (isDone) Color(0xFFF1C40F) else Color.DarkGray,
         ),
         textStyle = TextStyle(
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 18.sp
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -960,28 +1038,25 @@ fun SetLogItemWeight(
 fun SetLogItemReps(
     reps: String,
     setReps: (String) -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     isDone: Boolean
 ) {
-    var repsOutlined = reps
-    OutlinedTextField(
-        value = repsOutlined,
+    TextField(
+        value = reps,
         onValueChange = { input ->
-
             val filteredInput = input.filter { it.isDigit() || it == '.' }.replace(" ", "")
 
             val isValid = filteredInput.length <= 5 &&
-                    (filteredInput.isEmpty() || filteredInput.first() != '.' || filteredInput.last() != '.') &&
+                    (filteredInput.isEmpty() || (filteredInput.isNotEmpty() && filteredInput.first() != '.')) &&
                     filteredInput.count { it == '.' } <= 1
 
             if (isValid) {
-                repsOutlined = filteredInput
                 setReps(filteredInput)
             }
         },
         placeholder = {
             Text(
-                "Type",
+                "0",
                 color = Color.Gray,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
@@ -989,26 +1064,21 @@ fun SetLogItemReps(
             )
         },
         modifier = modifier
-            .width(100.dp)
-            .height(52.dp),
-        shape = RoundedCornerShape(12.dp),
+            .width(50.dp),
         colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
-            unfocusedIndicatorColor = if (isDone) {
-                Color(0xFFF1C40F)
-            } else {
-                Color.White.copy(alpha = 0.2f)
-            },
-            focusedIndicatorColor = Color(0xFFF1C40F),
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
             cursorColor = Color(0xFFF1C40F),
             focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White
+            unfocusedTextColor = Color.White,
+            focusedIndicatorColor = Color(0xFFF1C40F),
+            unfocusedIndicatorColor = if (isDone) Color(0xFFF1C40F) else Color.White.copy(alpha = 0.3f),
         ),
         textStyle = TextStyle(
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 18.sp
         ),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -1025,15 +1095,6 @@ fun FinalWorkoutTimer() {
     var isRunning by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
 
-    // Lottie Ayarları
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.clocktimer))
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        isPlaying = isRunning,
-        iterations = LottieConstants.IterateForever
-    )
-
-    // Zamanlayıcı Mantığı
     LaunchedEffect(isRunning) {
         if (isRunning) {
             while (timeLeft > 0) {
@@ -1046,89 +1107,88 @@ fun FinalWorkoutTimer() {
             }
         }
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Lottie Animasyonu
-        LottieAnimation(
-            composition = composition,
-            progress = { progress },
-            modifier = Modifier.size(220.dp)
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 2. Dijital Saat (Tıklanabilir)
-        Text(
-            text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
-            modifier = Modifier.clickable {
-                if (!isRunning) showEditDialog = true
-            },
-            style = TextStyle(
-                color = if (!isRunning) Color(0xFFF1C40F) else Color.White,
-                fontSize = 54.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
-            )
-        )
-
-        if (!isRunning) {
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = "Tap to edit time",
+                text = "REST TIMER",
                 color = Color.Gray,
                 fontSize = 12.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                fontFamily = FontFamily(Font(R.font.lexendbold))
+            )
+
+            Text(
+                text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
+                modifier = Modifier.clickable {
+                    if (!isRunning) showEditDialog = true
+                },
+                color = Color(0xFFF1C40F),
+                fontSize = 30.sp,
+                fontFamily = FontFamily(Font(R.font.lexendextrabold))
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 3. Hızlı Ayar Butonları
-        if (!isRunning) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(bottom = 16.dp)
-            ) {
-                TimeButton("-30s") {
-                    if (timeLeft > 30) {
-                        timeLeft -= 30; selectedSeconds -= 30
-                    }
-                }
-                TimeButton("+30s") { timeLeft += 30; selectedSeconds += 30 }
-                TimeButton("Reset") { timeLeft = 60; selectedSeconds = 60 }
-            }
-        }
-
-        // 4. Ana Kontrol Butonu
-        Button(
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(
             onClick = {
                 if (timeLeft == 0L) {
                     timeLeft = selectedSeconds
                 }
                 isRunning = !isRunning
             },
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .height(56.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isRunning) Color(0xFFE53935) else Color(0xFFF1C40F)
-            )
+            modifier = Modifier,
+            colors = IconButtonColors(containerColor = if (isRunning) Color(0xFFE53935) else Color(0xFFF1C40F), contentColor = Color.White, disabledContainerColor = Color.Red, disabledContentColor = Color.White)
         ) {
-            Text(
-                text = if (isRunning) "STOP WORKOUT" else "START TIMER",
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+            Icon(
+                painter = painterResource(if (isRunning) R.drawable.pauseicon128 else R.drawable.playicon128),
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier
             )
         }
+        Spacer(Modifier.width(10.dp))
+        IconButton(
+            onClick = {
+                timeLeft = selectedSeconds
+                isRunning = false
+            },
+            modifier = Modifier.size(24.dp),
+            colors = IconButtonColors(containerColor = Color.Gray.copy(alpha = 0.3f), contentColor = Color.White, disabledContainerColor = Color.Red, disabledContentColor = Color.White)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+            )
+        }
+//        Button(
+//            onClick = {
+//                if (timeLeft == 0L) {
+//                    timeLeft = selectedSeconds
+//                }
+//                isRunning = !isRunning
+//            },
+//            modifier = Modifier
+//                .fillMaxWidth(0.85f)
+//                .height(56.dp),
+//            shape = RoundedCornerShape(14.dp),
+//            colors = ButtonDefaults.buttonColors(
+//                containerColor = if (isRunning) Color(0xFFE53935) else Color(0xFFF1C40F)
+//            )
+//        ) {
+//            Text(
+//                text = if (isRunning) "STOP WORKOUT" else "START TIMER",
+//                color = Color.Black,
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = FontFamily(Font(R.font.lexendbold))
+//            )
+//        }
     }
 
-    // --- Manuel Süre Giriş Diyalogu ---
+
     if (showEditDialog) {
         var tempMinutes by remember { mutableStateOf((selectedSeconds / 60).toString()) }
         var tempSeconds by remember { mutableStateOf((selectedSeconds % 60).toString()) }
@@ -1145,7 +1205,7 @@ fun FinalWorkoutTimer() {
                         onValueChange = { if (it.isDigitsOnly()) tempMinutes = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         textStyle = TextStyle(color = Color.White),
-                        label = { Text("Minutes") },
+                        label = { Text("Minutes", color = Color(0xFFF1C40F)) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFF1C40F),
@@ -1157,7 +1217,7 @@ fun FinalWorkoutTimer() {
                         onValueChange = { if (it.isDigitsOnly()) tempSeconds = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         textStyle = TextStyle(color = Color.White),
-                        label = { Text("Seconds") },
+                        label = { Text("Seconds", color = Color(0xFFF1C40F)) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFF1C40F),
@@ -1190,16 +1250,6 @@ fun FinalWorkoutTimer() {
                 }
             }
         )
-    }
-}
-
-@Composable
-fun TimeButton(label: String, onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.5f))
-    ) {
-        Text(label, color = Color.White, fontSize = 12.sp)
     }
 }
 

@@ -6,6 +6,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import data.remote.UserRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import viewmodel.AuthViewModel
@@ -21,6 +22,7 @@ class HomesViewModel(
     var userName: StateFlow<String> = _userName
     private val _nickname = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
     var nickname: StateFlow<String> = _nickname
+
 
 
     init {

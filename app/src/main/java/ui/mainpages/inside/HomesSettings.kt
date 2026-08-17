@@ -1,5 +1,6 @@
 package ui.mainpages.inside
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -70,14 +73,6 @@ fun HomesSettings(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                "Settings",
-                color = Color.White,
-                fontSize = 25.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
-            )
-            Spacer(modifier = Modifier.height(30.dp))
 
             Spacer(modifier = Modifier.height(8.dp))
             // Sarı kısa çizgi
@@ -111,7 +106,7 @@ fun HomesSettings(
             SettingRow("Log Out", onClick = {
                 authViewModel.logout()
                 navController.navigate(Screens.LoginScreen.route)
-            }, textColor = Color.Red)
+            }, textColor = Color.Red, type = "logout")
 
         }
     }
@@ -122,9 +117,8 @@ fun HomeTopBar(navController: NavController, topPadding: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -140,11 +134,10 @@ fun HomeTopBar(navController: NavController, topPadding: Dp) {
         Spacer(Modifier.weight(1f))
 
         Text(
-            text = "GROZZ",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
+            "Settings",
+            color = Color.White,
+            fontSize = 25.sp,
+            fontFamily = FontFamily(Font(R.font.lexendbold))
         )
 
         Spacer(Modifier.weight(1f))
@@ -164,7 +157,8 @@ fun HomeTopBar(navController: NavController, topPadding: Dp) {
 fun SettingRow(
     text: String,
     onClick: () -> Unit = {},
-    textColor: Color
+    textColor: Color,
+    type: String = "normal"
 ) {
     Row(
         modifier = Modifier
@@ -182,11 +176,21 @@ fun SettingRow(
             )
         )
         Spacer(modifier = Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
-            contentDescription = null,
-            tint = Color.White
-        )
+        if (type == "normal") {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                tint = Color.White
+            )
+        } else{
+            Icon(
+                painter = painterResource(R.drawable.logouticon128),
+                contentDescription = null,
+                tint = Color.Red,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
     }
 }
 

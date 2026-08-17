@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
@@ -50,10 +51,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,6 +66,7 @@ import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutExerciseEntity
 import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
+import data.local.viewmodel.ActivityInsideViewModel
 import ui.mainpages.mainpages.WorkoutTag
 import viewmodel.ViewModelSave
 import java.util.UUID
@@ -162,7 +166,7 @@ fun WorkoutSettingScreen(
                                         UUID.randomUUID().toString(),
                                         item.exercise.exerciseId
                                     )
-                                },
+                                }
                             )
                             Spacer(Modifier.height(10.dp))
                         }
@@ -243,10 +247,12 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
+                Spacer(Modifier.height(5.dp))
                 Text(
                     text = exerciseDraft.bodyPart.uppercase(),
-                    color = Color.Gray,
-                    fontSize = 12.sp
+                    color = Color(0xFFF1C40F),
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle(Font(R.font.lexendextrabold).style.value)
                 )
             }
             Icon(
@@ -478,17 +484,15 @@ private fun HomeTopBarWorkoutSettingScreen(_workoutSetting: Int, navController: 
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = "GROZZ",
-                color = Color(0xFFF1C40F),
-                fontSize = 24.sp,
-                fontFamily = FontFamily(Font(R.font.oswaldbold))
-            )
+            Image(
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = "Grozz Logo",
+                modifier = Modifier.size(100.dp))
 
             Spacer(Modifier.weight(1f))
 
             // Sağ tarafta denge sağlamak için boş alan
-            Box(Modifier.size(25.dp))
+            Box(Modifier.size(50.dp))
         }
     }
 }
@@ -500,6 +504,9 @@ fun FixedStartButton(onClick: () -> Unit) {
             .fillMaxWidth()
             .background(Color(0xFF121417))
             .padding(20.dp)
+            .graphicsLayer(
+                translationY = -200f
+            )
     ) {
         Button(
             onClick = onClick,

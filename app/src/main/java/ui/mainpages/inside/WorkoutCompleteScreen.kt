@@ -1,7 +1,16 @@
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +28,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -27,6 +40,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -69,6 +85,9 @@ fun WorkoutCompleteScreen(
     val totalRepsCompleted =
         workoutCompleteScreenViewModel.totalRepsCompleted.collectAsState().value
     val card by workoutCompleteScreenViewModel.prExercises.collectAsState()
+    Log.d("CARDIS", card.toString())
+    val scrollState = rememberScrollState()
+    val isUploaded = remember { mutableStateOf(false) }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -78,10 +97,14 @@ fun WorkoutCompleteScreen(
         containerColor = Color(0xFF121417),
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
+        BackHandler(
+            enabled = true
+        ) {}
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(20.dp))
@@ -156,9 +179,8 @@ fun WorkoutCompleteScreen(
             }
             Spacer(Modifier.height(40.dp))
             if (card.isNotEmpty()) {
-                //WorkoutRecordCard(onNavigate = {}, card)
                 card.forEach {
-                    WorkoutRecordCard(onNavigate = {}, it, leaderboardViewModel)
+                    WorkoutRecordCard(onNavigate = {}, it, leaderboardViewModel, isUploadedClick = {isUploaded.value = true}, isUploaded = isUploaded.value)
                 }
             }
             WorkoutFullAnalysisButton(
@@ -170,6 +192,9 @@ fun WorkoutCompleteScreen(
                     navController.navigate(Screens.WorkoutCompleteAnalysisScreen.route)
                 }
             )
+            Box() {
+                Spacer(modifier = Modifier.height(50.dp))
+            }
         }
     }
 }
@@ -214,12 +239,12 @@ private fun HomeTopBarWorkoutCompleteScreen(navController: NavController) {
 
         Spacer(Modifier.weight(1f))
 
-        IconButton(onClick = {}) {
+        IconButton(onClick = {}) { // WIP
             Icon(
                 painter = painterResource(R.drawable.shareicon128),
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
-                tint = Color.White
+                tint = Color.Transparent
             )
         }
     }
@@ -300,14 +325,16 @@ private fun ProgressCircle(
 fun WorkoutRecordCard(
     onNavigate: () -> Unit,
     card: String,
-    leaderboardViewModel: LeaderboardViewModel
+    leaderboardViewModel: LeaderboardViewModel,
+    isUploadedClick: () -> Unit,
+    isUploaded: Boolean
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFF1C40F))
+            .background(Color.Gray.copy(alpha = 0.1f))
             .padding(20.dp)
     ) {
         Column() {
@@ -315,35 +342,33 @@ fun WorkoutRecordCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Kupa İkonu Kutusu
                 Box(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White.copy(alpha = 0.25f)),
+                        .background(Color(0xFFF1C40F)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.workspacepremium128icon),
                         contentDescription = null,
-                        modifier = Modifier.size(30.dp),
+                        modifier = Modifier.size(35.dp),
                         tint = Color.Black
                     )
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Metinler
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "New Personal Record!",
-                        color = Color.Black,
+                        color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
-                        text = "${card} record passed",
-                        color = Color.Black,
+                        text = "${card} PR record passed",
+                        color = Color.White,
                         fontSize = 15.sp,
                         lineHeight = 18.sp
                     )
@@ -352,56 +377,47 @@ fun WorkoutRecordCard(
             Spacer(Modifier.height(16.dp))
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 50.dp)
                     .border(2.dp, Color.Transparent)
                     .background(Color.Transparent)
                     .height(150.dp)
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    ProofUploadSection {
-                        leaderboardViewModel.uploadPrProof(
-                            it,
-                            FirebaseAuth.getInstance().currentUser?.uid.toString(),
-                            card
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Upload Video/Photo to\nVerify Record",
-                        color = Color(0xFF8A98AC),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
+                    ProofUploadSection(
+                        onUriSelected = {
+                            leaderboardViewModel.uploadPrProof(
+                                it,
+                                FirebaseAuth.getInstance().currentUser?.uid.toString(),
+                                card,
+                                0.0,
+                                ""
+                            )
+                        },
+                        isUploadedClick,
+                        isUploaded = isUploaded
                     )
-                }
             }
         }
     }
 }
-
 @Composable
 fun WorkoutFullAnalysisButton(onNavigateAnalysis: () -> Unit, onNavigate: () -> Unit) {
 
-    // Butonları yan yana dizmek için Row kullanıyoruz
     Row(
         modifier = Modifier
-            .fillMaxWidth() // Genişliği tam kapla
-            .padding(16.dp), // Dış boşluk
-        horizontalArrangement = Arrangement.spacedBy(12.dp), // Butonlar arası 12dp boşluk
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. BUTON (Weight kullanarak alanı eşit paylaştırıyoruz)
         GradientSmallButton(
             text = "View Full Analysis",
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.height(50.dp).weight(1f),
             onNavigate = onNavigateAnalysis
         )
     }
 }
 
-// Tekrarı önlemek için buton yapısını ayrı bir fonksiyon yaptık
 @Composable
 fun GradientSmallButton(
     text: String,
@@ -413,7 +429,7 @@ fun GradientSmallButton(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .clickable { onNavigate() }
-            .background(Color(0xFFF1C40F))
+            .background(Color.Gray.copy(alpha = 0.2f))
             .height(40.dp)
     ) {
         Row(
@@ -423,16 +439,16 @@ fun GradientSmallButton(
         ) {
             Text(
                 text = text,
-                color = Color.Black,
-                fontSize = 14.sp, // Yan yana oldukları için fontu biraz küçülttük
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.weight(1f),
+                fontFamily = FontFamily(Font(R.font.lexendextrabold))
             )
 
             Icon(
                 painter = painterResource(id = R.drawable.keyboarddoublearrowright),
                 contentDescription = null,
-                tint = Color.Black,
+                tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -440,16 +456,86 @@ fun GradientSmallButton(
 }
 
 @Composable
-fun ProofUploadSection(onUriSelected: (android.net.Uri) -> Unit) {
+fun ProofUploadSection(onUriSelected: (android.net.Uri) -> Unit, isUploadedClick: () -> Unit, isUploaded: Boolean) {
+    val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: android.net.Uri? ->
-        uri?.let { onUriSelected(it) }
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { video: Uri? ->
+        video?.let { video ->
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(context, video)
+                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                val durationInMs = time?.toLong() ?: 0
+
+                if (durationInMs <= 15_000) {
+                    onUriSelected(video)
+                    isUploadedClick()
+                } else Toast.makeText(
+                    context,
+                    "Video must be under 15 seconds.",
+                    Toast.LENGTH_SHORT
+                ).show()
+        }
     }
-    Icon(
-        painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
-        contentDescription = null,
-        tint = Color.Black,
-        modifier = Modifier.clickable(onClick = { launcher.launch("video/*") })
-    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+            .clickable(enabled = !isUploaded) {
+                launcher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+            }
+    ) {
+        if (!isUploaded) {
+            Icon(
+                painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
+                contentDescription = null,
+                tint = Color(0xFFF1C40F),
+                modifier = Modifier.size(64.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Upload Video/Photo to\nVerify Record",
+                color = Color.White,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "* Make sure that, your PR videos should be under 15 seconds.",
+                color = Color.Gray,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = Color.Green,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Uploaded Successfully",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
 }

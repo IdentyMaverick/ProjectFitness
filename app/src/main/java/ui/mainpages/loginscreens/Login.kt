@@ -100,7 +100,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         // --- ARKA PLAN GÖRSELİ ---
         Image(
             modifier = Modifier.fillMaxSize(),
-            painter = painterResource(id = R.drawable.loginscreenphoto),
+            painter = painterResource(id = R.drawable.grozzlogin),
             contentDescription = null,
             alpha = 0.9f,
             contentScale = ContentScale.Crop // Boşlukları kapatır ve tam kaplar
@@ -112,25 +112,23 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         ) {
             // Logo
             Image(
-                painter = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(200.dp)
-                    .graphicsLayer(translationY = 100f),
-                colorFilter = ColorFilter.tint(Color(0xFFF1C40F))
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = "Grozz Logo",
+                modifier = Modifier.size(300.dp)
+                    .graphicsLayer(translationY = 100f)
             )
 
             Text(
                 text = "WELCOME",
                 fontFamily = FontFamily(Font(R.font.oswaldbold)),
                 color = Color.White,
-                fontSize = 60.sp
+                fontSize = 40.sp
             )
             Text(
                 text = "BACK",
                 fontFamily = FontFamily(Font(R.font.oswaldbold)),
                 color = Color(0xFFF1C40F),
-                fontSize = 60.sp
+                fontSize = 30.sp
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -214,7 +212,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 enabled = loginState !is LoginUiState.Loading
             ) {
                 if (loginState is LoginUiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.Black)
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color(0xFFF1C40F))
                 } else {
                     Text(text = "Sign-in", fontWeight = FontWeight.Bold, color = Color.Black)
                 }

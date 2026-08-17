@@ -1,13 +1,21 @@
 package ui.mainpages.navigation
 
 import OtherScreenProfile
+import ProofUploadSection
 import SocialViewModel
 import WorkoutCompleteScreen
 import activity.inside.ActivityInside
 import activity.inside.CreateWorkout
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -18,7 +26,9 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +42,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -39,17 +51,23 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -136,6 +154,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     val userRepository: UserRepository = UserRepository()
     val activityInsideViewModel: ActivityInsideViewModel =
         ActivityInsideViewModel(workoutRepository)
+    val infoDialog = remember { mutableStateOf(false) }
     val faqcontactfeedbackScreenViewModel: FaqcontactfeedbackScreenViewModel = viewModel(
         factory = remember {
             WorkoutViewModelFactory(
@@ -373,7 +392,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     LeaderBoard(
                         navController = navController,
                         authViewModel = authViewModel,
-                        leaderboardViewModel = leaderboardViewModel
+                        leaderboardViewModel = leaderboardViewModel,
+                        profileViewModel = profileViewModel
                     )
                 }
             }
@@ -944,6 +964,166 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             }
         }
     }
+    if (infoDialog.value) {
+        Dialog(onDismissRequest = { infoDialog.value = false }) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(color = Color.Transparent, shape = RoundedCornerShape(20.dp)).clickable { infoDialog.value = false },
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = infoDialog.value,
+                    enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
+                    exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(vertical = 200.dp).background(color = Color(0xFF121417), shape = RoundedCornerShape(20.dp)).clickable { infoDialog.value = false },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                                .padding(vertical = 20.dp, horizontal = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.grozzlogo),
+                                contentDescription = null,
+                                modifier = Modifier.size(150.dp).graphicsLayer(
+                                    translationY = -150f
+                                ),
+                            )}
+                        Column(
+                            modifier = Modifier.fillMaxSize()
+                                .padding(vertical = 20.dp, horizontal = 20.dp).graphicsLayer(
+                                    translationY = 130f
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "PR",
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontSize = 25.sp
+                                )
+                                Spacer(modifier = Modifier.width(1.dp))
+                                Text(
+                                    text = "RANKINGS",
+                                    color = Color(0xFFF1C40F),
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontSize = 25.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.checkcircleicon128),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    text = "Not Verified",
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.checkcircleicon128),
+                                    contentDescription = null,
+                                    tint = Color.Yellow,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    text = "Waiting for Verification Lifting",
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.checkcircleicon128),
+                                    contentDescription = null,
+                                    tint = Color.Blue,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    text = "Verified Lifting",
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(50.dp))
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.arrowuploadprogress128icon),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    text = "Upload Your PR Lifting for Verification",
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Row(
+                                modifier = Modifier,
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.videocallfilledicon128),
+                                    contentDescription = null,
+                                    tint = Color(0xFFF1C40F),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Text(
+                                    text = "Verified Lifting Video",
+                                    color = Color.White,
+                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Text(
+                                text = "* Verification controls updates every 6 hours.",
+                                color = Color.White,
+                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -1162,9 +1342,12 @@ fun NavigationBarLeaderboard(
     navController: NavController,
     indexs: Int,
     flag: Boolean, flag2: Boolean, flag3: Boolean, flag4: Boolean,
-    rankInfo: Pair<Int, LeaderboardEntry>? = null
+    rankInfo: Pair<Int, LeaderboardEntry>? = null,
+    leaderboardViewModel: LeaderboardViewModel,
+    infoDialog: (Boolean) -> Unit
 ) {
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
+    val isUploadProofClicked = remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Bottom
@@ -1172,12 +1355,14 @@ fun NavigationBarLeaderboard(
         if (rankInfo != null) {
             val (rank, userEntry) = rankInfo
 
-            Row(modifier = Modifier.padding(horizontal = 30.dp, vertical = 8.dp)) {
+            Row(modifier = Modifier.padding(horizontal = 20.dp)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(50.dp)
                         .background(Color(0xFFF1C40F).copy(alpha = 0.8f), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -1200,20 +1385,20 @@ fun NavigationBarLeaderboard(
                         Spacer(Modifier.width(12.dp))
                         Column() {
                             Text(
-                                text = "YOU",
+                                text = userEntry.userName,
                                 color = Color.Black,
                                 fontFamily = FontFamily(Font(R.font.lexendbold))
                             )
                             Text(
-                                text = "PERSONAL RECORD",
-                                color = Color.Gray,
+                                text = userEntry.exerciseName,
+                                color = Color.Black,
                                 fontFamily = FontFamily(Font(R.font.lexendbold)),
                                 fontSize = 10.sp
                             )
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         Text(
-                            text = "${userEntry.weight.toInt()} kg",
+                            text = "${userEntry.weight.toInt()} KG",
                             color = Color.Black,
                             fontFamily = FontFamily(Font(R.font.lexendbold))
                         )
@@ -1223,24 +1408,31 @@ fun NavigationBarLeaderboard(
                                 painter = painterResource(R.drawable.checkcircleicon128),
                                 contentDescription = null,
                                 tint = Color.Blue,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(25.dp)
                             )
                         } else if (userEntry.verificationStatus == "pendent") {
                             Icon(
                                 painter = painterResource(R.drawable.checkcircleicon128),
                                 contentDescription = null,
                                 tint = Color.Yellow,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(25.dp).clickable(
+                                    onClick = { infoDialog(true) }
+                                )
                             )
                         } else if (userEntry.verificationStatus == "notVerified") {
-                            IconButton(onClick = {}) {
-                                Icon(
-                                    painter = painterResource(R.drawable.arrowuploadprogress128icon),
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(20.dp)
+                            if (!isUploadProofClicked.value)
+                                ProofUploadSectionLeaderboard(
+                                    onUriSelected = {
+                                        leaderboardViewModel.uploadPrProof(
+                                            it,
+                                            FirebaseAuth.getInstance().currentUser?.uid.toString(),
+                                            userEntry.exerciseName,
+                                            0.0,
+                                            userEntry.userName
+                                        )
+                                    },
+                                    isUploadedClick = {}
                                 )
-                            }
                         }
                     }
                 }
@@ -1444,4 +1636,37 @@ fun NavigationBarLeaderboard(
             }
         }
     }
+}
+
+@Composable
+fun ProofUploadSectionLeaderboard(onUriSelected: (android.net.Uri) -> Unit, isUploadedClick: () -> Unit) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { video: Uri? ->
+        video?.let { video ->
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(context, video)
+            val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val durationInMs = time?.toLong() ?: 0
+
+            if (durationInMs <= 15_000) {
+                onUriSelected(video)
+                isUploadedClick()
+            } else Toast.makeText(
+                context,
+                "Video must be under 15 seconds.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+            Icon(
+                painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(24.dp).clickable {
+                    launcher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+                }
+            )
 }

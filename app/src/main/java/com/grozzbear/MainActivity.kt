@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.grozzbear.projectfitness.data.local.db.DbProvider
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
+import data.local.viewmodel.LeaderboardViewModel
 import ui.mainpages.navigation.Navigation
 import ui.mainpages.openscreen.SplashScreen
 

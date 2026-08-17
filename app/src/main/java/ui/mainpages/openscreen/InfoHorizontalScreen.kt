@@ -172,10 +172,9 @@ fun InfoHorizontalScreen(navController: NavController) {
         ) {
             val context = androidx.compose.ui.platform.LocalContext.current
             Image(
-                painter = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
-                contentDescription = null,
-                modifier = Modifier.size(100.dp),
-                colorFilter = ColorFilter.tint(Color(0xFFF1C40F))
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = "Grozz Logo",
+                modifier = Modifier.size(100.dp)
             )
             Text(
                 text = "SKIP",

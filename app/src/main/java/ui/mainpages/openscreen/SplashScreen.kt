@@ -33,11 +33,13 @@ fun SplashScreen(onTimeout: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
-                contentDescription = null
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = "Grozz Logo"
             )
-            Spacer(Modifier.height(50.dp))
-            CircularProgressIndicator(color = Color(0xFFF1C40F))
+            CircularProgressIndicator(
+                color = Color(0xFFF1C40F),
+                modifier = Modifier.height(20.dp)
+            )
         }
     }
 }

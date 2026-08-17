@@ -321,6 +321,7 @@ class WorkoutLogViewModel(
                             val entry = LeaderboardEntry(
                                 currentUserId,
                                 exerciseName,
+                                "",
                                 weight,
                                 username,
                                 userPhotoUri

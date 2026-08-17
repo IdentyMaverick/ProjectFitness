@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -63,15 +64,7 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBar(
-                clickedProfile = clickedProfile,
-                onProfileClick = {
-                    clickedProfile = true
-                    navController.navigate("profile")
-                },
-                onMenuClick = { showMenuSheet = true },
-                topPadding = topPadding
-            )
+            HomeTopBar()
 
         },
         containerColor = Color(0xFF121417),
@@ -107,7 +100,10 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .graphicsLayer(
+                    translationY = -400f
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -164,10 +160,10 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
                 Text(
                     modifier = Modifier.padding(horizontal = 20.dp),
                     textAlign = TextAlign.Center,
-                    text = "Soon",
+                    text = "SOON",
                     color = Color(0xFFF1C40F),
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendregular))
+                    fontSize = 28.sp,
+                    fontFamily = FontFamily(Font(R.font.lexendextrabold))
                 )
             }
         }
@@ -229,49 +225,16 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
 }
 
 @Composable
-private fun HomeTopBar(
-    clickedProfile: Boolean,
-    onProfileClick: () -> Unit,
-    onMenuClick: () -> Unit,
-    topPadding: Dp
-) {
+private fun HomeTopBar() {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
-
-        IconButton(onClick = onProfileClick) {
-            Icon(
-                painter = painterResource(R.drawable.accountcircle),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
-            )
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        Text(
-            text = "GROZZ",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        IconButton(onClick = onMenuClick) {
-            Icon(
-                painter = painterResource(R.drawable.projectfitnesspointheavy),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
-            )
-        }
+        Image(
+            painter = painterResource(R.drawable.grozzlogo),
+            contentDescription = "Grozz Logo",
+            modifier = Modifier.size(300.dp))
     }
 }

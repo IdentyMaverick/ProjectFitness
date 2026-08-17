@@ -88,7 +88,7 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
     ) {
         Image(
             modifier = Modifier.fillMaxSize(),
-            painter = painterResource(id = R.drawable.registerandforgetpasswordscreenphoto),
+            painter = painterResource(id = R.drawable.grozzforget),
             contentDescription = null,
             alpha = 0.8f, // Metinlerin daha iyi okunması için hafifçe düşürdüm
             contentScale = ContentScale.Crop // Boşlukları kapatır
@@ -101,30 +101,25 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(200.dp)
-                    .graphicsLayer(translationY = 100f),
-                colorFilter = ColorFilter.tint(Color(0xFFF1C40F))
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = "Grozz Logo",
+                modifier = Modifier.size(300.dp)
+                    .graphicsLayer(translationY = 100f)
             )
-
-            Spacer(modifier = Modifier.height(30.dp))
 
             Text(
                 text = "RESET",
                 fontFamily = FontFamily(Font(R.font.oswaldbold)),
                 color = Color.White,
-                fontSize = 60.sp
+                fontSize = 40.sp
             )
             Text(
                 text = "PASSWORD",
                 fontFamily = FontFamily(Font(R.font.oswaldbold)),
                 color = Color(0xFFF1C40F),
-                fontSize = 60.sp
+                fontSize = 30.sp
             )
 
-            // Bilgilendirme Metni
             val infoText = buildAnnotatedString {
                 withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFF1C40F))) {
                     append("No worries, ")

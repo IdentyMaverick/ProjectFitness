@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b997575aa2e9602d02c08f8283b6fb22",
+    "identityHash": "de7b39a49c3c0abcb21595599497b06d",
     "entities": [
       {
         "tableName": "workout",
@@ -212,7 +212,7 @@
       },
       {
         "tableName": "exercise_catalog",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `instructions` TEXT NOT NULL, `level` TEXT NOT NULL, `gifUrl` TEXT, `name` TEXT NOT NULL, `bodyPart` TEXT NOT NULL, `equipment` TEXT NOT NULL, `movementType` TEXT NOT NULL, `secondaryMuscles` TEXT NOT NULL, `isActive` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `instructions` TEXT NOT NULL, `level` TEXT NOT NULL, `gifUrl` TEXT, `muscle` TEXT, `name` TEXT NOT NULL, `bodyPart` TEXT NOT NULL, `equipment` TEXT NOT NULL, `movementType` TEXT NOT NULL, `secondaryMuscles` TEXT NOT NULL, `isActive` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -235,6 +235,12 @@
           {
             "fieldPath": "gifUrl",
             "columnName": "gifUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "muscle",
+            "columnName": "muscle",
             "affinity": "TEXT",
             "notNull": false
           },
@@ -504,7 +510,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b997575aa2e9602d02c08f8283b6fb22')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'de7b39a49c3c0abcb21595599497b06d')"
     ]
   }
 }

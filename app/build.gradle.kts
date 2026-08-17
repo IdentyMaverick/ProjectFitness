@@ -142,6 +142,17 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // ExoPlayer
+    implementation("androidx.media3:media3-exoplayer:1.9.1")
+    implementation("androidx.media3:media3-exoplayer-dash:1.9.1")
+    implementation("androidx.media3:media3-ui:1.9.1")
+    implementation("androidx.media3:media3-ui-compose-material3:1.9.1")
+
+    // Compression
+    implementation("androidx.media3:media3-transformer:1.9.1")
+    implementation("androidx.media3:media3-effect:1.9.1")
+    implementation("androidx.media3:media3-common:1.9.1")
 }
 
 kapt {

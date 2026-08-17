@@ -40,12 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -60,15 +62,24 @@ import data.local.viewmodel.ActivityInsideViewModel
 fun ActivityInside(navController: NavController, activityInsideViewModel: ActivityInsideViewModel) {
     val selectedCatalog by activityInsideViewModel.selectedCatalog.collectAsState()
     val storageRef = Firebase.storage.reference.child("cloudgoogle/${selectedCatalog.gifUrl}")
+    val storageRefMuscle = Firebase.storage.reference.child("cloudgoogle/${selectedCatalog.muscle}")
     var gifUrl by remember { mutableStateOf<String?>(null) }
+    var muscleGraph by remember { mutableStateOf<String?>(null) }
     val steps = selectedCatalog.instructions.split(".")
         .map { it.trim() }
         .filter { it.isNotEmpty() }
     val verticalScroll = rememberScrollState()
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
-    LaunchedEffect(selectedCatalog.gifUrl) {
+    LaunchedEffect(selectedCatalog.gifUrl, selectedCatalog.muscle) {
         storageRef.downloadUrl.addOnSuccessListener { uri ->
             gifUrl = uri.toString()
+        }.addOnFailureListener {
+            Log.e("FirebaseStorage", "Error getting download URL", it)
+        }
+
+        storageRefMuscle.downloadUrl.addOnSuccessListener { uri ->
+            muscleGraph = uri.toString()
         }.addOnFailureListener {
             Log.e("FirebaseStorage", "Error getting download URL", it)
         }
@@ -77,7 +88,7 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            ActivityInsideTopBar(navController, selectedCatalog)
+            ActivityInsideTopBar(navController, selectedCatalog, topPadding)
         },
         containerColor = Color(0xFF121417),
         floatingActionButtonPosition = FabPosition.EndOverlay,
@@ -91,7 +102,6 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.size(20.dp))
-            if (!gifUrl.isNullOrEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -99,7 +109,7 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = gifUrl ?: R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml,
+                        model = gifUrl ?: R.drawable.grozzlogo,
                         contentDescription = null,
                         modifier = Modifier
                             .height(150.dp)
@@ -119,17 +129,17 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
                         fontFamily = FontFamily(Font(R.font.lexendbold))
                     )
                 }
-            } else CircularProgressIndicator(color = Color(0xFFF1C40F))
-            Tabs(selectedCatalog, steps)
+            Tabs(selectedCatalog, steps, muscleGraph)
         }
     }
 }
 
 @Composable
-fun ActivityInsideTopBar(navController: NavController, selectedCatalog: ExerciseCatalogEntity) {
+fun ActivityInsideTopBar(navController: NavController, selectedCatalog: ExerciseCatalogEntity, topPadding: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -172,7 +182,7 @@ fun ActivityInsideTopBar(navController: NavController, selectedCatalog: Exercise
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Tabs(selectedCatalog: ExerciseCatalogEntity, steps: List<String>) {
+fun Tabs(selectedCatalog: ExerciseCatalogEntity, steps: List<String>, muscle: String?) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tab = listOf("Instruct", "History", "Charts")
 
@@ -232,70 +242,78 @@ fun Tabs(selectedCatalog: ExerciseCatalogEntity, steps: List<String>) {
                         .padding(horizontal = 50.dp),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    AsyncImage(
-                        model = R.drawable.height,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp)),
-                        alpha = 0.8f,
-                        contentScale = ContentScale.None
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                        Text(
-                            text = "PRIMARY",
-                            color = Color.Gray,
-                            fontSize = 12.sp,
-                            letterSpacing = 0.sp,
-                            modifier = Modifier,
-                            fontFamily = FontFamily(Font(R.font.lexendbold))
-                        )
-                        Spacer(Modifier.height(5.dp))
-                        Text(
-                            text = selectedCatalog.bodyPart,
-                            color = Color.Black,
-                            fontSize = 12.sp,
-                            letterSpacing = 0.sp,
+                    if (!muscle.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = muscle,
+                            contentDescription = null,
                             modifier = Modifier
-                                .background(
-                                    Color(0xFFF1C40F),
-                                    shape = RoundedCornerShape(5.dp)
-                                )
-                                .padding(4.dp),
-                            fontFamily = FontFamily(Font(R.font.lexendbold))
+                                .clip(RoundedCornerShape(10.dp)),
+                            alpha = 0.8f,
+                            contentScale = ContentScale.Fit
                         )
-                        Spacer(Modifier.height(15.dp))
-                        Text(
-                            text = "SECONDARY",
-                            color = Color.Gray,
-                            fontSize = 12.sp,
-                            letterSpacing = 0.sp,
-                            modifier = Modifier,
-                            fontFamily = FontFamily(Font(R.font.lexendbold))
+                    } else CircularProgressIndicator(
+                        color = Color(0xFFF1C40F),
+                        modifier = Modifier.graphicsLayer(
+                            translationY = 0f
                         )
-                        Spacer(Modifier.height(5.dp))
-                        selectedCatalog.secondaryMuscles.forEachIndexed { index, string ->
-                            Column() {
-                                Text(
-                                    text = string,
-                                    color = Color.Black,
-                                    fontSize = 12.sp,
-                                    letterSpacing = 0.sp,
-                                    modifier = Modifier
-                                        .background(
-                                            Color(0xFFF1C40F),
-                                            shape = RoundedCornerShape(5.dp)
-                                        )
-                                        .padding(4.dp),
-                                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                                )
-                                Spacer(Modifier.height(5.dp))
-                            }
+                    )
+                }
+                Spacer(Modifier.height(20.dp))
+                Column(modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "PRIMARY",
+                        color = Color.Gray,
+                        fontSize = 20.sp,
+                        letterSpacing = 0.sp,
+                        modifier = Modifier,
+                        fontFamily = FontFamily(Font(R.font.lexendbold))
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = selectedCatalog.bodyPart,
+                        color = Color.Black,
+                        fontSize = 15.sp,
+                        letterSpacing = 0.sp,
+                        modifier = Modifier
+                            .background(
+                                Color.Red,
+                                shape = RoundedCornerShape(5.dp)
+                            )
+                            .padding(4.dp),
+                        fontFamily = FontFamily(Font(R.font.lexendbold))
+                    )
+                    Spacer(Modifier.height(15.dp))
+                    Text(
+                        text = "SECONDARY",
+                        color = Color.Gray,
+                        fontSize = 20.sp,
+                        letterSpacing = 0.sp,
+                        modifier = Modifier,
+                        fontFamily = FontFamily(Font(R.font.lexendbold))
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    selectedCatalog.secondaryMuscles.forEachIndexed { index, string ->
+                        Column() {
+                            Text(
+                                text = string,
+                                color = Color.Black,
+                                fontSize = 15.sp,
+                                letterSpacing = 0.sp,
+                                modifier = Modifier
+                                    .background(
+                                        Color(0xFFF1C40F),
+                                        shape = RoundedCornerShape(5.dp)
+                                    )
+                                    .padding(4.dp),
+                                fontFamily = FontFamily(Font(R.font.lexendbold))
+                            )
+                            Spacer(Modifier.height(5.dp))
                         }
                     }
                 }
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(20.dp))
             Column() {
                 Text(
                     text = "Step-By-Step",
@@ -332,6 +350,7 @@ fun Tabs(selectedCatalog: ExerciseCatalogEntity, steps: List<String>) {
                     }
                     Spacer(Modifier.height(10.dp))
                 }
+                Spacer(modifier = Modifier.height(50.dp))
             }
         }
     }

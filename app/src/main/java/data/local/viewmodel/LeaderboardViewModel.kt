@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import data.remote.LeaderboardEntry
@@ -24,7 +25,6 @@ class LeaderboardViewModel(
 ) : ViewModel() {
     private val _leaderboardData = MutableStateFlow<List<LeaderboardEntry>>(emptyList())
     val leaderboardData: StateFlow<List<LeaderboardEntry>> = _leaderboardData
-
     val currentUserRankInfo: StateFlow<Pair<Int, LeaderboardEntry>?> =
         leaderboardData.map { entries ->
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
@@ -40,8 +40,7 @@ class LeaderboardViewModel(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-
-    fun uploadPrProof(uri: android.net.Uri, userId: String, exerciseName: String) {
+    fun uploadPrProof(uri: android.net.Uri, userId: String, exerciseName: String, weight: Double, nickname: String) {
         viewModelScope.launch {
             val storageRef = FirebaseStorage.getInstance().reference
             val fileName = "proofs/${userId}_${exerciseName}_${UUID.randomUUID()}.mp4"
@@ -50,25 +49,36 @@ class LeaderboardViewModel(
             try {
                 proofRef.putFile(uri).await()
                 val downloadUrl = proofRef.downloadUrl.await().toString()
-
-                updateFirestoreProof(userId, exerciseName, downloadUrl)
+                updateFirestoreProof(userId, exerciseName, downloadUrl, weight, nickname)
             } catch (e: Exception) {
                 Log.d("error", e.toString())
             }
         }
     }
 
-    private suspend fun updateFirestoreProof(userId: String, exercise: String, url: String) {
+    private suspend fun updateFirestoreProof(userId: String, exercise: String, url: String, weight: Double, nickname: String) {
         val db = FirebaseFirestore.getInstance()
 
         db.collection("googlecloudleaderboard")
             .document("${userId}_${exercise}")
-            .update(
+            .set(
                 mapOf(
+                    "userId" to userId,
+                    "userName" to nickname,
+                    "exerciseName" to exercise,
                     "proofUrl" to url,
-                    "verificationStatus" to "pendent"
-                )
-            ).await()
+                    "verificationStatus" to "pendent",
+                    "weight" to weight
+                ),
+                SetOptions.merge()
+            )
+//            .update(
+//                mapOf(
+//                    "proofUrl" to url,
+//                    "verificationStatus" to "pendent"
+//                )
+//            )
+            .await()
     }
 
     fun fetchLeaderboard(exerciseName: String) {

@@ -10,6 +10,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +39,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -59,10 +63,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -75,6 +83,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -95,6 +104,9 @@ import viewmodel.AuthViewModel
 import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.layout.LayoutCoordinates
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,24 +120,10 @@ fun Home(
     socialViewModel: SocialViewModel,
     workoutSettingViewModel: WorkoutSettingViewModel
 ) {
-    // =========================================================
-    // Essentials
-    // =========================================================
     val context = LocalContext.current
     val scopes = rememberCoroutineScope()
     val db = remember { FirebaseFirestore.getInstance() }
     val uid = remember { Firebase.auth.currentUser?.uid }
-
-    // =========================================================
-    // Repository / Local DB (senin mevcut yapın)
-    // =========================================================
-
-//    val challengeLazyState = rememberLazyListState()
-//    val coachLazyState = rememberLazyListState()
-
-    // =========================================================
-    // SharedPreferences (senin mevcut)
-    // =========================================================
     val sharedPreferences =
         remember { context.getSharedPreferences("rememberbuttonStatus", Context.MODE_PRIVATE) }
     val sharedPreferences2 =
@@ -143,19 +141,12 @@ fun Home(
     // =========================================================
     var clickedAdd by remember { mutableStateOf(false) }
     var clickedProfile by remember { mutableStateOf(false) }
-
     var showMenuSheet by remember { mutableStateOf(false) }
     var showWorkoutRemoveSheet by remember { mutableStateOf(false) }
-
     val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val removeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    // Long press state
     var isPressed by remember { mutableStateOf(false) }
 
-    // =========================================================
-    // Firebase: profile image url
-    // =========================================================
     val storageRef = remember { Firebase.storage.reference }
     val profileRef = remember(uid) {
         storageRef.child("gs://projectfitness-ddfeb.appspot.com/profile_photos/$uid/profile.jpg")
@@ -167,11 +158,6 @@ fun Home(
     val coachWorkouts =
         workouts.filter { it.workout.workoutType.contains("coach", ignoreCase = true) }
     val userName by homesViewModel.userName.collectAsState()
-    val gradientColors = listOf(
-        Color(0xFFFFC107), // Parlak Sarı
-        Color(0xFFFF5722)  // Turuncu/Kırmızı
-    )
-    val brush = Brush.horizontalGradient(colors = gradientColors)
     val selectedWorkout = randomPick()
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
@@ -184,7 +170,7 @@ fun Home(
     val challengePagerState = rememberPagerState(pageCount = { challangesWorkouts.size })
     val coachPagerState = rememberPagerState(pageCount = { coachWorkouts.size })
     val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-
+    val isLoading = workouts.isEmpty() || userName.isEmpty()
 
     LaunchedEffect(uid) {
         profileRef.downloadUrl
@@ -239,6 +225,42 @@ fun Home(
         floatingActionButtonPosition = FabPosition.EndOverlay,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
+        if (isLoading) {
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(20.dp))
+                Box(modifier = Modifier.width(150.dp).height(24.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+                Spacer(Modifier.height(8.dp))
+                Box(modifier = Modifier.width(200.dp).height(16.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+
+                Spacer(Modifier.height(40.dp))
+
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)) {
+                    Box(modifier = Modifier.width(120.dp).height(60.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(horizontal = 30.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .shimmerEffect()
+                )
+
+                Spacer(Modifier.height(30.dp))
+
+                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)) {
+                    Box(modifier = Modifier.width(120.dp).height(60.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+                }
+            }
+        } else
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -252,7 +274,7 @@ fun Home(
             GreetingText(userName)
             Spacer(
                 modifier = Modifier
-                    .padding(top = 30.dp)
+                    .padding(top = 10.dp)
             )
             Row(
                 modifier = Modifier
@@ -300,10 +322,7 @@ fun Home(
                     )
                 }
             }
-            Spacer(
-                modifier = Modifier
-                    .size(20.dp)
-            )
+
             HorizontalPager(
                 state = challengePagerState,
                 modifier = Modifier
@@ -447,10 +466,7 @@ fun Home(
                     )
                 }
             }
-            Spacer(
-                modifier = Modifier
-                    .size(0.dp)
-            )
+
             HorizontalPager(
                 state = coachPagerState,
                 modifier = Modifier
@@ -625,7 +641,7 @@ private fun HomeTopBarHomes(
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 0.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -640,13 +656,10 @@ private fun HomeTopBarHomes(
 
         Spacer(Modifier.weight(1f))
 
-        Text(
-            text = "GROZZ",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
+        Image(
+            painter = painterResource(R.drawable.grozzlogo),
+            contentDescription = "Grozz Logo",
+            modifier = Modifier.size(100.dp))
 
         Spacer(Modifier.weight(1f))
 
@@ -696,7 +709,7 @@ fun ExtendedStartButton(
             Icon(
                 painter = painterResource(R.drawable.localfiredepartmenticon128),
                 "Extended workout start button",
-                Modifier.size(40.dp)
+                Modifier.size(30.dp)
             )
         },
         text = {
@@ -778,7 +791,10 @@ fun GreetingText(userName: String) {
         }
     }
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.graphicsLayer(
+            translationY = -50f
+        )
     ) {
         Row() {
             Text(
@@ -842,5 +858,31 @@ fun PageIndicator(
                     .animateContentSize() // Geçişlerde yumuşak bir efekt verir
             )
         }
+    }
+}
+
+fun Modifier.shimmerEffect(): Modifier = composed {
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    val transition = rememberInfiniteTransition(label = "")
+    val startOffsetX by transition.animateFloat(
+        initialValue = -2 * size.width.toFloat(),
+        targetValue = 2 * size.width.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000)
+        ), label = ""
+    )
+
+    background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF22262B),
+                Color(0xFF35393F),
+                Color(0xFF22262B),
+            ),
+            start = Offset(startOffsetX, 0f),
+            end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
+        )
+    ).onGloballyPositioned {
+        size = it.size
     }
 }

@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -154,13 +156,14 @@ fun Activity(
                     indication = null
                 )
         ) {
-            Spacer(Modifier.height(40.dp))
             Column(
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
             ) {
-                Row() {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
                         HorizontalDivider(
                             thickness = 3.dp,
@@ -184,7 +187,9 @@ fun Activity(
                         )
                     }
                 }
-                Row() {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                ) {
                     Text(
                         text = "Based on your focus",
                         color = Color.Gray,
@@ -301,7 +306,7 @@ fun Activity(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 30.dp)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
                     HorizontalDivider(
@@ -530,7 +535,7 @@ private fun HomeTopBarActivity(
             .fillMaxWidth()
             .statusBarsPadding()
             .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -545,13 +550,10 @@ private fun HomeTopBarActivity(
 
         Spacer(Modifier.weight(1f))
 
-        Text(
-            text = "GROZZ",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
+        Image(
+            painter = painterResource(R.drawable.grozzlogo),
+            contentDescription = "Grozz Logo",
+            modifier = Modifier.size(100.dp))
 
         Spacer(Modifier.weight(1f))
 
@@ -583,7 +585,7 @@ fun ExtendedActivityButton(
         },
         icon = {
             Icon(
-                painter = painterResource(R.drawable.projectfitnessplus),
+                imageVector = Icons.Default.Add,
                 null,
                 Modifier.size(30.dp)
             )

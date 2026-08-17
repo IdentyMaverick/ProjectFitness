@@ -83,8 +83,13 @@ fun PersonalInformationsScreen(
         profileState.let { state ->
             when (state) {
                 is ProfileUiState.Loading -> {
-                    Column(Modifier.fillMaxSize()) {
-                        CircularProgressIndicator(color = Color(0xFFF1C40F))
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
 

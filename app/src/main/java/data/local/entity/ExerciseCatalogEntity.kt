@@ -14,6 +14,7 @@ data class ExerciseCatalogEntity(
     @get:PropertyName("gifUrl")
     @set:PropertyName("gifUrl")
     var gifUrl: String? = null,
+    var muscle: String? = null,
     val name: String = "",
     val bodyPart: String = "",
     val equipment: String = "",

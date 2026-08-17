@@ -8,6 +8,7 @@ import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,8 +53,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -148,6 +152,12 @@ fun Profile(
     val weeklyData =
         remember(allHistoricalWorkouts) { prepareWeeklyVolumeData(allHistoricalWorkouts) }
     val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+    val isPhotoExpanded = remember { mutableStateOf(false) }
+    val blurAlpha by animateDpAsState(
+        targetValue = if (isPhotoExpanded.value) 15.dp else 0.dp,
+        animationSpec = androidx.compose.animation.core.tween(durationMillis = 50),
+        label = "blurAnimation"
+    )
 
     LaunchedEffect(weeklyData) {
         if (weeklyData.any { it > 0f }) {
@@ -167,7 +177,7 @@ fun Profile(
         containerColor = Color(0xFF121417),
         bottomBar = {},
         floatingActionButtonPosition = FabPosition.EndOverlay,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().blur(blurAlpha),
     ) { paddingValues ->
         var tabTitles = listOf("Stats", "Activity")
         var selectedTabIndex by remember { mutableStateOf(0) }
@@ -198,12 +208,16 @@ fun Profile(
                             .padding(4.dp)
                     ) {
                         AsyncImage(
-                            model = if (profile.userPhotoUri != "") profile.userPhotoUri else R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml,
+                            model = if (profile.userPhotoUri != "") profile.userPhotoUri else R.drawable.grozzlogo,
                             contentDescription = "Profile Picture",
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
-                                .clickable { launcherProfile.launch("image/*") },
+                                .clickable {
+                                    if (profile.userPhotoUri != "") {
+                                        isPhotoExpanded.value = true
+                                    }
+                                           },
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -445,63 +459,63 @@ fun Profile(
                         .fillMaxSize()
                         .verticalScroll(scrollState)
                 ) {
-                    Text(
-                        text = "Weekly Volume",
-                        textAlign = TextAlign.Start,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontWeight = FontWeight.Bold,
-                        style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-                        color = Color.White.copy(alpha = 1f),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp, vertical = 0.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Box(
-                        modifier = Modifier
-                            .height(180.dp) // Biraz daha yükseklik grafik için iyidir
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp)
-                            .background(
-                                color = Color(0xFF202B36).copy(alpha = 0.4f),
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .padding(16.dp) // İçeriden boşluk
-                    ) {
-                        CartesianChartHost(
-                            chart = rememberCartesianChart(
-                                rememberColumnCartesianLayer(
-                                    columnProvider = ColumnCartesianLayer.ColumnProvider.series(
-                                        rememberLineComponent(
-                                            color = Color(0xFFF1C40F), // Senin sarı rengin
-                                            thickness = 12.dp
-                                        )
-                                    )
-                                ),
-                                bottomAxis = rememberBottomAxis(
-                                    valueFormatter = { value, _, _ ->
-                                        listOf(
-                                            "Mon",
-                                            "Tue",
-                                            "Wed",
-                                            "Thu",
-                                            "Fri",
-                                            "Sat",
-                                            "Sun"
-                                        )[value.toInt() % 7]
-                                    },
-                                    label = rememberAxisLabelComponent(
-                                        color = Color.Gray,
-                                        textSize = 10.sp,
-                                        typeface = android.graphics.Typeface.DEFAULT_BOLD
-                                    )
-                                )
-                            ),
-                            modelProducer = modelProducer,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    Spacer(Modifier.height(20.dp))
+//                    Text(
+//                        text = "Weekly Volume",
+//                        textAlign = TextAlign.Start,
+//                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+//                        fontWeight = FontWeight.Bold,
+//                        style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
+//                        color = Color.White.copy(alpha = 1f),
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 25.dp, vertical = 0.dp)
+//                    )
+//                    Spacer(Modifier.height(20.dp))
+//                    Box(
+//                        modifier = Modifier
+//                            .height(180.dp) // Biraz daha yükseklik grafik için iyidir
+//                            .fillMaxWidth()
+//                            .padding(horizontal = 25.dp)
+//                            .background(
+//                                color = Color(0xFF202B36).copy(alpha = 0.4f),
+//                                shape = RoundedCornerShape(10.dp)
+//                            )
+//                            .padding(16.dp) // İçeriden boşluk
+//                    ) {
+//                        CartesianChartHost(
+//                            chart = rememberCartesianChart(
+//                                rememberColumnCartesianLayer(
+//                                    columnProvider = ColumnCartesianLayer.ColumnProvider.series(
+//                                        rememberLineComponent(
+//                                            color = Color(0xFFF1C40F), // Senin sarı rengin
+//                                            thickness = 12.dp
+//                                        )
+//                                    )
+//                                ),
+//                                bottomAxis = rememberBottomAxis(
+//                                    valueFormatter = { value, _, _ ->
+//                                        listOf(
+//                                            "Mon",
+//                                            "Tue",
+//                                            "Wed",
+//                                            "Thu",
+//                                            "Fri",
+//                                            "Sat",
+//                                            "Sun"
+//                                        )[value.toInt() % 7]
+//                                    },
+//                                    label = rememberAxisLabelComponent(
+//                                        color = Color.Gray,
+//                                        textSize = 10.sp,
+//                                        typeface = android.graphics.Typeface.DEFAULT_BOLD
+//                                    )
+//                                )
+//                            ),
+//                            modelProducer = modelProducer,
+//                            modifier = Modifier.fillMaxSize()
+//                        )
+//                    }
+//                    Spacer(Modifier.height(20.dp))
                     Text(
                         text = "Lifetime Statistics",
                         textAlign = TextAlign.Start,
@@ -820,6 +834,58 @@ fun Profile(
                                     fontFamily = FontFamily(Font(R.font.oswaldbold))
                                 ),
                                 color = Color.Black
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (isPhotoExpanded.value) {
+            val profile = (profileState as? ProfileUiState.Ready)?.profile
+            Dialog(onDismissRequest = { isPhotoExpanded.value = false }) {
+                Box(
+                    modifier = Modifier.fillMaxSize().clickable { isPhotoExpanded.value = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isPhotoExpanded.value,
+                        enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
+                        exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(500.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = profile?.userPhotoUri,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.95f)
+                                    .aspectRatio(1f)
+                                    .clip(CircleShape) // 100.dp yerine direkt CircleShape daha güvenlidir
+                                    .background(Color.Black),
+                                contentScale = ContentScale.Crop
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.imageicon128),
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier
+                                    .graphicsLayer(
+                                        translationY = -300f,
+                                        translationX = -105f
+                                    )
+                                    .background(Color(0xFFF1C40F), shape = CircleShape)
+                                    .size(50.dp)
+                                    .padding(all = 13.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .clickable(
+                                        onClick = {
+                                            launcherProfile.launch("image/*")
+                                        }
+                                    )
                             )
                         }
                     }

@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -77,24 +80,24 @@ fun WorkoutCompleteAnalysisScreen(
                 .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                Spacer(Modifier.height(30.dp))
-                ConsistencyProgressCircle(0.92f, 92, "CONSISTENCY", Color(0xFFF1C40F))
-            }
-
-            // 2. Hedeflenen Kas Grupları
-            item {
-                Spacer(Modifier.height(40.dp))
-                Text(
-                    text = "TARGETED MUSCLES",
-                    color = Color.White.copy(alpha = 0.4f),
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    fontSize = 12.sp,
-                    letterSpacing = 1.sp
-                )
-                Spacer(Modifier.height(16.dp))
-                MuscleGroup(ratioDistrubition.keys)
-            }
+//            item {
+//                Spacer(Modifier.height(30.dp))
+//                ConsistencyProgressCircle(0.92f, 92, "CONSISTENCY", Color(0xFFF1C40F))
+//            }
+//
+//            // 2. Hedeflenen Kas Grupları
+//            item {
+//                Spacer(Modifier.height(40.dp))
+//                Text(
+//                    text = "TARGETED MUSCLES",
+//                    color = Color.White.copy(alpha = 0.4f),
+//                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+//                    fontSize = 12.sp,
+//                    letterSpacing = 1.sp
+//                )
+//                Spacer(Modifier.height(16.dp))
+//                MuscleGroup(ratioDistrubition.keys)
+//            }
 
             // 3. Egzersiz Listesi Başlığı
             item {
@@ -303,27 +306,29 @@ fun DetailText(value: String, unit: String) {
 
 @Composable
 fun FinishWorkoutButton(onClick: () -> Unit) {
-    Surface(
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp)
-            .height(56.dp),
-        color = Color(0xFFF1C40F),
-        shape = RoundedCornerShape(28.dp)
+            .fillMaxSize()
+            .padding(bottom = 30.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
-        Row(
-            modifier = Modifier
-                .clickable { onClick() }
-                .fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        Button(
+            onClick = { onClick() },
+            modifier = Modifier.padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.3f), shape = RoundedCornerShape(12.dp)).fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF1C40F),
+                contentColor = Color.Black
+            ),
+            shape = RoundedCornerShape(12.dp),
+            elevation = ButtonDefaults.buttonElevation(8.dp)
         ) {
             Text(
-                text = "FINISH WORKOUT",
-                color = Color.Black,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp,
-                letterSpacing = 1.sp
+                text = "Done",
+                style = TextStyle(
+                    fontFamily = FontFamily(Font(R.font.lexendextrabold)),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
             )
         }
     }

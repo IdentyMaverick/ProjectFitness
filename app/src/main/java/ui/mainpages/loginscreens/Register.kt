@@ -67,7 +67,7 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
             .background(color = Color(0xFF181F26))
     ) {
         Image(
-            painter = painterResource(id = R.drawable.registerandforgetpasswordscreenphoto),
+            painter = painterResource(id = R.drawable.grozzregister),
             contentDescription = null,
             alpha = 0.9f,
             contentScale = ContentScale.Crop,
@@ -79,19 +79,17 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(200.dp)
-                    .graphicsLayer(translationY = 100f),
-                colorFilter = ColorFilter.tint(Color(0xFFF1C40F))
+                painter = painterResource(R.drawable.grozzlogo),
+                contentDescription = "Grozz Logo",
+                modifier = Modifier.size(300.dp)
+                    .graphicsLayer(translationY = 100f)
             )
 
             Text(
                 text = "REGISTER",
                 fontFamily = FontFamily(Font(R.font.oswaldbold)),
                 color = Color.White,
-                fontSize = 60.sp
+                fontSize = 40.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))

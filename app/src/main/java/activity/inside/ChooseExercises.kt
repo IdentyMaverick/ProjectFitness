@@ -21,7 +21,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,6 +52,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -83,7 +86,13 @@ fun ChooseExercises(
             "Triceps",
             "Shoulders",
             "Abs",
-            "Calves"
+            "Calves",
+            "Abductors",
+            "Adductors",
+            "Forearms",
+            "Glutes",
+            "Hamstrings",
+            "Traps"
         )
     }
     val equipment =
@@ -112,16 +121,21 @@ fun ChooseExercises(
                 muscleOk && equipmentOk && searchOk
             }
         }
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+    val exerciseCounter = selectedIdsByViewModel.size
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { HomeTopBarCreateWorkout(navController) },
+        topBar = { HomeTopBarCreateWorkout(navController, topPadding) },
         containerColor = Color(0xFF121417),
         floatingActionButton = {
-            ExtendedStartButtonCreateWorkout {
-                createWorkoutViewModel.onConfirmSelection()
-                navController.popBackStack()
-            }
+            ExtendedStartButtonCreateWorkout(
+                onConfirmClick = {
+                    createWorkoutViewModel.onConfirmSelection()
+                    navController.popBackStack()
+                },
+                totalSelectedExercise = exerciseCounter.toString()
+            )
         },
         floatingActionButtonPosition = FabPosition.EndOverlay,
         modifier = Modifier.fillMaxSize()
@@ -227,7 +241,7 @@ fun ChooseExercises(
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.infoicon128),
+                                imageVector = Icons.Default.Info,
                                 contentDescription = "Info",
                                 modifier = Modifier.size(25.dp),
                                 tint = Color.White
@@ -279,7 +293,8 @@ fun FilterDropdownCreateWorkout(
             onDismissRequest = { onExpandChange(false) },
             modifier = Modifier
                 .background(Color(0xFF21282F))
-                .width(140.dp)
+                .width(130.dp)
+                .height(300.dp)
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
@@ -327,10 +342,11 @@ fun SearchBox(text: MutableState<String>) {
 }
 
 @Composable
-fun HomeTopBarCreateWorkout(navController: NavController) {
+fun HomeTopBarCreateWorkout(navController: NavController, topPadding: Dp) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -362,17 +378,25 @@ fun HomeTopBarCreateWorkout(navController: NavController) {
 }
 
 @Composable
-fun ExtendedStartButtonCreateWorkout(onConfirmClick: () -> Unit) {
+fun ExtendedStartButtonCreateWorkout(onConfirmClick: () -> Unit, totalSelectedExercise: String) {
     FloatingActionButton(
         onClick = onConfirmClick,
         containerColor = Color(0xFFF1C40F),
         shape = RoundedCornerShape(16.dp)
     ) {
+        if (totalSelectedExercise.toInt() <= 0){
         Icon(
-            painter = painterResource(R.drawable.projectfitnessplus),
+            imageVector = Icons.Default.Add,
             contentDescription = "Confirm",
             tint = Color.Black,
             modifier = Modifier.size(24.dp)
-        )
+        )}
+        else {
+            Text(
+                text = totalSelectedExercise,
+                color = Color.Black,
+                fontSize = 20.sp
+            )
+        }
     }
 }

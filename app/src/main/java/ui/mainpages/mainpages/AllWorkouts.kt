@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,7 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -36,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -44,11 +49,13 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
+import ui.mainpages.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +68,8 @@ fun AllWorkouts(
 
     var lazyListState = rememberLazyListState()
     val allWorkouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
+    val topPadding: Dp = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+
 
     Scaffold(
         contentWindowInsets = WindowInsets(0),
@@ -68,7 +77,8 @@ fun AllWorkouts(
             HomeTopBarAllWorkouts(
                 clickedProfile = clickedProfile,
                 onProfileClick = { navController.popBackStack() },
-                onMenuClick = { showMenuSheet = true }
+                onMenuClick = { showMenuSheet = true },
+                topPadding
             )
         },
         containerColor = Color(0xFF121417),
@@ -79,68 +89,52 @@ fun AllWorkouts(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .graphicsLayer(
+                    translationY = -100f
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(
                 modifier = Modifier
                     .padding(top = 30.dp)
             )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "ALL",
-                    color = Color.White,
-                    fontFamily = FontFamily(Font(R.font.oswaldbold)),
-                    fontSize = 40.sp, // Görsele uygun olarak biraz büyüttüm
-                    style = TextStyle(
-                        platformStyle = PlatformTextStyle(
-                            includeFontPadding = false // Android'in otomatik eklediği tepe boşluğunu siler
-                        ),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Bottom,
-                            trim = LineHeightStyle.Trim.Both
-                        )
-                    )
-                )
-
-                Text(
-                    text = "WORKOUTS",
-                    color = Color(0xFFF1C40F),
-                    fontFamily = FontFamily(Font(R.font.oswaldbold)),
-                    fontSize = 40.sp,
-                    modifier = Modifier.offset(y = (-8).dp), // İki metni iyice birbirine yaklaştırır
-                    style = TextStyle(
-                        platformStyle = PlatformTextStyle(
-                            includeFontPadding = false // Alt boşluğu siler
-                        ),
-                        lineHeightStyle = LineHeightStyle(
-                            alignment = LineHeightStyle.Alignment.Top,
-                            trim = LineHeightStyle.Trim.Both
-                        )
-                    )
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                // Sarı kısa çizgi
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.White)
-                )
-            }
-            Spacer(
+            Row(
                 modifier = Modifier
-                    .padding(top = 20.dp)
-            )
-
+                    .fillMaxWidth()
+                    .padding(horizontal = 30.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
+                    HorizontalDivider(
+                        thickness = 3.dp,
+                        color = Color(0xFFF1C40F),
+                        modifier = Modifier.width(45.dp)
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        text = "ALL",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        letterSpacing = 0.sp,
+                        fontFamily = FontFamily(Font(R.font.oswaldbold))
+                    )
+                    Text(
+                        text = "WORKOUTS LIST",
+                        color = Color(0xFFF1C40F),
+                        fontSize = 24.sp,
+                        letterSpacing = 0.sp,
+                        fontFamily = FontFamily(Font(R.font.oswaldbold))
+                    )
+                }
+            }
             LazyColumn(
                 state = lazyListState,
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
+                    .graphicsLayer(
+                        translationY = 30f
+                    )
             ) {
                 itemsIndexed(allWorkouts) { index, item ->
                     val totalIcons = 5
@@ -241,11 +235,13 @@ private fun HomeTopBarAllWorkouts(
     clickedProfile: Boolean,
     onProfileClick: () -> Unit,
     onMenuClick: () -> Unit,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(top = topPadding)
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -260,13 +256,10 @@ private fun HomeTopBarAllWorkouts(
 
         Spacer(Modifier.weight(1f))
 
-        Text(
-            text = "GROZZ",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
+        Image(
+            painter = painterResource(R.drawable.grozzlogo),
+            contentDescription = "Grozz Logo",
+            modifier = Modifier.size(100.dp))
 
         Spacer(Modifier.weight(1f))
 

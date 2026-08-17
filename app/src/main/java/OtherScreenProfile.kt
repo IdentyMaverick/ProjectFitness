@@ -1,5 +1,6 @@
 import android.util.Log
 import androidx.annotation.Keep
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,8 +42,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -52,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.firestore.FirebaseFirestore
@@ -59,6 +64,7 @@ import com.grozzbear.R
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import ui.mainpages.inside.HomeTopBarProfile
 import viewmodel.AuthViewModel
+import viewmodel.ProfileUiState
 import viewmodel.ProfileViewModel
 
 @Keep
@@ -101,6 +107,12 @@ fun OtherScreenProfile(
     val scrollState = rememberScrollState()
     val workoutHistoryFull by profileViewModel.workoutHistoryFull.collectAsState()
     val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+    val isPhotoExpanded = remember { mutableStateOf(false) }
+    val blurAlpha by animateDpAsState(
+        targetValue = if (isPhotoExpanded.value) 15.dp else 0.dp,
+        animationSpec = androidx.compose.animation.core.tween(durationMillis = 50),
+        label = "blurAnimation"
+    )
 
     // Antrenmanları çekme (ownerUid filtresiyle)
     LaunchedEffect(user?.id) {
@@ -139,7 +151,8 @@ fun OtherScreenProfile(
 
             Scaffold(
                 topBar = { HomeTopBarProfile(navController, topPadding = topPadding) },
-                containerColor = Color(0xFF121417)
+                containerColor = Color(0xFF121417),
+                modifier = Modifier.blur(blurAlpha)
             ) { paddingValues ->
                 Column(
                     modifier = Modifier
@@ -162,7 +175,12 @@ fun OtherScreenProfile(
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .clip(CircleShape),
+                                .clip(CircleShape)
+                                .clickable {
+                                    if (currentUser.userPhotoUri != "") {
+                                        isPhotoExpanded.value = true
+                                    }
+                                },
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -192,11 +210,11 @@ fun OtherScreenProfile(
                     ) {
                         Text(
                             text = if (isFollowing) "UNFOLLOW" else "FOLLOW",
-                            style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendbold)))
+                            style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendbold))),
+                            fontSize = 10.sp
                         )
                     }
 
-                    // --- TAKİPÇİ SAYILARI ---
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -355,31 +373,31 @@ fun OtherScreenProfile(
                                 .fillMaxSize()
                                 .verticalScroll(scrollState)
                         ) {
-                            Text(
-                                text = "Weekly Volume",
-                                textAlign = TextAlign.Start,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                fontWeight = FontWeight.Bold,
-                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-                                color = Color.White.copy(alpha = 1f),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp, vertical = 0.dp)
-                            )
-                            Spacer(Modifier.height(20.dp))
-                            Box(
-                                modifier = Modifier
-                                    .height(150.dp)
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp)
-                                    .background(
-                                        color = Color(0xFF202B36).copy(alpha = 0.4f),
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                            ) {
-
-                            }
-                            Spacer(Modifier.height(20.dp))
+//                            Text(
+//                                text = "Weekly Volume",
+//                                textAlign = TextAlign.Start,
+//                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+//                                fontWeight = FontWeight.Bold,
+//                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
+//                                color = Color.White.copy(alpha = 1f),
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(horizontal = 25.dp, vertical = 0.dp)
+//                            )
+//                            Spacer(Modifier.height(20.dp))
+//                            Box(
+//                                modifier = Modifier
+//                                    .height(150.dp)
+//                                    .fillMaxWidth()
+//                                    .padding(horizontal = 25.dp)
+//                                    .background(
+//                                        color = Color(0xFF202B36).copy(alpha = 0.4f),
+//                                        shape = RoundedCornerShape(10.dp)
+//                                    )
+//                            ) {
+//
+//                            }
+//                            Spacer(Modifier.height(20.dp))
                             Text(
                                 text = "Lifetime Statistics",
                                 textAlign = TextAlign.Start,
@@ -627,6 +645,38 @@ fun OtherScreenProfile(
                                             )
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (isPhotoExpanded.value) {
+                    Dialog(onDismissRequest = { isPhotoExpanded.value = false }) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().clickable { isPhotoExpanded.value = false },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = isPhotoExpanded.value,
+                                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
+                                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(500.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    AsyncImage(
+                                        model = currentUser.userPhotoUri,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.95f)
+                                            .aspectRatio(1f)
+                                            .clip(CircleShape) // 100.dp yerine direkt CircleShape daha güvenlidir
+                                            .background(Color.Black),
+                                        contentScale = ContentScale.Crop
+                                    )
                                 }
                             }
                         }

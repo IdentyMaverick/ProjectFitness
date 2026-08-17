@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -68,6 +69,7 @@ fun OldWorkoutDetails(
     val workout = observedWorkoutState.value
     val showMenuSheet = remember { mutableStateOf(false) }
     val menuSheetState = rememberModalBottomSheetState()
+    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
 
     LaunchedEffect(workout, observedWorkoutState) {
@@ -86,7 +88,8 @@ fun OldWorkoutDetails(
                 navController,
                 showMenuSheet,
                 flag.value,
-                oldWorkoutDetailsViewModel
+                oldWorkoutDetailsViewModel,
+                topPadding
             )
         },
         containerColor = Color(0xFF121417) // Tam siyah arka plan
@@ -347,11 +350,13 @@ fun OldWorkoutDetailsTopBar(
     navController: NavController,
     showMenuSheet: MutableState<Boolean>,
     flag: Boolean = false,
-    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel
+    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel,
+    topPadding: Dp
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
