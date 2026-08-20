@@ -9,10 +9,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import data.local.entity.WorkoutHistoryEntity
 import data.local.entity.WorkoutHistoryFull
 import data.remote.AuthRepository
+import data.remote.FirestorePaths
 import data.remote.UserProfile
 import data.remote.UserRepository
 import kotlinx.coroutines.Dispatchers
@@ -97,9 +99,51 @@ class AuthViewModel(
         _loginUiState.value = LoginUiState.Idle
     }
 
+    fun loginWithGoogle(
+        idToken: String,
+        displayName: String?,
+        email: String?,
+        photoUrl: String?
+    ) {
+        viewModelScope.launch {
+            _loginUiState.value = LoginUiState.Loading
+            try {
+                val uid = authRepository.loginWithGoogle(idToken)
+                if (userRepository.getUserProfile(uid) == null) {
+                    userRepository.createUserProfile(
+                        uid,
+                        UserProfile(
+                            first = displayName?.takeIf { it.isNotBlank() } ?: "Sporcu",
+                            nickname = googleNickname(displayName, email),
+                            email = email.orEmpty(),
+                            userPhotoUri = photoUrl.orEmpty()
+                        )
+                    )
+                }
+                userRepository.setUserOnline(uid, true)
+                _loginUiState.value = LoginUiState.Success
+                saveUserFcmToken(uid)
+            } catch (e: Exception) {
+                _loginUiState.value = LoginUiState.Error(e.message ?: "Google sign-in failed")
+            }
+        }
+    }
+
+    fun onGoogleSignInFailed(message: String) {
+        _loginUiState.value = LoginUiState.Error(message)
+    }
+
+    private fun googleNickname(displayName: String?, email: String?): String {
+        val fromName = displayName?.replace("\\s+".toRegex(), "")?.take(20)
+        if (!fromName.isNullOrBlank()) return fromName
+        val fromEmail = email?.substringBefore("@")?.take(20)
+        if (!fromEmail.isNullOrBlank()) return fromEmail
+        return "user${System.currentTimeMillis() % 100_000}"
+    }
+
     fun getGoogleSignInClient(context: Context): com.google.android.gms.auth.api.signin.GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken("975521849945-lfab2m5gilchjcsd4iq7nrlnrj4oanls.apps.googleusercontent.com")
+            .requestIdToken(context.getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
         return GoogleSignIn.getClient(context, gso)
@@ -107,8 +151,13 @@ class AuthViewModel(
 
     fun logout() {
         viewModelScope.launch {
-            authRepository.currentUser?.uid.let { uid ->
-                userRepository.setUserOnline(uid.toString(), false)
+            val uid = authRepository.currentUid
+            if (uid != null) {
+                try {
+                    userRepository.setUserOnline(uid, false)
+                } catch (e: Exception) {
+                    Log.w("Auth", "Failed to set offline status", e)
+                }
             }
             authRepository.logout()
         }
@@ -140,6 +189,7 @@ class AuthViewModel(
     }
 
     fun saveUserFcmToken(userId: String) {
+        if (userId.isBlank()) return
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Log.w("FCM", "Fetching FCM registration token failed", task.exception)
@@ -147,11 +197,12 @@ class AuthViewModel(
             }
             val token = task.result
             val db = FirebaseFirestore.getInstance()
-            db.collection("googlecloudusers").document(userId).update("fcmToken", token)
+            db.collection(FirestorePaths.USERS).document(userId).update("fcmToken", token)
         }
     }
 
     fun getTotalWorkoutNumber(userId: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch {
             try {
                 _totalWorkoutNumber.value = repo.getUserTotalWorkoutNumber(userId)
@@ -162,11 +213,12 @@ class AuthViewModel(
     }
 
     fun syncWorkoutsFromFirebase(userId: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val db = FirebaseFirestore.getInstance()
-                val result = db.collection("googlecloudusers").document(userId)
-                    .collection("googlecloudworkouts").get().await()
+                val result = db.collection(FirestorePaths.USERS).document(userId)
+                    .collection(FirestorePaths.HISTORY).get().await()
 
                 for (document in result) {
                     val workout = document.toObject(WorkoutHistoryEntity::class.java) ?: continue
@@ -188,6 +240,7 @@ class AuthViewModel(
     }
 
     fun getTotalLiftedWeight(userId: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch {
             try {
                 _totalLiftedWeight.value = repo.getTotalLiftedWeight(userId).toFloat()
@@ -198,6 +251,7 @@ class AuthViewModel(
     }
 
     fun getTotalSpentTime(userId: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch {
             try {
                 _totalSpentTime.value = repo.getTotalSpentTime(userId)
@@ -229,6 +283,7 @@ class AuthViewModel(
     }
 
     fun loadOtherUserStats(targetUserUid: String) {
+        if (targetUserUid.isBlank()) return
         val db = FirebaseFirestore.getInstance()
         viewModelScope.launch {
             try {
@@ -237,24 +292,20 @@ class AuthViewModel(
                 var time = 0L
 
                 // 1. Antrenmanları çek
-                val userDoc = db.collection("googlecloudusers")
+                val userDoc = db.collection(FirestorePaths.USERS)
                     .document(targetUserUid)
-                    .collection("googlecloudworkouts")
+                    .collection(FirestorePaths.HISTORY)
                     .get()
                     .await()
 
                 for (doc in userDoc) {
                     count++
-                    // Güvenli okuma: !! yerine ?: 0L kullan
                     time += doc.getLong("totalDuration") ?: 0L
 
-                    // 2. Egzersizleri çek
-                    val exerciseDoc = doc.reference.collection("googlecloudexercises").get().await()
+                    val exerciseDoc = doc.reference.collection(FirestorePaths.EXERCISES).get().await()
                     for (exercisedoc in exerciseDoc) {
-
-                        // 3. Setleri çek
                         val setDoc =
-                            exercisedoc.reference.collection("googlecloudsets").get().await()
+                            exercisedoc.reference.collection(FirestorePaths.SETS).get().await()
                         for (setdoc in setDoc) {
                             // Güvenli okuma: !! yerine 0.0 kullan
                             weight += setdoc.getDouble("weight")?.toFloat() ?: 0f

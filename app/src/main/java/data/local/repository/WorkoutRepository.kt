@@ -2,8 +2,11 @@ package com.grozzbear.projectfitness.data.local.repository
 
 import android.util.Log
 import com.google.firebase.firestore.AggregateSource
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.WriteBatch
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.dao.ExerciseCatalogDao
 import com.grozzbear.projectfitness.data.local.dao.WorkoutDao
@@ -16,6 +19,7 @@ import data.local.entity.ExerciseLogEntity
 import data.local.entity.SetLogEntity
 import data.local.entity.WorkoutHistoryEntity
 import data.local.entity.WorkoutHistoryFull
+import data.remote.FirestorePaths
 import data.remote.LeaderboardEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -30,6 +34,33 @@ class WorkoutRepository(
     private val catalogdao: ExerciseCatalogDao,
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
+    private fun templateRef(workoutId: String) =
+        firestore.collection(FirestorePaths.TEMPLATES).document(workoutId)
+
+    private fun historyRef(userId: String, sessionId: String) =
+        firestore.collection(FirestorePaths.USERS)
+            .document(userId)
+            .collection(FirestorePaths.HISTORY)
+            .document(sessionId)
+
+    private fun historyCol(userId: String) =
+        firestore.collection(FirestorePaths.USERS)
+            .document(userId)
+            .collection(FirestorePaths.HISTORY)
+
+    private suspend fun loadSetDocuments(exerciseRef: DocumentReference): QuerySnapshot {
+        val current = exerciseRef.collection(FirestorePaths.SETS).get().await()
+        if (!current.isEmpty) return current
+        return exerciseRef.collection(FirestorePaths.SETS_LEGACY).get().await()
+    }
+
+    private suspend fun deleteSetDocuments(exerciseRef: DocumentReference, batch: WriteBatch) {
+        val current = exerciseRef.collection(FirestorePaths.SETS).get().await()
+        for (doc in current) batch.delete(doc.reference)
+        val legacy = exerciseRef.collection(FirestorePaths.SETS_LEGACY).get().await()
+        for (doc in legacy) batch.delete(doc.reference)
+    }
+
     fun observeWorkouts() = dao.observeWorkouts()
     fun observeWorkoutFull(id: String) = dao.observeWorkoutFull(id)
     fun observeHistoricalWorkouts() = dao.observeWorkoutHistory()
@@ -113,18 +144,16 @@ class WorkoutRepository(
     ): WorkoutHistoryFull? {
         return withContext(Dispatchers.IO) {
             try {
-                val db = FirebaseFirestore.getInstance()
-                val workoutRef = db.collection("googlecloudusers").document(userId)
-                    .collection("googlecloudworkouts").document(sessionId)
+                val workoutRef = historyRef(userId, sessionId)
 
                 val historyDoc = workoutRef.get().await()
                 val history =
                     historyDoc.toObject(WorkoutHistoryEntity::class.java) ?: return@withContext null
 
-                val exercisesSnap = workoutRef.collection("googlecloudexercises").get().await()
+                val exercisesSnap = workoutRef.collection(FirestorePaths.EXERCISES).get().await()
                 val exerciseList = exercisesSnap.map { exDoc ->
                     val exLog = exDoc.toObject(ExerciseLogEntity::class.java)
-                    val setsSnap = exDoc.reference.collection("googlecloudsets").get().await()
+                    val setsSnap = loadSetDocuments(exDoc.reference)
                     val sets = setsSnap.toObjects(SetLogEntity::class.java)
                     Log.d("whfullin", sets.toString())
                     data.local.entity.ExerciseLogWithSets(exLog, sets)
@@ -142,15 +171,12 @@ class WorkoutRepository(
 
     suspend fun deleteWorkoutFirebase(workoutId: String) {
         try {
-            val workoutRef = firestore.collection("googlecloudworkouts").document(workoutId)
+            val workoutRef = templateRef(workoutId)
             val batch = firestore.batch()
 
-            val exerciseSnapshot = workoutRef.collection("googlecloudexercises").get().await()
+            val exerciseSnapshot = workoutRef.collection(FirestorePaths.EXERCISES).get().await()
             for (exerciseDoc in exerciseSnapshot) {
-                val setsSnapshot = exerciseDoc.reference.collection("sets").get().await()
-                for (setsDoc in setsSnapshot) {
-                    batch.delete(setsDoc.reference)
-                }
+                deleteSetDocuments(exerciseDoc.reference, batch)
                 batch.delete(exerciseDoc.reference)
             }
             batch.delete(workoutRef)
@@ -169,15 +195,11 @@ class WorkoutRepository(
 
     suspend fun deleteSelectedExerciseFirebase(workoutId: String, exerciseId: String) {
         try {
-            val exerciseDocRef = firestore.collection("googlecloudworkouts")
-                .document(workoutId)
-                .collection("googlecloudexercises")
+            val exerciseDocRef = templateRef(workoutId)
+                .collection(FirestorePaths.EXERCISES)
                 .document(exerciseId)
             val batch = firestore.batch()
-            val setSnapshot = exerciseDocRef.collection("sets").get().await()
-            for (setDoc in setSnapshot) {
-                batch.delete(setDoc.reference)
-            }
+            deleteSetDocuments(exerciseDocRef, batch)
             batch.delete(exerciseDocRef)
             batch.commit().await()
             dao.touchWorkout(workoutId)
@@ -269,18 +291,18 @@ class WorkoutRepository(
         try {
             val batch = firestore.batch()
 
-            val workoutRef = firestore.collection("googlecloudworkouts").document(workout.workoutId)
+            val workoutRef = templateRef(workout.workoutId)
             batch.set(workoutRef, workout)
 
             for (exercise in exercises) {
                 val exerciseRef =
-                    workoutRef.collection("googlecloudexercises").document(exercise.exerciseId)
+                    workoutRef.collection(FirestorePaths.EXERCISES).document(exercise.exerciseId)
                 batch.set(exerciseRef, exercise)
 
                 val relatedSets = sets.filter { it.exerciseOwnerId == exercise.exerciseId }
 
                 for (set in relatedSets) {
-                    val setRef = exerciseRef.collection("sets").document(set.setId)
+                    val setRef = exerciseRef.collection(FirestorePaths.SETS).document(set.setId)
                     batch.set(setRef, set)
                 }
 
@@ -293,8 +315,9 @@ class WorkoutRepository(
     }
 
     suspend fun syncMyWorkouts(userId: String) {
+        if (userId.isBlank()) return
         try {
-            val snap = firestore.collection("googlecloudworkouts")
+            val snap = firestore.collection(FirestorePaths.TEMPLATES)
                 .whereEqualTo("ownerUid", userId)
                 .get()
                 .await()
@@ -305,9 +328,8 @@ class WorkoutRepository(
                 dao.insertAllWorkouts(remoteWorkouts)
 
                 for (workout in remoteWorkouts) {
-                    val exerciseSnap = firestore.collection("googlecloudworkouts")
-                        .document(workout.workoutId)
-                        .collection("googlecloudexercises")
+                    val exerciseSnap = templateRef(workout.workoutId)
+                        .collection(FirestorePaths.EXERCISES)
                         .get()
                         .await()
 
@@ -335,13 +357,11 @@ class WorkoutRepository(
                             }
 
                             dao.insertExercise(finalExercise)
-                            val setsSnap = firestore.collection("googlecloudworkouts")
-                                .document(workout.workoutId)
-                                .collection("googlecloudexercises")
-                                .document(finalExercise.exerciseId)
-                                .collection("sets")
-                                .get()
-                                .await()
+                            val setsSnap = loadSetDocuments(
+                                templateRef(workout.workoutId)
+                                    .collection(FirestorePaths.EXERCISES)
+                                    .document(finalExercise.exerciseId)
+                            )
 
                             val remoteSets = setsSnap.documents.map { setDoc ->
                                 SetEntity(
@@ -569,29 +589,25 @@ class WorkoutRepository(
     }
 
     suspend fun saveWorkoutHistoryToFirebase(userId: String, sessionId: String) {
+        if (userId.isBlank()) return
         withContext(Dispatchers.IO) {
             try {
                 val historyFull = dao.observeWorkoutHistory(sessionId)
+                val batch = firestore.batch()
 
-                val db = FirebaseFirestore.getInstance()
-                val batch = db.batch()
-
-                val workoutRef = db.collection("googlecloudusers")
-                    .document(userId)
-                    .collection("googlecloudworkouts")
-                    .document(sessionId)
+                val workoutRef = historyRef(userId, sessionId)
 
                 batch.set(workoutRef, historyFull.workoutHistory)
 
                 historyFull.exerciseWithSets.forEach { exerciseWith ->
                     val exerciseLog = exerciseWith.exerciseLog
-                    val exerciseRef = workoutRef.collection("googlecloudexercises")
+                    val exerciseRef = workoutRef.collection(FirestorePaths.EXERCISES)
                         .document(exerciseLog.logId.toString())
 
                     batch.set(exerciseRef, exerciseLog)
 
                     exerciseWith.setLogs.forEach { setLog ->
-                        val setRef = exerciseRef.collection("googlecloudsets")
+                        val setRef = exerciseRef.collection(FirestorePaths.SETS)
                             .document(setLog.setId.toString())
                         batch.set(setRef, setLog)
                     }
@@ -610,9 +626,7 @@ class WorkoutRepository(
 
     fun observeUserWorkoutHistory(nickname: String): Flow<List<WorkoutHistoryEntity>> =
         callbackFlow {
-            val db = FirebaseFirestore.getInstance()
-
-            val userQuery = db.collection("googlecloudusers")
+            val userQuery = firestore.collection(FirestorePaths.USERS)
                 .whereEqualTo("nickname", nickname)
 
             val userListener = userQuery.addSnapshotListener { userSnapshot, userError ->
@@ -626,9 +640,7 @@ class WorkoutRepository(
                 val userId = userDoc?.id
 
                 if (userId != null) {
-                    val workoutsListener = db.collection("googlecloudusers")
-                        .document(userId)
-                        .collection("googlecloudworkouts")
+                    val workoutsListener = historyCol(userId)
                         .orderBy("dateTimestamp", Query.Direction.DESCENDING)
                         .addSnapshotListener { workoutSnapshot, workoutError ->
                             if (workoutError != null) {
@@ -654,12 +666,8 @@ class WorkoutRepository(
         }
 
     suspend fun getUserTotalWorkoutNumber(userId: String): Long {
-        val db = FirebaseFirestore.getInstance()
         return try {
-            val query = db.collection("googlecloudusers")
-                .document(userId)
-                .collection("googlecloudworkouts")
-                .count()
+            val query = historyCol(userId).count()
             val snapshot = query.get(AggregateSource.SERVER).await()
             snapshot.count
         } catch (e: Exception) {
@@ -668,27 +676,21 @@ class WorkoutRepository(
     }
 
     suspend fun getTotalLiftedWeight(userId: String): Long {
-        val db = FirebaseFirestore.getInstance()
         var totalWeight = 0.0
 
         try {
-            val workoutsSnapshot = db.collection("googlecloudusers")
-                .document(userId)
-                .collection("googlecloudworkouts")
+            val workoutsSnapshot = historyCol(userId)
                 .get()
                 .await()
 
             for (workoutDoc in workoutsSnapshot.documents) {
                 val exercisesSnapshot = workoutDoc.reference
-                    .collection("googlecloudexercises")
+                    .collection(FirestorePaths.EXERCISES)
                     .get()
                     .await()
 
                 for (exerciseDoc in exercisesSnapshot.documents) {
-                    val setSnapshot = exerciseDoc.reference
-                        .collection("googlecloudsets")
-                        .get()
-                        .await()
+                    val setSnapshot = loadSetDocuments(exerciseDoc.reference)
 
                     for (setDoc in setSnapshot.documents) {
                         val weight = (setDoc.get("weight") as? Number)?.toDouble() ?: 0.0
@@ -706,12 +708,8 @@ class WorkoutRepository(
     }
 
     suspend fun getTotalSpentTime(userId: String): Long {
-        val db = FirebaseFirestore.getInstance()
-
         return try {
-            val querySnapshot = db.collection("googlecloudusers")
-                .document(userId)
-                .collection("googlecloudworkouts")
+            val querySnapshot = historyCol(userId)
                 .get()
                 .await()
 

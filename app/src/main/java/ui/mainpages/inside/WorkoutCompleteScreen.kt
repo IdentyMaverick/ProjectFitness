@@ -384,14 +384,17 @@ fun WorkoutRecordCard(
                 contentAlignment = Alignment.Center
             ) {
                     ProofUploadSection(
-                        onUriSelected = {
-                            leaderboardViewModel.uploadPrProof(
-                                it,
-                                FirebaseAuth.getInstance().currentUser?.uid.toString(),
-                                card,
-                                0.0,
-                                ""
-                            )
+                        onUriSelected = { uri ->
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                            if (!uid.isNullOrBlank()) {
+                                leaderboardViewModel.uploadPrProof(
+                                    uri,
+                                    uid,
+                                    card,
+                                    0.0,
+                                    ""
+                                )
+                            }
                         },
                         isUploadedClick,
                         isUploaded = isUploaded

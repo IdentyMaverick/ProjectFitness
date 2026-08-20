@@ -10,7 +10,10 @@ import kotlinx.coroutines.tasks.await
 class UserRepository(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
+    private fun isUsableUid(uid: String) = uid.isNotBlank()
+
     suspend fun createUserProfile(uid: String, profile: UserProfile) {
+        if (!isUsableUid(uid)) return
         firestore.collection("googlecloudusers")
             .document(uid)
             .set(profile)
@@ -18,11 +21,13 @@ class UserRepository(
     }
 
     suspend fun getUserProfile(uid: String): UserProfile? {
+        if (!isUsableUid(uid)) return null
         val doc = firestore.collection("googlecloudusers").document(uid).get().await()
         return doc.toObject(UserProfile::class.java)
     }
 
     suspend fun setUserOnline(uid: String, isOnline: Boolean) {
+        if (!isUsableUid(uid)) return
         firestore.collection("googlecloudusers")
             .document(uid)
             .update("isOnline", isOnline)
@@ -30,6 +35,7 @@ class UserRepository(
     }
 
     suspend fun updatePhotoUrl(uid: String, url: String) {
+        if (!isUsableUid(uid)) return
         firestore.collection("googlecloudusers").document(uid).update("userPhotoUri", url).await()
     }
 
@@ -41,6 +47,7 @@ class UserRepository(
         height: String,
         weight: String
     ) {
+        if (!isUsableUid(uid)) return
         firestore.collection("googlecloudusers").document(uid)
             .update(
                 "first",

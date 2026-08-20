@@ -123,7 +123,7 @@ fun Home(
     val context = LocalContext.current
     val scopes = rememberCoroutineScope()
     val db = remember { FirebaseFirestore.getInstance() }
-    val uid = remember { Firebase.auth.currentUser?.uid }
+    val uid = Firebase.auth.currentUser?.uid
     val sharedPreferences =
         remember { context.getSharedPreferences("rememberbuttonStatus", Context.MODE_PRIVATE) }
     val sharedPreferences2 =
@@ -173,6 +173,7 @@ fun Home(
     val isLoading = workouts.isEmpty() || userName.isEmpty()
 
     LaunchedEffect(uid) {
+        if (uid.isNullOrBlank()) return@LaunchedEffect
         profileRef.downloadUrl
             .addOnSuccessListener { uri ->
                 viewModelProfile.selectedImageUri.value = uri.toString()
@@ -186,7 +187,9 @@ fun Home(
     LaunchedEffect(Unit) {
         Log.d("called", "called")
         homesViewModel.refreshExercises()
-        homesViewModel.getUserName(uid.toString())
+        if (!uid.isNullOrBlank()) {
+            homesViewModel.getUserName(uid)
+        }
     }
 
     Scaffold(

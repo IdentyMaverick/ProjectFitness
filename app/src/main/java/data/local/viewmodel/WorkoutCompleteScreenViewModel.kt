@@ -22,7 +22,8 @@ class WorkoutCompleteScreenViewModel(
     repo: WorkoutRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
-    val currentUserUid = Firebase.auth.currentUser?.uid
+    val currentUserUid: String?
+        get() = Firebase.auth.currentUser?.uid?.takeIf { it.isNotBlank() }
     private val _userName = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
     var userName: StateFlow<String> = _userName
     private val _elapsedTime = kotlinx.coroutines.flow.MutableStateFlow("0 Minutes")
@@ -51,7 +52,7 @@ class WorkoutCompleteScreenViewModel(
     fun getUserName() {
         viewModelScope.launch {
             if (currentUserUid != null) {
-                val profile = userRepository.getUserProfile(currentUserUid)
+                val profile = userRepository.getUserProfile(currentUserUid!!)
                 _userName.value = profile?.first ?: "Sporcu"
             }
         }

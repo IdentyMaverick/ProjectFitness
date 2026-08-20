@@ -17,20 +17,20 @@ class HomesViewModel(
     authViewModel: AuthViewModel
 ) : ViewModel() {
     val workoutsFlow = repo.observeWorkouts()
-    val currentUserUid = Firebase.auth.currentUser?.uid
+    val currentUserUid: String?
+        get() = Firebase.auth.currentUser?.uid?.takeIf { it.isNotBlank() }
     private val _userName = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
     var userName: StateFlow<String> = _userName
     private val _nickname = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
     var nickname: StateFlow<String> = _nickname
 
-
-
     init {
         viewModelScope.launch {
             repo.seedDefaultsIfEmpty()
             repo.syncCatalog()
-            getUserName(currentUserUid.toString())
-            authViewModel.saveUserFcmToken(currentUserUid.toString())
+            val uid = currentUserUid ?: return@launch
+            getUserName(uid)
+            authViewModel.saveUserFcmToken(uid)
         }
     }
 
@@ -41,12 +41,11 @@ class HomesViewModel(
     }
 
     fun getUserName(currentUid: String) {
+        if (currentUid.isBlank()) return
         viewModelScope.launch {
-            if (currentUid != null) {
-                val profile = userRepository.getUserProfile(currentUid)
-                _userName.value = profile?.first ?: "Sporcu"
-                _nickname.value = profile?.nickname ?: "Sporcu"
-            }
+            val profile = userRepository.getUserProfile(currentUid)
+            _userName.value = profile?.first ?: "Sporcu"
+            _nickname.value = profile?.nickname ?: "Sporcu"
         }
     }
 }

@@ -343,7 +343,9 @@ class WorkoutLogViewModel(
                     _elapsedTime.value
                 )
                 try {
-                    saveWorkoutHistoryToFirebase(currentUserId.toString(), it)
+                    if (!currentUserId.isNullOrBlank()) {
+                        saveWorkoutHistoryToFirebase(currentUserId, it)
+                    }
                 } catch (e: Exception) {
                     Log.d("Firebase Error", e.message.toString())
                 }

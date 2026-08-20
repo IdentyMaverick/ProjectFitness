@@ -1300,14 +1300,16 @@ fun ProofUploadAddPr(
                         override fun onCompleted(composition: androidx.media3.transformer.Composition, exportResult: androidx.media3.transformer.ExportResult) {
                             // SIKISTIRMA BITTI -> SIMDI YUKLE
                             val compressedUri = Uri.fromFile(outputFile)
-
-                            leaderboardViewModel.uploadPrProof(
-                                compressedUri,
-                                FirebaseAuth.getInstance().currentUser?.uid.toString(),
-                                selectedModalBottomExercise,
-                                oneRepMax,
-                                nickname
-                            )
+                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                            if (!uid.isNullOrBlank()) {
+                                leaderboardViewModel.uploadPrProof(
+                                    compressedUri,
+                                    uid,
+                                    selectedModalBottomExercise,
+                                    oneRepMax,
+                                    nickname
+                                )
+                            }
 
                             isCompressing = false
                             showMenuSheetPrAdd(false)

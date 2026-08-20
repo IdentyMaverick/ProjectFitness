@@ -22,7 +22,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ import androidx.navigation.NavController
 import com.grozzbear.R
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
+import viewmodel.LoginUiState
 import viewmodel.RegisterUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,6 +57,7 @@ import viewmodel.RegisterUiState
 fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
     val context = LocalContext.current
     val state = authViewModel.registerState.collectAsState().value
+    val loginState by authViewModel.loginState.collectAsState()
 
     val name = remember { mutableStateOf("") }
     val nickName = remember { mutableStateOf("") }
@@ -233,17 +237,10 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
 
                 Spacer(modifier = Modifier.height(15.dp))
 
-                Button(
-                    onClick = { /* TODO */ },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Image(
-                        painterResource(id = R.drawable.google),
-                        null,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
+                GoogleSignInButton(
+                    authViewModel,
+                    enabled = loginState !is LoginUiState.Loading && state !is RegisterUiState.Loading
+                )
 
                 Spacer(modifier = Modifier.height(15.dp))
 
@@ -266,6 +263,29 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                     text = annotatedText,
                     onClick = { navController.navigate(Screens.LoginScreen.route) })
             }
+        }
+    }
+
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is LoginUiState.Success -> {
+                navController.navigate(Screens.Home.route) {
+                    popUpTo(Screens.LoginScreen.route) { inclusive = true }
+                    launchSingleTop = true
+                }
+                authViewModel.resetLoginState()
+            }
+
+            is LoginUiState.Error -> {
+                Toast.makeText(
+                    context,
+                    (loginState as LoginUiState.Error).message,
+                    Toast.LENGTH_SHORT
+                ).show()
+                authViewModel.resetLoginState()
+            }
+
+            else -> Unit
         }
     }
 

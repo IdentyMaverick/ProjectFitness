@@ -13,7 +13,8 @@ class PersonalInformationsScreenViewModel(
     private val profileViewModel: ProfileViewModel,
     private val userRepo: UserRepository
 ) : ViewModel() {
-    val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+    val currentUserUid: String?
+        get() = FirebaseAuth.getInstance().currentUser?.uid?.takeIf { it.isNotBlank() }
     val profileState = profileViewModel.profileState
 
     fun loadUid() {
@@ -29,9 +30,10 @@ class PersonalInformationsScreenViewModel(
         height: String,
         weight: String
     ) {
+        val uid = currentUserUid ?: return
         viewModelScope.launch {
             userRepo.updateUserInformation(
-                currentUserUid!!,
+                uid,
                 first,
                 gender,
                 birthDate,

@@ -1,7 +1,6 @@
 package ui.mainpages.navigation
 
 import OtherScreenProfile
-import ProofUploadSection
 import SocialViewModel
 import WorkoutCompleteScreen
 import activity.inside.ActivityInside
@@ -15,7 +14,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -42,10 +40,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -63,8 +58,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -138,104 +131,65 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     val sharedPref = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
     val isBoardingCompleted = sharedPref.getBoolean("is_boarding_completed", false)
     val isUserLoggedIn = FirebaseAuth.getInstance().currentUser != null
-    val viewModel: ViewModelSave = viewModel()
-    val projectFitnessViewModel: ProjectFitnessViewModel = ProjectFitnessViewModel()
-    val viewModelProfile: ViewModelProfile = ViewModelProfile()
-    val firestoreRepository: FirestoreRepository = FirestoreRepository()
-    val socialViewModel: SocialViewModel = SocialViewModel(repository = firestoreRepository)
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel =
-        AuthViewModel(AuthRepository(), UserRepository(), workoutRepository)
-    val profileViewModel: ProfileViewModel =
-        ProfileViewModel(UserRepository(), workoutRepository, StorageRepository())
-    val workoutinModel: WorkoutinViewModel = WorkoutinViewModel(WorkoutinRepository())
     val currentUser: FirebaseAuth = FirebaseAuth.getInstance()
-    val chooseExercisesViewModel: ChooseExercisesViewModel = ChooseExercisesViewModel()
-    val userRepository: UserRepository = UserRepository()
-    val activityInsideViewModel: ActivityInsideViewModel =
-        ActivityInsideViewModel(workoutRepository)
     val infoDialog = remember { mutableStateOf(false) }
-    val faqcontactfeedbackScreenViewModel: FaqcontactfeedbackScreenViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                workoutRepository,
-                currentUser,
-                userRepository,
-                profileViewModel,
-                authViewModel
-            )
-        }
-    )
-    val personalInformationsScreenViewModel: PersonalInformationsScreenViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                workoutRepository,
-                currentUser,
-                userRepository,
-                profileViewModel,
-                authViewModel
-            )
-        }
-    )
-    val homesViewModel: HomesViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                workoutRepository,
-                currentUser,
-                userRepository,
-                profileViewModel,
-                authViewModel
-            )
-        }
-    )
-    val activityViewModel: ActivityViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser, userRepository, profileViewModel, authViewModel
-            )
-        },
-    )
-    val workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser, userRepository, profileViewModel, authViewModel
-            )
-        },
-    )
-    val workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser, userRepository, profileViewModel, authViewModel
-            )
-        }
-    )
-    val oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser, userRepository, profileViewModel, authViewModel
-            )
-        }
-    )
-    val leaderboardViewModel: LeaderboardViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser, userRepository, profileViewModel, authViewModel
-            )
-        }
-    )
-    val workoutSettingViewModel: WorkoutSettingViewModel = viewModel(
-        factory = remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser, userRepository, profileViewModel, authViewModel
-            )
-        }
-    )
+
+    val userRepository = remember { UserRepository() }
+    val firestoreRepository = remember { FirestoreRepository() }
+    val storageRepository = remember { StorageRepository() }
+    val workoutinRepository = remember { WorkoutinRepository() }
+    val authRepository = remember { AuthRepository() }
+
+    val viewModel: ViewModelSave = viewModel()
+    val projectFitnessViewModel: ProjectFitnessViewModel = viewModel()
+    val viewModelProfile: ViewModelProfile = viewModel()
+    val chooseExercisesViewModel: ChooseExercisesViewModel = viewModel()
+
+    val coreFactory = remember {
+        WorkoutViewModelFactory(
+            repository = workoutRepository,
+            auth = currentUser,
+            userRepository = userRepository,
+            firestoreRepository = firestoreRepository,
+            storageRepository = storageRepository,
+            workoutinRepository = workoutinRepository,
+            authRepository = authRepository
+        )
+    }
+    val authViewModel: AuthViewModel = viewModel(factory = coreFactory)
+    val profileViewModel: ProfileViewModel = viewModel(factory = coreFactory)
+    val socialViewModel: SocialViewModel = viewModel(factory = coreFactory)
+    val workoutinModel: WorkoutinViewModel = viewModel(factory = coreFactory)
+    val activityInsideViewModel: ActivityInsideViewModel = viewModel(factory = coreFactory)
+
+    val featureFactory = remember(authViewModel, profileViewModel) {
+        WorkoutViewModelFactory(
+            repository = workoutRepository,
+            auth = currentUser,
+            userRepository = userRepository,
+            profileViewModel = profileViewModel,
+            authViewModel = authViewModel,
+            firestoreRepository = firestoreRepository,
+            storageRepository = storageRepository,
+            workoutinRepository = workoutinRepository,
+            authRepository = authRepository
+        )
+    }
+    val faqcontactfeedbackScreenViewModel: FaqcontactfeedbackScreenViewModel =
+        viewModel(factory = featureFactory)
+    val personalInformationsScreenViewModel: PersonalInformationsScreenViewModel =
+        viewModel(factory = featureFactory)
+    val homesViewModel: HomesViewModel = viewModel(factory = featureFactory)
+    val activityViewModel: ActivityViewModel = viewModel(factory = featureFactory)
+    val workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel =
+        viewModel(factory = featureFactory)
+    val workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel =
+        viewModel(factory = featureFactory)
+    val oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel =
+        viewModel(factory = featureFactory)
+    val leaderboardViewModel: LeaderboardViewModel = viewModel(factory = featureFactory)
+    val workoutSettingViewModel: WorkoutSettingViewModel = viewModel(factory = featureFactory)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -302,13 +256,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
 
                     val createWorkoutViewModel: CreateWorkoutViewModel = viewModel(
                         parentEntry,
-                        factory = WorkoutViewModelFactory(
-                            workoutRepository,
-                            currentUser,
-                            userRepository,
-                            profileViewModel,
-                            authViewModel
-                        )
+                        factory = featureFactory
                     )
 
                     CreateWorkout(
@@ -350,13 +298,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
 
                     val createWorkoutViewModel: CreateWorkoutViewModel = viewModel(
                         parentEntry,
-                        factory = WorkoutViewModelFactory(
-                            workoutRepository,
-                            currentUser,
-                            userRepository,
-                            profileViewModel,
-                            authViewModel
-                        )
+                        factory = featureFactory
                     )
 
                     ChooseExercises(
@@ -380,13 +322,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
 
                     val leaderboardViewModel: LeaderboardViewModel = viewModel(
                         parentEntry,
-                        factory = WorkoutViewModelFactory(
-                            workoutRepository,
-                            currentUser,
-                            userRepository,
-                            profileViewModel,
-                            authViewModel
-                        )
+                        factory = featureFactory
                     )
 
                     LeaderBoard(
@@ -1422,14 +1358,17 @@ fun NavigationBarLeaderboard(
                         } else if (userEntry.verificationStatus == "notVerified") {
                             if (!isUploadProofClicked.value)
                                 ProofUploadSectionLeaderboard(
-                                    onUriSelected = {
-                                        leaderboardViewModel.uploadPrProof(
-                                            it,
-                                            FirebaseAuth.getInstance().currentUser?.uid.toString(),
-                                            userEntry.exerciseName,
-                                            0.0,
-                                            userEntry.userName
-                                        )
+                                    onUriSelected = { uri ->
+                                        val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                        if (!uid.isNullOrBlank()) {
+                                            leaderboardViewModel.uploadPrProof(
+                                                uri,
+                                                uid,
+                                                userEntry.exerciseName,
+                                                0.0,
+                                                userEntry.userName
+                                            )
+                                        }
                                     },
                                     isUploadedClick = {}
                                 )

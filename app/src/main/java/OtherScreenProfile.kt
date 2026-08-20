@@ -62,6 +62,7 @@ import coil.compose.AsyncImage
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grozzbear.R
 import data.local.viewmodel.OldWorkoutDetailsViewModel
+import data.remote.FirestorePaths
 import ui.mainpages.inside.HomeTopBarProfile
 import viewmodel.AuthViewModel
 import viewmodel.ProfileUiState
@@ -117,15 +118,17 @@ fun OtherScreenProfile(
     // Antrenmanları çekme (ownerUid filtresiyle)
     LaunchedEffect(user?.id) {
         user?.id?.let { userId ->
-            db.collection("googlecloudworkouts")
-                .whereEqualTo("ownerUid", userId)
+            db.collection(FirestorePaths.USERS)
+                .document(userId)
+                .collection(FirestorePaths.HISTORY)
                 .get()
                 .addOnSuccessListener { querySnapshot ->
                     workoutList = querySnapshot.map { doc ->
+                        val durationMin = ((doc.getLong("totalDuration") ?: 0L) / 60).toString()
                         WorkoutCompleteUser(
                             workoutname = doc.getString("workoutName") ?: "Unnamed",
-                            workoutdate = doc.getString("workoutdate") ?: "N/A",
-                            durationminutes = doc.getString("durationminutes") ?: "0"
+                            workoutdate = (doc.getLong("dateTimestamp") ?: 0L).toString(),
+                            durationminutes = durationMin
                         )
                     }
                 }

@@ -53,10 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import com.google.android.gms.common.api.CommonStatusCodes
 import com.grozzbear.R
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
@@ -247,7 +246,10 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                     )
                 }
 
-                GoogleSignInButton(authViewModel)
+                GoogleSignInButton(
+                    authViewModel,
+                    enabled = loginState !is LoginUiState.Loading
+                )
 
                 Spacer(modifier = Modifier.height(30.dp))
 
@@ -283,22 +285,34 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 }
 
 @Composable
-fun GoogleSignInButton(authViewModel: AuthViewModel) {
+fun GoogleSignInButton(authViewModel: AuthViewModel, enabled: Boolean = true) {
     val context = LocalContext.current
-    val auth = Firebase.auth
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
         try {
-            val account = task.getResult(ApiException::class.java)!!
-            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-            auth.signInWithCredential(credential).addOnCompleteListener { task ->
-                if (task.isSuccessful) Log.d("Auth", "Successfully Signed In")
-                else Log.e("Auth", "Firebase Error")
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account.idToken
+            if (idToken.isNullOrBlank()) {
+                authViewModel.onGoogleSignInFailed("Google ID token is missing")
+                return@rememberLauncherForActivityResult
             }
+            authViewModel.loginWithGoogle(
+                idToken = idToken,
+                displayName = account.displayName,
+                email = account.email,
+                photoUrl = account.photoUrl?.toString()
+            )
+        } catch (e: ApiException) {
+            if (e.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                return@rememberLauncherForActivityResult
+            }
+            Log.e("Auth", "Google sign-in failed: ${e.statusCode} ${e.message}")
+            authViewModel.onGoogleSignInFailed(googleSignInErrorMessage(e))
         } catch (e: Exception) {
             Log.e("Auth", "Error: ${e.message}")
+            authViewModel.onGoogleSignInFailed(e.message ?: "Google sign-in failed")
         }
     }
 
@@ -307,6 +321,7 @@ fun GoogleSignInButton(authViewModel: AuthViewModel) {
             val signInClient = authViewModel.getGoogleSignInClient(context)
             launcher.launch(signInClient.signInIntent)
         },
+        enabled = enabled,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {
         Image(
@@ -327,3 +342,14 @@ fun commonTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedLabelColor = Color.Transparent,
     unfocusedLabelColor = Color.Transparent
 )
+
+private fun googleSignInErrorMessage(e: ApiException): String {
+    return when (e.statusCode) {
+        CommonStatusCodes.DEVELOPER_ERROR ->
+            "Google Sign-In is not configured for this app. Add the debug SHA-1 in Firebase Console, then download a new google-services.json."
+        else -> {
+            val codeName = GoogleSignInStatusCodes.getStatusCodeString(e.statusCode)
+            "Google sign-in failed ($codeName)"
+        }
+    }
+}

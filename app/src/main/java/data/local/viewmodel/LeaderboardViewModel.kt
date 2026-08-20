@@ -41,6 +41,7 @@ class LeaderboardViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun uploadPrProof(uri: android.net.Uri, userId: String, exerciseName: String, weight: Double, nickname: String) {
+        if (userId.isBlank()) return
         viewModelScope.launch {
             val storageRef = FirebaseStorage.getInstance().reference
             val fileName = "proofs/${userId}_${exerciseName}_${UUID.randomUUID()}.mp4"
