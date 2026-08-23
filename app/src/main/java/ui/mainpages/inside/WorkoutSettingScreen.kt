@@ -453,7 +453,6 @@ private fun HomeTopBarWorkoutSettingScreen(_workoutSetting: Int, navController: 
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(top = topPadding)
             .height(80.dp) // TopBar yüksekliğini sabitliyoruz
     ) {
         // 2. Arka plan görseli (En altta kalır)

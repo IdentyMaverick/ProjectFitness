@@ -36,7 +36,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -47,8 +46,6 @@ import viewmodel.AuthViewModel
 import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
-
-val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
 @Composable
 fun HomesSettings(
@@ -61,7 +58,7 @@ fun HomesSettings(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBar(navController, topPadding = topPadding)
+            HomeTopBar(navController)
         },
         containerColor = Color(0xFF121417),
         floatingActionButtonPosition = FabPosition.EndOverlay,
@@ -114,11 +111,11 @@ fun HomesSettings(
 }
 
 @Composable
-fun HomeTopBar(navController: NavController, topPadding: Dp) {
+fun HomeTopBar(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = topPadding)
+            .statusBarsPadding()
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

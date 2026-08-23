@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -49,7 +50,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -69,17 +69,13 @@ fun AllWorkouts(
 
     var lazyListState = rememberLazyListState()
     val allWorkouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
-    val topPadding: Dp = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-
-
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
             HomeTopBarAllWorkouts(
                 clickedProfile = clickedProfile,
                 onProfileClick = { navController.popBackStack() },
-                onMenuClick = { showMenuSheet = true },
-                topPadding
+                onMenuClick = { showMenuSheet = true }
             )
         },
         containerColor = Color(0xFF121417),
@@ -235,13 +231,12 @@ fun AllWorkouts(
 private fun HomeTopBarAllWorkouts(
     clickedProfile: Boolean,
     onProfileClick: () -> Unit,
-    onMenuClick: () -> Unit,
-    topPadding: Dp
+    onMenuClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = topPadding)
+            .statusBarsPadding()
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

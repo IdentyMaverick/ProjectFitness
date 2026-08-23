@@ -42,7 +42,7 @@ import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
 
 /** Main-tab top bar logo size — keep Home / Activity / LeaderBoard / Meal aligned. */
-val GrozzTopBarLogoSize: Dp = 48.dp
+val GrozzTopBarLogoSize: Dp = 64.dp
 
 /**
  * Centered Grozz mark for main Scaffold top bars.

@@ -1,61 +1,27 @@
 package ui.mainpages.inside
 
-import viewmodel.SocialViewModel
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.grozzbear.R
 import viewmodel.AuthViewModel
+import viewmodel.SocialViewModel
 
 @Composable
 fun ProjectFollowScreen(
@@ -63,99 +29,162 @@ fun ProjectFollowScreen(
     socialViewModel: SocialViewModel,
     authViewModel: AuthViewModel
 ) {
-    val user = Firebase.auth.currentUser
-    val context = LocalContext.current
+    val currentUserId = Firebase.auth.currentUser?.uid
     val myNickname by socialViewModel.nickname.collectAsState()
 
-    val getAllUserState by remember { socialViewModel.getAllUsers() }
+    val allUsers by remember { socialViewModel.getAllUsers() }
         .collectAsState(initial = emptyList())
-    val getFollowing by remember(myNickname) {
+    val followingNicknames by remember(myNickname) {
         socialViewModel.getFollowing(myNickname)
     }.collectAsState(initial = emptyList())
 
-    val searchedText = remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
 
-    // Takip ettiklerini filtrele
-    val myFollowingList = getAllUserState.filter {
-        it.nickname.isNotEmpty() && getFollowing.contains(it.nickname)
-    }.filter {
-        it.nickname.contains(searchedText.value, ignoreCase = true) ||
-                it.first.contains(searchedText.value, ignoreCase = true)
+    val followingList = remember(allUsers, followingNicknames, searchQuery) {
+        allUsers
+            .filter { it.nickname.isNotBlank() && followingNicknames.contains(it.nickname) }
+            .filter {
+                searchQuery.isBlank() ||
+                    it.nickname.contains(searchQuery, ignoreCase = true) ||
+                    it.first.contains(searchQuery, ignoreCase = true)
+            }
     }
 
-    // Öneriler (Rastgele 5 kişi, ben değilim ve takip etmiyorum)
-    val recommendations = remember(getAllUserState, getFollowing) {
-        getAllUserState
-            .filter { it.nickname.isNotEmpty() && it.id != user?.uid && !getFollowing.contains(it.nickname) && it.nickname != myNickname }
+    val recommendations = remember(allUsers, followingNicknames, myNickname, currentUserId) {
+        allUsers
+            .filter {
+                it.nickname.isNotBlank() &&
+                    it.id != currentUserId &&
+                    it.nickname != myNickname &&
+                    !followingNicknames.contains(it.nickname)
+            }
             .shuffled()
             .take(5)
     }
 
+    val showRecommendations = searchQuery.isBlank() && recommendations.isNotEmpty()
+    val showEmptyState = followingList.isEmpty() && !showRecommendations
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { HomeTopBarProfileFollow(navController) },
+        topBar = {
+            FollowListTopBar(
+                title = "FOLLOWING",
+                navController = navController
+            )
+        },
         containerColor = Color(0xFF121417),
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
-                SearchBoxFollow(searchedText)
-                Spacer(modifier = Modifier.height(20.dp))
+        when {
+            myNickname.isBlank() -> {
+                FollowListLoadingState(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
             }
 
-            if (myFollowingList.isNotEmpty()) {
-                item {
-                    Text(
-                        "Following",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp, vertical = 10.dp)
-                    )
-                }
-                items(myFollowingList) { item ->
-                    UserRowItem(
-                        item,
-                        true,
-                        myNickname,
-                        socialViewModel,
-                        navController,
-                        context,
-                        authViewModel
+            showEmptyState -> {
+                ColumnWithSearch(
+                    searchQuery = searchQuery,
+                    onSearchChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    FollowEmptyState(
+                        title = if (searchQuery.isBlank()) "Not following anyone yet" else "No results found",
+                        subtitle = if (searchQuery.isBlank()) {
+                            "Find athletes to follow and build your fitness circle."
+                        } else {
+                            "Try a different name or username."
+                        },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
 
-            if (searchedText.value.isEmpty() && recommendations.isNotEmpty()) {
-                item {
-                    Text(
-                        "Suggested for you",
-                        color = Color(0xFFF1C40F),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp, vertical = 10.dp)
-                    )
-                }
-                items(recommendations) { item ->
-                    UserRowItem(
-                        item,
-                        false,
-                        myNickname,
-                        socialViewModel,
-                        navController,
-                        context,
-                        authViewModel
-                    )
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    item(key = "search") {
+                        Spacer(Modifier.height(16.dp))
+                        FollowSearchField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = "Search following..."
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    if (followingList.isNotEmpty()) {
+                        item(key = "following_header") {
+                            FollowSectionHeader(
+                                title = "Following",
+                                count = followingList.size
+                            )
+                        }
+
+                        items(
+                            items = followingList,
+                            key = { it.id.ifBlank { it.nickname } }
+                        ) { user ->
+                            FollowUserRow(
+                                user = user,
+                                buttonStyle = FollowButtonStyle.Following,
+                                onProfileClick = {
+                                    openUserProfile(navController, authViewModel, user.nickname)
+                                },
+                                onFollowClick = {
+                                    socialViewModel.unfollowUser(myNickname, user.nickname)
+                                }
+                            )
+                        }
+                    } else if (searchQuery.isNotBlank()) {
+                        item(key = "following_empty_search") {
+                            FollowEmptyState(
+                                title = "No results found",
+                                subtitle = "Try a different name or username.",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = 32.dp)
+                            )
+                        }
+                    }
+
+                    if (showRecommendations) {
+                        item(key = "suggested_header") {
+                            FollowSectionHeader(
+                                title = "Suggested for you",
+                                accent = true,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+
+                        items(
+                            items = recommendations,
+                            key = { "suggested_${it.id.ifBlank { it.nickname }}" }
+                        ) { user ->
+                            FollowUserRow(
+                                user = user,
+                                buttonStyle = FollowButtonStyle.Follow,
+                                onProfileClick = {
+                                    openUserProfile(navController, authViewModel, user.nickname)
+                                },
+                                onFollowClick = {
+                                    socialViewModel.followUser(myNickname, user.nickname)
+                                }
+                            )
+                        }
+                    }
+
+                    item(key = "bottom_spacer") {
+                        Spacer(Modifier.height(24.dp))
+                    }
                 }
             }
         }
@@ -163,128 +192,20 @@ fun ProjectFollowScreen(
 }
 
 @Composable
-fun UserRowItem(
-    item: data.remote.User,
-    isFollowing: Boolean,
-    myNickname: String,
-    socialViewModel: SocialViewModel,
-    navController: NavController,
-    context: android.content.Context,
-    authViewModel: AuthViewModel
+private fun ColumnWithSearch(
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 25.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .border(2.dp, Color(0xFFF1C40F), CircleShape)
-                .padding(2.dp)
-                .border(2.dp, Color.Black, CircleShape)
-                .padding(4.dp)
-        ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.userPhotoUri.ifEmpty { R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml })
-                    .crossfade(true).build(),
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .clickable {
-                        authViewModel._totalWorkoutNumber.value = 0
-                        authViewModel._totalLiftedWeight.value = 0F
-                        navController.navigate("otherscreenprofile/${item.nickname}")
-                    },
-                contentScale = ContentScale.Crop
-            )
-        }
-        Spacer(modifier = Modifier.width(15.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = item.first, color = Color.White, fontSize = 18.sp)
-            Text(text = "@${item.nickname}", color = Color(0xFFF1C40F), fontSize = 13.sp)
-        }
-        Button(
-            onClick = {
-                if (isFollowing) socialViewModel.unfollowUser(myNickname, item.nickname)
-                else socialViewModel.followUser(myNickname, item.nickname)
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isFollowing) Color.White.copy(
-                    alpha = 0.1f
-                ) else Color(0xFFF1C40F)
-            ),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier.height(35.dp)
-        ) {
-            Text(
-                if (isFollowing) "Following" else "Follow",
-                color = if (isFollowing) Color.White else Color.Black,
-                fontSize = 11.sp
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBoxFollow(text: MutableState<String>) {
-    TextField(
-        value = text.value,
-        onValueChange = { text.value = it },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .height(56.dp),
-        placeholder = { Text("Search following...", color = Color.White.copy(alpha = 0.3f)) },
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.4f)
-            )
-        },
-        shape = RoundedCornerShape(15.dp),
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color(0xFF21282F),
-            unfocusedContainerColor = Color(0xFF21282F),
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),
-        textStyle = TextStyle(color = Color.White, fontSize = 14.sp)
-    )
-}
-
-@Composable
-fun HomeTopBarProfileFollow(navController: NavController) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                painterResource(R.drawable.left),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(30.dp)
-            )
-        }
-        Spacer(Modifier.weight(1f))
-        Text(
-            "FOLLOWING",
-            color = Color.White,
-            fontFamily = FontFamily(Font(R.font.oswaldbold)),
-            fontSize = 20.sp
+    androidx.compose.foundation.layout.Column(modifier = modifier) {
+        Spacer(Modifier.height(16.dp))
+        FollowSearchField(
+            value = searchQuery,
+            onValueChange = onSearchChange,
+            placeholder = "Search following..."
         )
-        Spacer(Modifier.weight(1f))
-        Spacer(Modifier.size(48.dp))
+        Spacer(Modifier.height(8.dp))
+        content()
     }
 }

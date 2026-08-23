@@ -1,14 +1,16 @@
 package ui.mainpages.inside
 
-import viewmodel.SocialViewModel
-import android.net.Uri
 import android.os.Build
-import android.util.Log
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,15 +30,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -55,16 +57,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -72,167 +72,198 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.auth.ktx.auth
 import com.grozzbear.R
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.ProfileUiState
 import viewmodel.ProfileViewModel
+import viewmodel.SocialViewModel
 import viewmodel.ViewModelProfile
-import java.util.Calendar
+
+private val ProfileCardBg = Color(0xFF202B36).copy(alpha = 0.55f)
+private val ProfileAccent = Color(0xFFF1C40F)
+private val ProfileMuted = Color(0xFF4B5F71)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Profile(
     navController: NavController,
-    viewModelProfile: ViewModelProfile,
+    @Suppress("UNUSED_PARAMETER") viewModelProfile: ViewModelProfile,
     socialViewModel: SocialViewModel,
     authViewModel: AuthViewModel,
     profileViewModel: ProfileViewModel,
     workoutScreenCompleteScreenViewModel: WorkoutCompleteScreenViewModel,
     oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel
 ) {
-
-    //Firebase *************************************************************************************************************************************************************
     val uid = Firebase.auth.currentUser?.uid ?: return
-    val profileState = profileViewModel.profileState.collectAsState().value
+    val profileState by profileViewModel.profileState.collectAsState()
 
     LaunchedEffect(uid) {
         profileViewModel.load(uid)
+        authViewModel.getTotalWorkoutNumber(uid)
+        authViewModel.getTotalLiftedWeight(uid)
+        authViewModel.getTotalSpentTime(uid)
     }
 
     val launcherProfile =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) profileViewModel.changePhoto(uid, uri = uri)
         }
-    //******************************************************************************************************************************************************************************
-    //Database Creation*************************************************************************************************************************************************************
-    val context = LocalContext.current
 
-    //Image select options
-    val nickname = remember { mutableStateOf("") }
-    val _user = com.google.firebase.ktx.Firebase.auth.currentUser
-    val getFollowers by remember(nickname.value) {
-        socialViewModel.getFollowers(nickname.value)
+    var nickname by remember { mutableStateOf("") }
+    val getFollowers by remember(nickname) {
+        socialViewModel.getFollowers(nickname)
     }.collectAsState(initial = emptyList())
-    val getFollowing by remember(nickname.value) {
-        socialViewModel.getFollowing(nickname.value)
+    val getFollowing by remember(nickname) {
+        socialViewModel.getFollowing(nickname)
     }.collectAsState(initial = emptyList())
-    var numberOfFollows = getFollowing.size
-    var numberOfFollowers = getFollowers.size
+    val numberOfFollows = getFollowing.size
+    val numberOfFollowers = getFollowers.size
+
     val allHistoricalWorkouts by authViewModel.allHistoricalWorkouts.collectAsState(emptyList())
     val scrollState = rememberScrollState()
     val totalWorkout by authViewModel.totalWorkoutNumber.collectAsState()
     val totalLiftedWeight by authViewModel.totalLiftedWeight.collectAsState()
     val getTotalSpentTime by authViewModel.totalSpentTime.collectAsState()
     val consistencyScore = authViewModel.calculateConsistency(allHistoricalWorkouts)
-    if (allHistoricalWorkouts.isEmpty()) {
-        authViewModel.syncWorkoutsFromFirebase(uid)
-    }
 
-    LaunchedEffect(totalWorkout) {
-        authViewModel.getTotalWorkoutNumber(uid)
-        authViewModel.getTotalLiftedWeight(uid)
-        authViewModel.getTotalSpentTime(uid)
-    }
-
-    // Profile.kt içinde
-    val modelProducer = remember { CartesianChartModelProducer.build() }
-    val weeklyData =
-        remember(allHistoricalWorkouts) { prepareWeeklyVolumeData(allHistoricalWorkouts) }
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-    val isPhotoExpanded = remember { mutableStateOf(false) }
-    val blurAlpha by animateDpAsState(
-        targetValue = if (isPhotoExpanded.value) 15.dp else 0.dp,
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 50),
-        label = "blurAnimation"
-    )
-
-    LaunchedEffect(weeklyData) {
-        if (weeklyData.any { it > 0f }) {
-            modelProducer.tryRunTransaction {
-                columnSeries { series(weeklyData) }
-            }
-        } else {
-            Log.d("VicoDebug", "Haftalık veri boş veya tümü 0: $weeklyData")
+    LaunchedEffect(allHistoricalWorkouts.isEmpty(), uid) {
+        if (allHistoricalWorkouts.isEmpty()) {
+            authViewModel.syncWorkoutsFromFirebase(uid)
         }
     }
+
+    LaunchedEffect(nickname) {
+        if (nickname.isNotBlank()) {
+            socialViewModel._nickname.value = nickname
+        }
+    }
+
+    var isPhotoExpanded by remember { mutableStateOf(false) }
+    val blurAlpha by animateDpAsState(
+        targetValue = if (isPhotoExpanded) 15.dp else 0.dp,
+        animationSpec = tween(durationMillis = 50),
+        label = "blurAnimation"
+    )
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabTitles = listOf("Stats", "Activity")
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBarProfile(navController, topPadding = topPadding)
+            HomeTopBarProfile(navController)
         },
         containerColor = Color(0xFF121417),
-        bottomBar = {},
-        floatingActionButtonPosition = FabPosition.EndOverlay,
-        modifier = Modifier.fillMaxSize().blur(blurAlpha),
+        modifier = Modifier
+            .fillMaxSize()
+            .blur(blurAlpha),
     ) { paddingValues ->
-        var tabTitles = listOf("Stats", "Activity")
-        var selectedTabIndex by remember { mutableStateOf(0) }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when (profileState) {
-                is ProfileUiState.Loading -> { /* loading */
+        when (val state = profileState) {
+            is ProfileUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = ProfileAccent)
                 }
+            }
 
-                is ProfileUiState.Error -> { /* toast/text */
+            is ProfileUiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Couldn't load profile. Pull to refresh or try again later.",
+                        color = Color.Gray,
+                        fontFamily = FontFamily(Font(R.font.lexendregular)),
+                        fontSize = 15.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
+            }
 
-                is ProfileUiState.Ready -> {
-                    val profile = (profileState as ProfileUiState.Ready).profile
-                    socialViewModel._nickname.value = profile.nickname
-                    nickname.value = profile.nickname
+            is ProfileUiState.Ready -> {
+                val profile = state.profile
+                LaunchedEffect(profile.nickname) {
+                    nickname = profile.nickname
+                }
+                val hasPhoto = profile.userPhotoUri.isNotBlank()
 
-                    Box(
-                        modifier = Modifier
-                            .size(110.dp)
-                            .border(4.dp, Color(0xFFF1C40F), CircleShape)
-                            .padding(4.dp)
-                            .border(2.dp, Color.Black, CircleShape)
-                            .padding(4.dp)
-                    ) {
-                        AsyncImage(
-                            model = if (profile.userPhotoUri != "") profile.userPhotoUri else R.drawable.grozzlogo,
-                            contentDescription = "Profile Picture",
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(Modifier.height(8.dp))
+
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .clickable {
-                                    if (profile.userPhotoUri != "") {
-                                        isPhotoExpanded.value = true
-                                    }
-                                           },
-                            contentScale = ContentScale.Crop
-                        )
+                                .size(110.dp)
+                                .border(4.dp, ProfileAccent, CircleShape)
+                                .padding(4.dp)
+                                .border(2.dp, Color.Black, CircleShape)
+                                .padding(4.dp)
+                        ) {
+                            AsyncImage(
+                                model = if (hasPhoto) profile.userPhotoUri else R.drawable.grozzlogo,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        if (hasPhoto) {
+                                            isPhotoExpanded = true
+                                        } else {
+                                            launcherProfile.launch("image/*")
+                                        }
+                                    },
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                        IconButton(
+                            onClick = { launcherProfile.launch("image/*") },
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(ProfileAccent, CircleShape)
+                                .border(2.dp, Color(0xFF121417), CircleShape)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.imageicon128),
+                                contentDescription = "Change photo",
+                                tint = Color.Black,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
-                    Spacer(Modifier.size(10.dp))
+
+                    Spacer(Modifier.size(12.dp))
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             profile.first,
-                            modifier = Modifier
-                                .padding(bottom = 0.dp),
                             color = Color.White,
                             fontFamily = FontFamily(Font(R.font.lexendbold)),
                             fontSize = 20.sp,
-                            style = TextStyle(letterSpacing = 0.sp)
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(Modifier.width(5.dp))
-                        if (profile.hasPro == true) {
+                        if (profile.hasPro) {
+                            Spacer(Modifier.width(8.dp))
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFFF1C40F))
-                                    .border(1.dp, Color.Black, RoundedCornerShape(5.dp))
+                                    .background(ProfileAccent)
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
@@ -244,481 +275,182 @@ fun Profile(
                             }
                         }
                     }
+
                     Text(
                         "@${profile.nickname}",
+                        color = ProfileAccent,
+                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontSize = 15.sp
+                    )
+
+                    Row(
                         modifier = Modifier
-                            .padding(bottom = 0.dp),
-                        color = Color(0xFFF1C40F),
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontSize = 15.sp,
-                        style = TextStyle(letterSpacing = 0.sp)
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth() // Tüm genişliği kaplasın
-                    .height(80.dp) // Yüksekliği biraz artırdım, tıklama alanı rahat olsun
-                    .padding(horizontal = 20.dp), // Kenarlardan boşluk
-                horizontalArrangement = Arrangement.SpaceEvenly, // Öğeleri eşit aralıklarla dağıt
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally, // 🔥 İŞTE SİHİRLİ KOD BURASI
-                    modifier = Modifier
-                        .clickable(onClick = { navController.navigate("projectfollowersscreen") })
-                        // Tıklama efektinin (ripple) güzel görünmesi için clip ekleyebilirsin
-                        .padding(8.dp) // Tıklama alanı biraz genişlesin
-                ) {
-                    Text(
-                        text = "$numberOfFollowers",
-                        color = Color.White,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)), // Sayıyı biraz daha kalın yapabilirsin
-                        fontSize = 20.sp,
-                        style = TextStyle(letterSpacing = 1.sp),
-                        // Padding YOK! Column kendisi ortalayacak.
-                    )
-                    Text(
-                        text = "FOLLOWERS",
-                        color = Color.Gray, // Başlığı biraz daha sönük yaparak hiyerarşi kurabilirsin
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontSize = 11.sp,
-                        style = TextStyle(letterSpacing = 0.sp),
-                    )
-                }
-
-                // Araya dikey çizgi (Divider) istersen:
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .height(40.dp)
-                        .background(Color.DarkGray)
-                )
-
-                // --- FOLLOWING KISMI ---
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clickable(onClick = { navController.navigate("projectfollowscreen") })
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = "$numberOfFollows",
-                        color = Color.White,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontSize = 20.sp,
-                        style = TextStyle(letterSpacing = 1.sp),
-                    )
-                    Text(
-                        text = "FOLLOWING",
-                        color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontSize = 11.sp,
-                        style = TextStyle(letterSpacing = 0.sp),
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(30.dp)
-                    .clip(RoundedCornerShape(20.dp)) // Dış çerçeve oval yapısı
-                    .background(Color.Gray.copy(alpha = 0.1f)) // Arka plan açık gri/mavi tonu
-            ) {
-                SecondaryTabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor = Color.Transparent,
-                    divider = {},
-                    indicator = {},
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    tabTitles.forEachIndexed { index, title ->
-                        val isSelected = selectedTabIndex == index
-
-                        Tab(
-                            selected = isSelected,
-                            onClick = { selectedTabIndex = index },
+                            .fillMaxWidth()
+                            .height(72.dp)
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        StatItem(label = "FOLLOWERS", count = numberOfFollowers) {
+                            navController.navigate("projectfollowersscreen")
+                        }
+                        Box(
                             modifier = Modifier
-                                .padding(horizontal = 0.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .then(
-                                    if (isSelected) Modifier.background(Color(0xFFF1C40F)) // Seçili olanın beyaz arka planı
-                                    else Modifier
-                                ),
-                            text = {
-                                Text(
-                                    text = title,
-                                    style = TextStyle(
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        fontSize = 15.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    ),
-                                    color = if (isSelected) Color.Black else Color(0xFF4B5F71) // Seçili Turuncu, seçili değilse Koyu Gri
-                                )
-                            }
+                                .width(1.dp)
+                                .height(40.dp)
+                                .background(Color.DarkGray)
                         )
+                        StatItem(label = "FOLLOWING", count = numberOfFollows) {
+                            navController.navigate("projectfollowscreen")
+                        }
                     }
-                }
-            }
-            Spacer(Modifier.height(10.dp))
-//            if (selectedTabIndex == 0) {
-//                    Column(
-//                        horizontalAlignment = Alignment.CenterHorizontally,
-//                        modifier = Modifier.fillMaxSize()
-//                    ) {
-//                        Row(verticalAlignment = Alignment.CenterVertically,
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(horizontal = 20.dp)) {
-//                            Text(
-//                                text = "Recent Achievements",
-//                                textAlign = TextAlign.Start,
-//                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                fontWeight = FontWeight.Bold,
-//                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-//                                color = Color.White.copy(alpha = 1f),
-//                                modifier = Modifier
-//                            )
-//                            Spacer(Modifier.weight(1f))
-//                            Text(
-//                                text = "View All",
-//                                textAlign = TextAlign.Start,
-//                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                fontWeight = FontWeight.Bold,
-//                                style = TextStyle(letterSpacing = 0.sp, fontSize = 14.sp),
-//                                color = Color(0xFFF1C40F),
-//                                modifier = Modifier
-//                            )
-//                        }
-//                        Spacer(modifier = Modifier.height(10.dp))
-//                        Row(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.Start
-//                        ) {
-//                            Column(
-//                                verticalArrangement = Arrangement.Center,
-//                                horizontalAlignment = Alignment.CenterHorizontally
-//                            ) {
-//                                Box(
-//                                    modifier = Modifier
-//                                        .padding(horizontal = 20.dp)
-//                                        .height(100.dp)
-//                                        .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(20.dp)),
-//                                    contentAlignment = Alignment.Center
-//                                ){
-//                                    Box(
-//                                        modifier = Modifier
-//                                            .padding(horizontal = 25.dp)
-//                                            .size(60.dp),
-//                                        contentAlignment = Alignment.Center
-//                                    ) {
-//                                        Box(
-//                                            modifier = Modifier
-//                                                .background(Color(0xFFF1C40F).copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-//                                                .padding(horizontal = 0.dp)
-//                                                .size(70.dp),
-//                                            contentAlignment = Alignment.Center
-//                                        ) {
-//                                            Icon(
-//                                                painter = painterResource(R.drawable.addcircle),
-//                                                contentDescription = null,
-//                                                tint = Color(0xFFF1C40F),
-//                                                modifier = Modifier
-//                                                    .size(30.dp)
-//                                            )
-//                                        }
-//                                    }
-//                                }
-//                                Spacer(Modifier.height(10.dp))
-//                                Text(
-//                                    text = "No Achivement",
-//                                    textAlign = TextAlign.Center,
-//                                    color = Color.Gray.copy(alpha = 1f),
-//                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                    fontWeight = FontWeight.Bold
-//                                )
-//                            }
-//
-//
-//                        }
-//                    }
-//            }
-            if (selectedTabIndex == 0) {
-                Spacer(Modifier.height(10.dp))
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)
-                ) {
-//                    Text(
-//                        text = "Weekly Volume",
-//                        textAlign = TextAlign.Start,
-//                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                        fontWeight = FontWeight.Bold,
-//                        style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-//                        color = Color.White.copy(alpha = 1f),
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 25.dp, vertical = 0.dp)
-//                    )
-//                    Spacer(Modifier.height(20.dp))
-//                    Box(
-//                        modifier = Modifier
-//                            .height(180.dp) // Biraz daha yükseklik grafik için iyidir
-//                            .fillMaxWidth()
-//                            .padding(horizontal = 25.dp)
-//                            .background(
-//                                color = Color(0xFF202B36).copy(alpha = 0.4f),
-//                                shape = RoundedCornerShape(10.dp)
-//                            )
-//                            .padding(16.dp) // İçeriden boşluk
-//                    ) {
-//                        CartesianChartHost(
-//                            chart = rememberCartesianChart(
-//                                rememberColumnCartesianLayer(
-//                                    columnProvider = ColumnCartesianLayer.ColumnProvider.series(
-//                                        rememberLineComponent(
-//                                            color = Color(0xFFF1C40F), // Senin sarı rengin
-//                                            thickness = 12.dp
-//                                        )
-//                                    )
-//                                ),
-//                                bottomAxis = rememberBottomAxis(
-//                                    valueFormatter = { value, _, _ ->
-//                                        listOf(
-//                                            "Mon",
-//                                            "Tue",
-//                                            "Wed",
-//                                            "Thu",
-//                                            "Fri",
-//                                            "Sat",
-//                                            "Sun"
-//                                        )[value.toInt() % 7]
-//                                    },
-//                                    label = rememberAxisLabelComponent(
-//                                        color = Color.Gray,
-//                                        textSize = 10.sp,
-//                                        typeface = android.graphics.Typeface.DEFAULT_BOLD
-//                                    )
-//                                )
-//                            ),
-//                            modelProducer = modelProducer,
-//                            modifier = Modifier.fillMaxSize()
-//                        )
-//                    }
-//                    Spacer(Modifier.height(20.dp))
-                    Text(
-                        text = "Lifetime Statistics",
-                        textAlign = TextAlign.Start,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontWeight = FontWeight.Bold,
-                        style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-                        color = Color.White.copy(alpha = 1f),
+
+                    Box(
                         modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
                             .fillMaxWidth()
-                            .padding(horizontal = 25.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp),
-                        horizontalArrangement = Arrangement.Center
+                            .height(36.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Gray.copy(alpha = 0.1f))
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = Color(0xFF121417).copy(alpha = 0.4f),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .size(150.dp),
-                            contentAlignment = Alignment.Center
+                        SecondaryTabRow(
+                            selectedTabIndex = selectedTabIndex,
+                            containerColor = Color.Transparent,
+                            divider = {},
+                            indicator = {},
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = totalWorkout.toString(),
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 48.sp
-                                )
-                                Text(
-                                    text = "WORKOUTS",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "COMPLETED",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF1C40F)
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(20.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = Color(0xFF121417).copy(alpha = 0.4f),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .size(150.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = totalLiftedWeight.toInt().toString(),
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 40.sp
-                                )
-                                Text(
-                                    text = "KG",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "WEIGHT",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "LIFTED",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF1C40F)
-                                )
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = Color(0xFF121417).copy(alpha = 0.4f),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .size(150.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = getTotalSpentTime.toString(),
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 48.sp
-                                )
-                                Text(
-                                    text = "MINUTES",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "SPENT FOR",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "WORKOUTS",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF1C40F)
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(20.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    color = Color(0xFF121417).copy(alpha = 0.4f),
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                                .size(150.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = consistencyScore.toString(),
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 48.sp
-                                )
-                                Text(
-                                    text = "CONSISTENCY",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "SCORE",
-                                    textAlign = TextAlign.Center,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFF1C40F)
-                                )
-                            }
-                        }
-                    }
-                }
-            } else if (selectedTabIndex == 1) {
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    text = "Last Activity",
-                    textAlign = TextAlign.Start,
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-                    color = Color.White.copy(alpha = 1f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 25.dp)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                if (!allHistoricalWorkouts.isEmpty()) {
-                    LazyColumn() {
-                        itemsIndexed(allHistoricalWorkouts) { index, item ->
-                            workoutScreenCompleteScreenViewModel.setWorkoutData(
-                                item.workoutHistory.dateTimestamp,
-                                item.workoutHistory.totalDuration
-                            )
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Box(
+                            tabTitles.forEachIndexed { index, title ->
+                                val isSelected = selectedTabIndex == index
+                                Tab(
+                                    selected = isSelected,
+                                    onClick = { selectedTabIndex = index },
                                     modifier = Modifier
-                                        .clickable(
+                                        .clip(RoundedCornerShape(18.dp))
+                                        .then(
+                                            if (isSelected) Modifier.background(ProfileAccent)
+                                            else Modifier
+                                        ),
+                                    text = {
+                                        Text(
+                                            text = title,
+                                            style = TextStyle(
+                                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                                fontSize = 15.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            ),
+                                            color = if (isSelected) Color.Black else ProfileMuted
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    if (selectedTabIndex == 0) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(scrollState)
+                                .padding(bottom = 24.dp)
+                        ) {
+                            Text(
+                                text = "Lifetime Statistics",
+                                textAlign = TextAlign.Start,
+                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontWeight = FontWeight.Bold,
+                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
+                                color = Color.White,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 25.dp, vertical = 12.dp)
+                            )
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 25.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                LifetimeStatCard(
+                                    value = formatStatNumber(totalWorkout),
+                                    lines = listOf("WORKOUTS" to Color.White, "COMPLETED" to ProfileAccent),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                LifetimeStatCard(
+                                    value = formatStatNumber(totalLiftedWeight.toLong()),
+                                    lines = listOf(
+                                        "KG" to Color.White,
+                                        "WEIGHT" to Color.White,
+                                        "LIFTED" to ProfileAccent
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                    valueFontSize = 36.sp
+                                )
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 25.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                LifetimeStatCard(
+                                    value = formatStatNumber(getTotalSpentTime),
+                                    lines = listOf(
+                                        "MINUTES" to Color.White,
+                                        "SPENT FOR" to Color.White,
+                                        "WORKOUTS" to ProfileAccent
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                LifetimeStatCard(
+                                    value = formatStatNumber(consistencyScore),
+                                    lines = listOf(
+                                        "CONSISTENCY" to Color.White,
+                                        "SCORE" to ProfileAccent
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = 16.dp)
+                        ) {
+                            Text(
+                                text = "Last Activity",
+                                textAlign = TextAlign.Start,
+                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontWeight = FontWeight.Bold,
+                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
+                                color = Color.White,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 25.dp, vertical = 8.dp)
+                            )
+
+                            if (allHistoricalWorkouts.isNotEmpty()) {
+                                LazyColumn(
+                                    contentPadding = PaddingValues(bottom = 24.dp)
+                                ) {
+                                    items(
+                                        items = allHistoricalWorkouts,
+                                        key = { it.workoutHistory.sessionId }
+                                    ) { item ->
+                                        val formattedDate = remember(item.workoutHistory.dateTimestamp) {
+                                            workoutScreenCompleteScreenViewModel.dateConvert(
+                                                item.workoutHistory.dateTimestamp
+                                            )
+                                        }
+                                        ActivityHistoryRow(
+                                            workoutName = item.workoutHistory.workoutName,
+                                            dateLabel = formattedDate,
                                             onClick = {
                                                 oldWorkoutDetailsViewModel._sessionId.value =
                                                     item.workoutHistory.sessionId
@@ -726,202 +458,108 @@ fun Profile(
                                                 navController.navigate("oldworkoutdetails")
                                             }
                                         )
+                                    }
+                                }
+                            } else {
+                                Column(
+                                    Modifier
+                                        .padding(horizontal = 30.dp)
                                         .fillMaxWidth()
-                                        .padding(horizontal = 25.dp)
                                         .background(
-                                            color = Color(0xFF202B36).copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(10.dp)
+                                            Color.Gray.copy(alpha = 0.1f),
+                                            RoundedCornerShape(20.dp)
                                         )
-                                        .height(60.dp)
+                                        .padding(vertical = 24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Row(
+                                    Icon(
+                                        painter = painterResource(R.drawable.sentimentsadicon128),
+                                        contentDescription = null,
+                                        tint = Color.Gray.copy(alpha = 0.5f)
+                                    )
+                                    Text(
+                                        text = "No workout history yet. Start your first workout today!",
+                                        textAlign = TextAlign.Center,
+                                        fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                        fontWeight = FontWeight.Bold,
+                                        style = TextStyle(letterSpacing = 0.sp, fontSize = 15.sp),
+                                        color = Color.Gray.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
+                                    )
+                                    Button(
+                                        onClick = { navController.navigate("home") },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = ProfileAccent
+                                        ),
+                                        shape = RoundedCornerShape(15.dp),
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(horizontal = 20.dp),
-                                        horizontalArrangement = Arrangement.Start,
-                                        verticalAlignment = Alignment.CenterVertically
-
+                                            .height(50.dp)
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 40.dp),
+                                        contentPadding = PaddingValues(0.dp),
                                     ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.dumbbellicon128),
-                                            contentDescription = null,
-                                            tint = Color(0xFFF1C40F),
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                        )
-                                        Spacer(Modifier.width(20.dp))
-                                        Column() {
-                                            Text(
-                                                text = "${item.workoutHistory.workoutName}",
-                                                style = TextStyle(
-                                                    fontSize = 15.sp,
-                                                    fontFamily = FontFamily(
-                                                        Font(R.font.lexendbold)
-                                                    ),
-                                                    color = Color.White
-                                                )
-                                            )
-                                            Text(
-                                                text = workoutScreenCompleteScreenViewModel.formattedDate.value,
-                                                style = TextStyle(
-                                                    fontSize = 10.sp,
-                                                    fontFamily = FontFamily(
-                                                        Font(R.font.lexendbold)
-                                                    ),
-                                                    color = Color.White.copy(alpha = 0.5f)
-                                                )
-                                            )
-                                        }
-                                        Spacer(Modifier.weight(1f))
-                                        Icon(
-                                            painter = painterResource(R.drawable.keyboarddoublearrowright),
-                                            contentDescription = null,
-                                            tint = Color(0xFFF1C40F),
-                                            modifier = Modifier
-                                                .size(25.dp)
+                                        Text(
+                                            text = "START TRAINING",
+                                            style = TextStyle(
+                                                fontSize = 20.sp,
+                                                fontFamily = FontFamily(Font(R.font.oswaldbold))
+                                            ),
+                                            color = Color.Black
                                         )
                                     }
                                 }
                             }
                         }
                     }
-                } else {
-                    Column(
-                        Modifier
-                            .padding(horizontal = 30.dp)
-                            .fillMaxSize()
-                            .background(Color.Gray.copy(alpha = 0.1f), RoundedCornerShape(20.dp)),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Spacer(Modifier.height(20.dp))
-                        Icon(
-                            painter = painterResource(R.drawable.sentimentsadicon128),
-                            contentDescription = null,
-                            tint = Color.Gray.copy(alpha = 0.5f)
-                        )
-                        Text(
-                            text = "No workout history yet. Start your first workout today!",
-                            textAlign = TextAlign.Center,
-                            fontFamily = FontFamily(Font(R.font.lexendregular)),
-                            fontWeight = FontWeight.Bold,
-                            style = TextStyle(letterSpacing = 0.sp, fontSize = 15.sp),
-                            color = Color.Gray.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .padding(horizontal = 20.dp, vertical = 20.dp)
-                        )
-                        Button(
-                            onClick = { navController.navigate("home") },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFF1C40F)
-                            ),
-                            shape = RoundedCornerShape(15.dp),
-                            modifier = Modifier
-                                .height(50.dp)
-                                .fillMaxWidth()
-                                .padding(horizontal = 40.dp),
-                            contentPadding = PaddingValues(0.dp),
-                        ) {
-                            Text(
-                                text = "START TRAINING",
-                                style = TextStyle(
-                                    fontSize = 20.sp,
-                                    fontFamily = FontFamily(Font(R.font.oswaldbold))
-                                ),
-                                color = Color.Black
-                            )
-                        }
-                    }
                 }
-            }
-        }
-        if (isPhotoExpanded.value) {
-            val profile = (profileState as? ProfileUiState.Ready)?.profile
-            Dialog(onDismissRequest = { isPhotoExpanded.value = false }) {
-                Box(
-                    modifier = Modifier.fillMaxSize().clickable { isPhotoExpanded.value = false },
-                    contentAlignment = Alignment.Center
-                ) {
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = isPhotoExpanded.value,
-                        enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
-                        exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
-                    ) {
+
+                if (isPhotoExpanded) {
+                    Dialog(onDismissRequest = { isPhotoExpanded = false }) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(500.dp),
+                                .fillMaxSize()
+                                .clickable { isPhotoExpanded = false },
                             contentAlignment = Alignment.Center
                         ) {
-                            AsyncImage(
-                                model = profile?.userPhotoUri,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.95f)
-                                    .aspectRatio(1f)
-                                    .clip(CircleShape) // 100.dp yerine direkt CircleShape daha güvenlidir
-                                    .background(Color.Black),
-                                contentScale = ContentScale.Crop
-                            )
-                            Icon(
-                                painter = painterResource(R.drawable.imageicon128),
-                                contentDescription = null,
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .graphicsLayer(
-                                        translationY = -300f,
-                                        translationX = -105f
+                            AnimatedVisibility(
+                                visible = isPhotoExpanded,
+                                enter = fadeIn() + scaleIn(initialScale = 0.8f),
+                                exit = fadeOut() + scaleOut(targetScale = 0.8f)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .aspectRatio(1f),
+                                    contentAlignment = Alignment.BottomEnd
+                                ) {
+                                    AsyncImage(
+                                        model = profile.userPhotoUri,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape)
+                                            .background(Color.Black)
+                                            .clickable(enabled = false) {},
+                                        contentScale = ContentScale.Crop
                                     )
-                                    .background(Color(0xFFF1C40F), shape = CircleShape)
-                                    .size(50.dp)
-                                    .padding(all = 13.dp)
-                                    .align(Alignment.BottomEnd)
-                                    .clickable(
-                                        onClick = {
-                                            launcherProfile.launch("image/*")
-                                        }
-                                    )
-                            )
+                                    IconButton(
+                                        onClick = { launcherProfile.launch("image/*") },
+                                        modifier = Modifier
+                                            .padding(12.dp)
+                                            .size(48.dp)
+                                            .background(ProfileAccent, CircleShape)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.imageicon128),
+                                            contentDescription = "Change photo",
+                                            tint = Color.Black,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun CustomDialogScreen(
-        onDismiss: () -> Unit,
-        launcher: ManagedActivityResultLauncher<String, Uri?>,
-    ) {
-        var text by remember { mutableStateOf("") }
-        Log.d("TAG", "visible")
-        Dialog(onDismissRequest = { onDismiss.invoke() }) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 300.dp)
-                    .background(
-                        Color(0xFFD9D9D9).copy(alpha = 0.4f),
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                    .fillMaxWidth()
-                    .height(70.dp)
-            )
-            {
-                Button(
-                    onClick = { launcher.launch("image/*") },
-                    colors = ButtonDefaults.buttonColors(Color.Transparent),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(70.dp)
-                )
-                {
-                    Text(
-                        text = "Open Gallery",
-                        fontFamily = FontFamily(Font(R.font.lexendextralight)),
-                        color = Color.Black,
-                        textAlign = TextAlign.Center
-                    )
                 }
             }
         }
@@ -929,15 +567,120 @@ fun Profile(
 }
 
 @Composable
+private fun LifetimeStatCard(
+    value: String,
+    lines: List<Pair<String, Color>>,
+    modifier: Modifier = Modifier,
+    valueFontSize: androidx.compose.ui.unit.TextUnit = 40.sp
+) {
+    Box(
+        modifier = modifier
+            .background(ProfileCardBg, RoundedCornerShape(12.dp))
+            .aspectRatio(1f)
+            .padding(12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = value,
+                textAlign = TextAlign.Center,
+                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                fontSize = valueFontSize,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            lines.forEach { (label, color) ->
+                Text(
+                    text = label,
+                    textAlign = TextAlign.Center,
+                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityHistoryRow(
+    workoutName: String,
+    dateLabel: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
+            .padding(horizontal = 25.dp, vertical = 6.dp)
+            .background(ProfileCardBg, RoundedCornerShape(10.dp))
+            .height(64.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.dumbbellicon128),
+                contentDescription = null,
+                tint = ProfileAccent,
+                modifier = Modifier.size(30.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = workoutName,
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        color = Color.White
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (dateLabel.isNotBlank()) {
+                    Text(
+                        text = dateLabel,
+                        style = TextStyle(
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+            }
+            Icon(
+                painter = painterResource(R.drawable.keyboarddoublearrowright),
+                contentDescription = null,
+                tint = ProfileAccent,
+                modifier = Modifier.size(25.dp)
+            )
+        }
+    }
+}
+
+private fun formatStatNumber(value: Number): String {
+    val n = value.toLong()
+    return when {
+        n >= 1_000_000 -> String.format("%.1fM", n / 1_000_000.0)
+        n >= 10_000 -> String.format("%.1fK", n / 1_000.0)
+        else -> n.toString()
+    }
+}
+
+@Composable
 fun HomeTopBarProfile(
-    navController: NavController,
-    topPadding: Dp
+    navController: NavController
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -970,54 +713,4 @@ fun HomeTopBarProfile(
             )
         }
     }
-}
-
-fun prepareWeeklyVolumeData(workouts: List<data.local.entity.WorkoutHistoryFull>): List<Float> {
-    val calendar = Calendar.getInstance()
-
-    // 1. Güvenli Pazartesi Hesaplama: Bugünün saatlerini sıfırla ve Pazartesiye geri git
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-    while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
-        calendar.add(Calendar.DATE, -1)
-    }
-    val startOfWeek = calendar.timeInMillis
-    val endOfWeek = startOfWeek + (7L * 24 * 60 * 60 * 1000) // 7 gün sonrası
-
-    val dailyVolumes = mutableMapOf<Int, Float>()
-    val daysOrder = listOf(
-        Calendar.MONDAY,
-        Calendar.TUESDAY,
-        Calendar.WEDNESDAY,
-        Calendar.THURSDAY,
-        Calendar.FRIDAY,
-        Calendar.SATURDAY,
-        Calendar.SUNDAY
-    )
-    daysOrder.forEach { dailyVolumes[it] = 0f }
-
-    workouts.forEach { item ->
-        val timestamp = item.workoutHistory.dateTimestamp
-
-        if (timestamp >= startOfWeek && timestamp < endOfWeek) {
-            val workoutCal = Calendar.getInstance().apply { timeInMillis = timestamp }
-            val day = workoutCal.get(Calendar.DAY_OF_WEEK)
-
-            var workoutVolume = 0f
-            Log.d("VicoDebugg", item.workoutHistory.toString()) // Logcat'ten kontrol edebilirsin
-            // 3. DÜZELTME: Egzersiz özeti yerine SETLERİ topla
-            item.exerciseWithSets.forEach { exerciseWithSets ->
-                exerciseWithSets.setLogs.forEach { setLog ->
-                    workoutVolume += (setLog.weight * setLog.reps)
-                }
-            }
-            dailyVolumes[day] = (dailyVolumes[day] ?: 0f) + workoutVolume
-        }
-    }
-
-    val result = daysOrder.map { dailyVolumes[it] ?: 0f }
-    Log.d("VicoDebug", "Haftalık Veri: $result") // Logcat'ten kontrol edebilirsin
-    return result
 }

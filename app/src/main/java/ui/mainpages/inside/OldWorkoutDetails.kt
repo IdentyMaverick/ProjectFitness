@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -44,7 +46,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -69,9 +70,6 @@ fun OldWorkoutDetails(
     val workout = observedWorkoutState.value
     val showMenuSheet = remember { mutableStateOf(false) }
     val menuSheetState = rememberModalBottomSheetState()
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-
-
     LaunchedEffect(workout, observedWorkoutState) {
         workout?.let {
             workoutCompleteScreenViewModel.setWorkoutData(
@@ -82,14 +80,14 @@ fun OldWorkoutDetails(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             OldWorkoutDetailsTopBar(
                 workout,
                 navController,
                 showMenuSheet,
                 flag.value,
-                oldWorkoutDetailsViewModel,
-                topPadding
+                oldWorkoutDetailsViewModel
             )
         },
         containerColor = Color(0xFF121417) // Tam siyah arka plan
@@ -350,13 +348,12 @@ fun OldWorkoutDetailsTopBar(
     navController: NavController,
     showMenuSheet: MutableState<Boolean>,
     flag: Boolean = false,
-    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel,
-    topPadding: Dp
+    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = topPadding)
+            .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

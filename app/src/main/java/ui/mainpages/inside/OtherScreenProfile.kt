@@ -1,8 +1,6 @@
 package ui.mainpages.inside
 
 import android.os.Build
-import android.util.Log
-import androidx.annotation.Keep
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -19,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,32 +54,29 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.google.firebase.firestore.FirebaseFirestore
 import com.grozzbear.R
 import data.local.viewmodel.OldWorkoutDetailsViewModel
-import data.remote.FirestorePaths
+import data.remote.User
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
 import viewmodel.SocialViewModel
 
-@Keep
-data class WorkoutCompleteUser(
-    var workoutname: String,
-    var workoutdate: String,
-    var durationminutes: String
-)
+private val OtherProfileAccent = Color(0xFFF1C40F)
+private val OtherProfileCardBg = Color(0xFF202B36).copy(alpha = 0.55f)
+private val OtherProfileMuted = Color(0xFF4B5F71)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,10 +88,7 @@ fun OtherScreenProfile(
     oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel,
     authViewModel: AuthViewModel
 ) {
-    val db = FirebaseFirestore.getInstance()
     val myNickname by socialViewModel.nickname.collectAsState()
-    val config = LocalConfiguration.current
-
     val user by socialViewModel.getUserByNicknameLive(nickname).observeAsState()
 
     val otherFollowers by remember(nickname) {
@@ -109,588 +102,419 @@ fun OtherScreenProfile(
     }.collectAsState(initial = emptyList())
 
     val isFollowing = myFollowingList.contains(nickname)
-    Log.d("Following list", myFollowingList.toString())
-    var workoutList by remember { mutableStateOf<List<WorkoutCompleteUser>>(emptyList()) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("Stats", "Activity")
     val scrollState = rememberScrollState()
-    val workoutHistoryFull by profileViewModel.workoutHistoryFull.collectAsState()
-    val topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-    val isPhotoExpanded = remember { mutableStateOf(false) }
+    var isPhotoExpanded by remember { mutableStateOf(false) }
     val blurAlpha by animateDpAsState(
-        targetValue = if (isPhotoExpanded.value) 15.dp else 0.dp,
+        targetValue = if (isPhotoExpanded) 15.dp else 0.dp,
         animationSpec = tween(durationMillis = 50),
         label = "blurAnimation"
     )
 
-    // Antrenmanları çekme (ownerUid filtresiyle)
-    LaunchedEffect(user?.id) {
-        user?.id?.let { userId ->
-            db.collection(FirestorePaths.USERS)
-                .document(userId)
-                .collection(FirestorePaths.HISTORY)
-                .get()
-                .addOnSuccessListener { querySnapshot ->
-                    workoutList = querySnapshot.map { doc ->
-                        val durationMin = ((doc.getLong("totalDuration") ?: 0L) / 60).toString()
-                        WorkoutCompleteUser(
-                            workoutname = doc.getString("workoutName") ?: "Unnamed",
-                            workoutdate = (doc.getLong("dateTimestamp") ?: 0L).toString(),
-                            durationminutes = durationMin
+    val userHistory by profileViewModel.userHistory.collectAsState()
+    val target by authViewModel.target.collectAsState()
+
+    LaunchedEffect(user?.id, user?.nickname) {
+        val current = user ?: return@LaunchedEffect
+        profileViewModel.setUserId(current.id)
+        profileViewModel.loadUserWorkouts(current.nickname)
+        authViewModel.loadOtherUserStats(current.id)
+    }
+
+    when (val currentUser = user) {
+        null -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF121417)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = OtherProfileAccent)
+            }
+        }
+
+        else -> {
+            OtherProfileContent(
+                navController = navController,
+                currentUser = currentUser,
+                myNickname = myNickname,
+                isFollowing = isFollowing,
+                followerCount = otherFollowers.size,
+                followingCount = otherFollowing.size,
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = { selectedTabIndex = it },
+                tabTitles = tabTitles,
+                scrollState = scrollState,
+                target = target,
+                userHistory = userHistory,
+                isPhotoExpanded = isPhotoExpanded,
+                onPhotoExpandedChange = { isPhotoExpanded = it },
+                blurAlpha = blurAlpha,
+                socialViewModel = socialViewModel,
+                oldWorkoutDetailsViewModel = oldWorkoutDetailsViewModel
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OtherProfileContent(
+    navController: NavController,
+    currentUser: User,
+    myNickname: String,
+    isFollowing: Boolean,
+    followerCount: Int,
+    followingCount: Int,
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
+    tabTitles: List<String>,
+    scrollState: androidx.compose.foundation.ScrollState,
+    target: AuthViewModel.UserStats,
+    userHistory: List<data.local.entity.WorkoutHistoryEntity>,
+    isPhotoExpanded: Boolean,
+    onPhotoExpandedChange: (Boolean) -> Unit,
+    blurAlpha: androidx.compose.ui.unit.Dp,
+    socialViewModel: SocialViewModel,
+    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel
+) {
+    val hasPhoto = currentUser.userPhotoUri.isNotBlank()
+    val topBarTitle = currentUser.nickname.ifBlank { "PROFILE" }.uppercase()
+
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            FollowListTopBar(
+                title = topBarTitle,
+                navController = navController,
+                topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+            )
+        },
+        containerColor = Color(0xFF121417),
+        modifier = Modifier
+            .fillMaxSize()
+            .blur(blurAlpha)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(110.dp)
+                    .border(4.dp, OtherProfileAccent, CircleShape)
+                    .padding(4.dp)
+                    .border(2.dp, Color.Black, CircleShape)
+                    .padding(4.dp)
+            ) {
+                AsyncImage(
+                    model = if (hasPhoto) {
+                        currentUser.userPhotoUri
+                    } else {
+                        R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
+                    },
+                    contentDescription = "Profile picture",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                        .clickable(enabled = hasPhoto) {
+                            onPhotoExpandedChange(true)
+                        },
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Text(
+                text = currentUser.first.ifBlank { currentUser.nickname },
+                color = Color.White,
+                fontSize = 22.sp,
+                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .padding(horizontal = 24.dp)
+            )
+            Text(
+                text = "@${currentUser.nickname}",
+                color = OtherProfileAccent,
+                fontSize = 15.sp,
+                fontFamily = FontFamily(Font(R.font.lexendbold))
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            if (myNickname.isNotBlank() && myNickname != currentUser.nickname) {
+                Button(
+                    onClick = {
+                        if (isFollowing) {
+                            socialViewModel.unfollowUser(myNickname, currentUser.nickname)
+                        } else {
+                            socialViewModel.followUser(myNickname, currentUser.nickname)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isFollowing) {
+                            Color.White.copy(alpha = 0.1f)
+                        } else {
+                            OtherProfileAccent
+                        }
+                    ),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .width(140.dp)
+                        .height(40.dp)
+                        .then(
+                            if (isFollowing) {
+                                Modifier.border(
+                                    1.dp,
+                                    OtherProfileAccent.copy(alpha = 0.5f),
+                                    RoundedCornerShape(14.dp)
+                                )
+                            } else {
+                                Modifier
+                            }
+                        ),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = if (isFollowing) "FOLLOWING" else "FOLLOW",
+                        style = TextStyle(
+                            fontFamily = FontFamily(Font(R.font.lexendbold)),
+                            fontSize = 12.sp
+                        ),
+                        color = if (isFollowing) Color.White else Color.Black
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StatItem(label = "FOLLOWERS", count = followerCount) {}
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(40.dp)
+                        .background(Color.DarkGray)
+                )
+                StatItem(label = "FOLLOWING", count = followingCount) {}
+            }
+
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .fillMaxWidth()
+                    .height(36.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.Gray.copy(alpha = 0.1f))
+            ) {
+                SecondaryTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    divider = {},
+                    indicator = {},
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    tabTitles.forEachIndexed { index, title ->
+                        val isSelected = selectedTabIndex == index
+                        Tab(
+                            selected = isSelected,
+                            onClick = { onTabSelected(index) },
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(18.dp))
+                                .then(
+                                    if (isSelected) Modifier.background(OtherProfileAccent)
+                                    else Modifier
+                                ),
+                            text = {
+                                Text(
+                                    text = title,
+                                    style = TextStyle(
+                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                        fontSize = 15.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    ),
+                                    color = if (isSelected) Color.Black else OtherProfileMuted
+                                )
+                            }
                         )
                     }
                 }
-        }
-    }
+            }
 
-    if (user == null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF121417)),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = Color(0xFFF1C40F))
-        }
-    } else {
-        user?.let { currentUser ->
-            profileViewModel.setUserId(currentUser.id)
-            profileViewModel.loadUserWorkouts(currentUser.nickname)
-            val userHistory by profileViewModel.userHistory.collectAsState()
-            authViewModel.loadOtherUserStats(currentUser.id)
-            val target by authViewModel.target.collectAsState()
-
-            Scaffold(
-                topBar = { HomeTopBarProfile(navController, topPadding = topPadding) },
-                containerColor = Color(0xFF121417),
-                modifier = Modifier.blur(blurAlpha)
-            ) { paddingValues ->
+            if (selectedTabIndex == 0) {
                 Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 24.dp)
                 ) {
-                    // --- PROFİL ÜST KISIM ---
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(110.dp)
-                            .border(4.dp, Color(0xFFF1C40F), CircleShape)
-                            .padding(4.dp)
-                            .border(2.dp, Color.Black, CircleShape)
-                            .padding(4.dp)
-                    ) {
-                        AsyncImage(
-                            model = currentUser.userPhotoUri.ifEmpty { R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml },
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .clickable {
-                                    if (currentUser.userPhotoUri != "") {
-                                        isPhotoExpanded.value = true
-                                    }
-                                },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
                     Text(
-                        currentUser.first,
-                        color = Color.White,
-                        fontSize = 25.sp,
+                        text = "Lifetime Statistics",
+                        textAlign = TextAlign.Start,
+                        fontFamily = FontFamily(Font(R.font.lexendbold)),
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 10.dp)
-                    )
-                    Text("@${currentUser.nickname}", color = Color(0xFFF1C40F), fontSize = 15.sp)
-                    Spacer(Modifier.height(20.dp))
-                    Button(
-                        onClick = {
-                            if (isFollowing) socialViewModel.unfollowUser(
-                                myNickname,
-                                nickname
-                            ) else socialViewModel.followUser(myNickname, nickname)
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        shape = RoundedCornerShape(15.dp),
+                        style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
+                        color = Color.White,
                         modifier = Modifier
-                            .width(100.dp)
-                            .border(1.dp, Color(0xFFF1C40F), RoundedCornerShape(15.dp)),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text(
-                            text = if (isFollowing) "UNFOLLOW" else "FOLLOW",
-                            style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendbold))),
-                            fontSize = 10.sp
-                        )
-                    }
+                            .fillMaxWidth()
+                            .padding(horizontal = 25.dp, vertical = 12.dp)
+                    )
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 20.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .padding(horizontal = 25.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        StatItem(label = "FOLLOWERS", count = otherFollowers.size) {
-                            navController.navigate("projectfollowersscreen")
-                        }
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(40.dp)
-                                .background(Color.DarkGray)
+                        OtherLifetimeStatCard(
+                            value = formatOtherStatNumber(target.count),
+                            lines = listOf(
+                                "WORKOUTS" to Color.White,
+                                "COMPLETED" to OtherProfileAccent
+                            ),
+                            modifier = Modifier.weight(1f)
                         )
-                        StatItem(label = "FOLLOWING", count = otherFollowing.size) {
-                            navController.navigate("projectfollowscreen")
-                        }
+                        OtherLifetimeStatCard(
+                            value = formatOtherStatNumber(target.weight.toLong()),
+                            lines = listOf(
+                                "KG" to Color.White,
+                                "WEIGHT" to Color.White,
+                                "LIFTED" to OtherProfileAccent
+                            ),
+                            modifier = Modifier.weight(1f),
+                            valueFontSize = 36.sp
+                        )
                     }
 
-                    // --- SEKMELER (TAB ROW) ---
-                    Box(
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(
                         modifier = Modifier
-                            .padding(horizontal = 20.dp, vertical = 10.dp)
                             .fillMaxWidth()
-                            .height(30.dp)
-                            .clip(RoundedCornerShape(20.dp)) // Dış çerçeve oval yapısı
-                            .background(Color.Gray.copy(alpha = 0.1f)) // Arka plan açık gri/mavi tonu
+                            .padding(horizontal = 25.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        SecondaryTabRow(
-                            selectedTabIndex = selectedTabIndex,
-                            containerColor = Color.Transparent,
-                            divider = {},
-                            indicator = {},
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            tabTitles.forEachIndexed { index, title ->
-                                val isSelected = selectedTabIndex == index
-
-                                Tab(
-                                    selected = isSelected,
-                                    onClick = { selectedTabIndex = index },
-                                    modifier = Modifier
-                                        .padding(horizontal = 0.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .then(
-                                            if (isSelected) Modifier.background(Color(0xFFF1C40F)) // Seçili olanın beyaz arka planı
-                                            else Modifier
-                                        ),
-                                    text = {
-                                        Text(
-                                            text = title,
-                                            style = TextStyle(
-                                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                                fontSize = 15.sp,
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                            ),
-                                            color = if (isSelected) Color.Black else Color(
-                                                0xFF4B5F71
-                                            ) // Seçili Turuncu, seçili değilse Koyu Gri
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    }
-//                    if (selectedTabIndex == 0) {
-//
-//                        Column(
-//                            horizontalAlignment = Alignment.CenterHorizontally,
-//                            modifier = Modifier.fillMaxSize()
-//                        ) {
-//                            Spacer(Modifier.height(10.dp))
-//                            Row(verticalAlignment = Alignment.CenterVertically,
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(horizontal = 20.dp)) {
-//                                Text(
-//                                    text = "Recent Achievements",
-//                                    textAlign = TextAlign.Start,
-//                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                    fontWeight = FontWeight.Bold,
-//                                    style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-//                                    color = Color.White.copy(alpha = 1f),
-//                                    modifier = Modifier
-//                                )
-//                                Spacer(Modifier.weight(1f))
-//                                Text(
-//                                    text = "View All",
-//                                    textAlign = TextAlign.Start,
-//                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                    fontWeight = FontWeight.Bold,
-//                                    style = TextStyle(letterSpacing = 0.sp, fontSize = 14.sp),
-//                                    color = Color(0xFFF1C40F),
-//                                    modifier = Modifier
-//                                )
-//                            }
-//                            Spacer(modifier = Modifier.height(10.dp))
-//                            Row(
-//                                modifier = Modifier.fillMaxWidth(),
-//                                horizontalArrangement = Arrangement.Start
-//                            ) {
-//                                Column(
-//                                    verticalArrangement = Arrangement.Center,
-//                                    horizontalAlignment = Alignment.CenterHorizontally
-//                                ) {
-//                                    Box(
-//                                        modifier = Modifier
-//                                            .padding(horizontal = 20.dp)
-//                                            .height(100.dp)
-//                                            .background(Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(20.dp)),
-//                                        contentAlignment = Alignment.Center
-//                                    ){
-//                                        Box(
-//                                            modifier = Modifier
-//                                                .padding(horizontal = 25.dp)
-//                                                .size(60.dp),
-//                                            contentAlignment = Alignment.Center
-//                                        ) {
-//                                            Box(
-//                                                modifier = Modifier
-//                                                    .background(Color(0xFFF1C40F).copy(alpha = 0.1f), RoundedCornerShape(20.dp))
-//                                                    .padding(horizontal = 0.dp)
-//                                                    .size(70.dp),
-//                                                contentAlignment = Alignment.Center
-//                                            ) {
-//                                                Icon(
-//                                                    painter = painterResource(R.drawable.addcircle),
-//                                                    contentDescription = null,
-//                                                    tint = Color(0xFFF1C40F),
-//                                                    modifier = Modifier
-//                                                        .size(30.dp)
-//                                                )
-//                                            }
-//                                        }
-//                                    }
-//                                    Spacer(Modifier.height(10.dp))
-//                                    Text(
-//                                        text = "No Achivement",
-//                                        textAlign = TextAlign.Center,
-//                                        color = Color.Gray.copy(alpha = 1f),
-//                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                        fontWeight = FontWeight.Bold
-//                                    )
-//                                }
-//
-//
-//                            }
-//                        }
-//                    }
-                    if (selectedTabIndex == 0) {
-                        Spacer(Modifier.height(10.dp))
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(scrollState)
-                        ) {
-//                            Text(
-//                                text = "Weekly Volume",
-//                                textAlign = TextAlign.Start,
-//                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-//                                fontWeight = FontWeight.Bold,
-//                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-//                                color = Color.White.copy(alpha = 1f),
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .padding(horizontal = 25.dp, vertical = 0.dp)
-//                            )
-//                            Spacer(Modifier.height(20.dp))
-//                            Box(
-//                                modifier = Modifier
-//                                    .height(150.dp)
-//                                    .fillMaxWidth()
-//                                    .padding(horizontal = 25.dp)
-//                                    .background(
-//                                        color = Color(0xFF202B36).copy(alpha = 0.4f),
-//                                        shape = RoundedCornerShape(10.dp)
-//                                    )
-//                            ) {
-//
-//                            }
-//                            Spacer(Modifier.height(20.dp))
-                            Text(
-                                text = "Lifetime Statistics",
-                                textAlign = TextAlign.Start,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                fontWeight = FontWeight.Bold,
-                                style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-                                color = Color.White.copy(alpha = 1f),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp)
-                            )
-                            Spacer(Modifier.height(20.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .background(
-                                            color = Color(0xFF121417).copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .size(150.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = target.count.toString(),
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            fontSize = 48.sp
-                                        )
-                                        Text(
-                                            text = "WORKOUTS",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = "COMPLETED",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFF1C40F)
-                                        )
-                                    }
-                                }
-                                Spacer(Modifier.width(20.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .background(
-                                            color = Color(0xFF121417).copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .size(150.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = target.weight.toString(),
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            fontSize = 40.sp
-                                        )
-                                        Text(
-                                            text = "KG",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = "WEIGHT",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = "LIFTED",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFF1C40F)
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 25.dp),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .background(
-                                            color = Color(0xFF121417).copy(alpha = 0.4f),
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .size(150.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = target.time.toString(),
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            fontSize = 48.sp
-                                        )
-                                        Text(
-                                            text = "MINUTES",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = "SPENT FOR",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-                                        Text(
-                                            text = "WORKOUTS",
-                                            textAlign = TextAlign.Center,
-                                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFF1C40F)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else if (selectedTabIndex == 1) {
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            text = "Last Activity",
-                            textAlign = TextAlign.Start,
-                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                            fontWeight = FontWeight.Bold,
-                            style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
-                            color = Color.White.copy(alpha = 1f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 25.dp)
+                        OtherLifetimeStatCard(
+                            value = formatOtherStatNumber(target.time),
+                            lines = listOf(
+                                "MINUTES" to Color.White,
+                                "SPENT FOR" to Color.White,
+                                "WORKOUTS" to OtherProfileAccent
+                            ),
+                            modifier = Modifier.weight(1f)
                         )
+                        Spacer(modifier = Modifier.weight(1f))
                     }
-                    Spacer(Modifier.height(20.dp))
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 16.dp)
+                ) {
+                    Text(
+                        text = "Last Activity",
+                        textAlign = TextAlign.Start,
+                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontWeight = FontWeight.Bold,
+                        style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
+                        color = Color.White,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 25.dp, vertical = 8.dp)
+                    )
+
                     if (userHistory.isEmpty()) {
                         Column(
                             Modifier
                                 .padding(horizontal = 30.dp)
-                                .fillMaxSize()
+                                .fillMaxWidth()
                                 .background(
                                     Color.Gray.copy(alpha = 0.1f),
                                     RoundedCornerShape(20.dp)
-                                ),
+                                )
+                                .padding(vertical = 28.dp, horizontal = 20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Spacer(Modifier.height(20.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.sentimentsadicon128),
+                                contentDescription = null,
+                                tint = Color.Gray.copy(alpha = 0.5f)
+                            )
+                            Spacer(Modifier.height(12.dp))
                             Text(
                                 text = "No workout history yet",
                                 textAlign = TextAlign.Center,
                                 fontFamily = FontFamily(Font(R.font.lexendregular)),
                                 fontWeight = FontWeight.Bold,
                                 style = TextStyle(letterSpacing = 0.sp, fontSize = 15.sp),
-                                color = Color.Gray.copy(alpha = 0.5f),
-                                modifier = Modifier
-                                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                                color = Color.Gray.copy(alpha = 0.5f)
                             )
                         }
                     } else {
-                        LazyColumn() {
-                            itemsIndexed(userHistory) { index, item ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Spacer(modifier = Modifier.height(10.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 25.dp)
-                                            .background(
-                                                color = Color(0xFF202B36).copy(alpha = 0.4f),
-                                                shape = RoundedCornerShape(10.dp)
-                                            )
-                                            .height(60.dp)
-                                            .clickable(onClick = {
-                                                oldWorkoutDetailsViewModel._targetUserId.value =
-                                                    currentUser.id
-                                                oldWorkoutDetailsViewModel._sessionId.value =
-                                                    item.sessionId
-                                                oldWorkoutDetailsViewModel._flag.value = true
-                                                navController.navigate("oldworkoutdetails")
-                                            })
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(horizontal = 20.dp),
-                                            horizontalArrangement = Arrangement.Start,
-                                            verticalAlignment = Alignment.CenterVertically
-
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.dumbbellicon128),
-                                                contentDescription = null,
-                                                tint = Color(0xFFF1C40F),
-                                                modifier = Modifier
-                                                    .size(30.dp)
-                                            )
-                                            Spacer(Modifier.width(20.dp))
-                                            Column() {
-                                                Text(
-                                                    text = "${item.workoutName}",
-                                                    style = TextStyle(
-                                                        fontSize = 15.sp,
-                                                        fontFamily = FontFamily(
-                                                            Font(R.font.lexendbold)
-                                                        ),
-                                                        color = Color.White
-                                                    )
-                                                )
-                                            }
-                                            Spacer(Modifier.weight(1f))
-                                            Icon(
-                                                painter = painterResource(R.drawable.keyboarddoublearrowright),
-                                                contentDescription = null,
-                                                tint = Color(0xFFF1C40F),
-                                                modifier = Modifier
-                                                    .size(25.dp)
-                                            )
-                                        }
+                        LazyColumn(
+                            contentPadding = PaddingValues(bottom = 24.dp)
+                        ) {
+                            items(
+                                items = userHistory,
+                                key = { it.sessionId }
+                            ) { item ->
+                                OtherActivityHistoryRow(
+                                    workoutName = item.workoutName,
+                                    dateLabel = formatNotificationTime(item.dateTimestamp),
+                                    onClick = {
+                                        oldWorkoutDetailsViewModel._targetUserId.value =
+                                            currentUser.id
+                                        oldWorkoutDetailsViewModel._sessionId.value =
+                                            item.sessionId
+                                        oldWorkoutDetailsViewModel._flag.value = true
+                                        navController.navigate("oldworkoutdetails")
                                     }
-                                }
+                                )
                             }
                         }
                     }
                 }
-                if (isPhotoExpanded.value) {
-                    Dialog(onDismissRequest = { isPhotoExpanded.value = false }) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().clickable { isPhotoExpanded.value = false },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            AnimatedVisibility(
-                                visible = isPhotoExpanded.value,
-                                enter = fadeIn() + scaleIn(initialScale = 0.8f),
-                                exit = fadeOut() + scaleOut(targetScale = 0.8f)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(500.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AsyncImage(
-                                        model = currentUser.userPhotoUri,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.95f)
-                                            .aspectRatio(1f)
-                                            .clip(CircleShape) // 100.dp yerine direkt CircleShape daha güvenlidir
-                                            .background(Color.Black),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                            }
-                        }
+            }
+        }
+
+        if (isPhotoExpanded && hasPhoto) {
+            Dialog(onDismissRequest = { onPhotoExpandedChange(false) }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { onPhotoExpandedChange(false) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedVisibility(
+                        visible = isPhotoExpanded,
+                        enter = fadeIn() + scaleIn(initialScale = 0.8f),
+                        exit = fadeOut() + scaleOut(targetScale = 0.8f)
+                    ) {
+                        AsyncImage(
+                            model = currentUser.userPhotoUri,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .background(Color.Black)
+                                .clickable(enabled = false) {},
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
             }
@@ -699,42 +523,131 @@ fun OtherScreenProfile(
 }
 
 @Composable
-fun StatItem(label: String, count: Int, onClick: () -> Unit) {
+private fun OtherLifetimeStatCard(
+    value: String,
+    lines: List<Pair<String, Color>>,
+    modifier: Modifier = Modifier,
+    valueFontSize: TextUnit = 40.sp
+) {
+    Box(
+        modifier = modifier
+            .background(OtherProfileCardBg, RoundedCornerShape(12.dp))
+            .aspectRatio(1f)
+            .padding(12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = value,
+                textAlign = TextAlign.Center,
+                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                fontSize = valueFontSize,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            lines.forEach { (label, color) ->
+                Text(
+                    text = label,
+                    textAlign = TextAlign.Center,
+                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                    fontSize = 12.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OtherActivityHistoryRow(
+    workoutName: String,
+    dateLabel: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .fillMaxWidth()
+            .padding(horizontal = 25.dp, vertical = 6.dp)
+            .background(OtherProfileCardBg, RoundedCornerShape(10.dp))
+            .height(64.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.dumbbellicon128),
+                contentDescription = null,
+                tint = OtherProfileAccent,
+                modifier = Modifier.size(30.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = workoutName,
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        color = Color.White
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (dateLabel.isNotBlank()) {
+                    Text(
+                        text = dateLabel,
+                        style = TextStyle(
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            color = Color.White.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+            }
+            Icon(
+                painter = painterResource(R.drawable.keyboarddoublearrowright),
+                contentDescription = null,
+                tint = OtherProfileAccent,
+                modifier = Modifier.size(25.dp)
+            )
+        }
+    }
+}
+
+private fun formatOtherStatNumber(value: Number): String {
+    val n = value.toLong()
+    return when {
+        n >= 1_000_000 -> String.format("%.1fM", n / 1_000_000.0)
+        n >= 10_000 -> String.format("%.1fK", n / 1_000.0)
+        else -> n.toString()
+    }
+}
+
+@Composable
+fun StatItem(label: String, count: Int, onClick: () -> Unit = {}) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .clickable { onClick() }
+            .clickable(onClick = onClick)
             .padding(8.dp)
     ) {
-        Text(text = "$count", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text(text = label, color = Color.Gray, fontSize = 11.sp)
-    }
-}
-
-@Composable
-fun SuccessContent() {
-    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Recent Achievements",
+            text = "$count",
             color = Color.White,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
+            fontFamily = FontFamily(Font(R.font.lexendbold))
         )
-        Spacer(modifier = Modifier.height(10.dp))
-        // Mevcut başarı tasarımın buraya...
-        Text("No Achievements yet.", color = Color.Gray)
-    }
-}
-
-@Composable
-fun StatsContent() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Weekly Volume", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Box(
-            modifier = Modifier
-                .height(150.dp)
-                .fillMaxWidth()
-                .background(Color.DarkGray, RoundedCornerShape(10.dp))
+        Text(
+            text = label,
+            color = Color.Gray,
+            fontSize = 11.sp,
+            fontFamily = FontFamily(Font(R.font.lexendbold))
         )
     }
 }

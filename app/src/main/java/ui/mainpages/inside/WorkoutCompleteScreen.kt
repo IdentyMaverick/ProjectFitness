@@ -65,7 +65,6 @@ import com.grozzbear.R
 import data.local.viewmodel.LeaderboardViewModel
 import data.local.viewmodel.WorkoutCompleteAnalysisScreenViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
-import ui.mainpages.inside.topPadding
 import ui.mainpages.navigation.Screens
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -205,7 +204,6 @@ private fun HomeTopBarWorkoutCompleteScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
