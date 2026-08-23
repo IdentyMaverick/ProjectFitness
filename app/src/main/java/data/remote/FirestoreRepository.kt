@@ -1,10 +1,12 @@
 package data.remote
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.annotation.Keep
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 @Keep
@@ -63,47 +65,55 @@ class FirestoreRepository {
             }
     }
 
-    fun getFollowers(nickname: String): LiveData<List<String>> {
-        val followersLiveData = MutableLiveData<List<String>>()
-        firestore.collection("followers")
+    fun observeFollowers(nickname: String): Flow<List<String>> = callbackFlow {
+        if (nickname.isBlank()) {
+            trySend(emptyList())
+            awaitClose { }
+            return@callbackFlow
+        }
+        val registration = firestore.collection("followers")
             .whereEqualTo("followingId", nickname)
             .addSnapshotListener { snapshots, e ->
                 if (e != null || snapshots == null) {
+                    if (e != null) Log.e("Firestore", "Followers listener error", e)
                     return@addSnapshotListener
                 }
-                val followers = snapshots.documents.map { it.getString("followerId")!! }
-                followersLiveData.value = followers
+                trySend(snapshots.documents.mapNotNull { it.getString("followerId") })
             }
-        return followersLiveData
+        awaitClose { registration.remove() }
     }
 
-    fun getFollowing(nickname: String): LiveData<List<String>> {
-        val followingLiveData = MutableLiveData<List<String>>()
-        firestore.collection("followers")
+    fun observeFollowing(nickname: String): Flow<List<String>> = callbackFlow {
+        if (nickname.isBlank()) {
+            trySend(emptyList())
+            awaitClose { }
+            return@callbackFlow
+        }
+        val registration = firestore.collection("followers")
             .whereEqualTo("followerId", nickname)
             .addSnapshotListener { snapshots, e ->
                 if (e != null || snapshots == null) {
+                    if (e != null) Log.e("Firestore", "Following listener error", e)
                     return@addSnapshotListener
                 }
-                val following = snapshots.documents.map { it.getString("followingId")!! }
-                followingLiveData.value = following
+                trySend(snapshots.documents.mapNotNull { it.getString("followingId") })
             }
-        return followingLiveData
+        awaitClose { registration.remove() }
     }
 
     @SuppressLint("RestrictedApi")
     suspend fun getUserByNickname(nickname: String): User? {
         return try {
-            val querySnapshot = firestore.collection("googlecloudusers")
+            val querySnapshot = firestore.collection(FirestorePaths.USERS)
                 .whereEqualTo("nickname", nickname)
                 .get()
                 .await()
 
             if (!querySnapshot.isEmpty) {
                 val documentSnapshot = querySnapshot.documents.first()
-                val user = documentSnapshot.toObject(User::class.java)
-                user?.id = documentSnapshot.id
-                user
+                documentSnapshot.toObject(User::class.java)?.apply {
+                    id = documentSnapshot.id
+                }
             } else {
                 null
             }
@@ -114,42 +124,36 @@ class FirestoreRepository {
 
     @SuppressLint("RestrictedApi")
     suspend fun getUserById(id: String): User? {
+        if (id.isBlank()) return null
         return try {
-            val querySnapshot = firestore.collection("googlecloudusers")
-                .whereEqualTo("id", id)
+            val documentSnapshot = firestore.collection(FirestorePaths.USERS)
+                .document(id)
                 .get()
                 .await()
-
-            if (!querySnapshot.isEmpty) {
-                val documentSnapshot = querySnapshot.documents.first()
-                val user = documentSnapshot.toObject(User::class.java)
-                user
-            } else {
-                null
+            if (!documentSnapshot.exists()) return null
+            documentSnapshot.toObject(User::class.java)?.apply {
+                this.id = documentSnapshot.id
             }
         } catch (e: Exception) {
+            Log.e("Firestore", "getUserById failed", e)
             null
         }
     }
 
 
-    @SuppressLint("RestrictedApi")
-    fun getAllUsers(): LiveData<List<User>> {
-        val usersLiveData = MutableLiveData<List<User>>()
-        firestore.collection("googlecloudusers").addSnapshotListener { snapshot, exception ->
-            if (exception != null) {
-                return@addSnapshotListener
-            }
-            val users = mutableListOf<User>()
-            snapshot?.documents?.forEach { document ->
-                val user = document.toObject(User::class.java)
-                user?.let {
-                    users.add(it)
+    fun observeAllUsers(): Flow<List<User>> = callbackFlow {
+        val registration = firestore.collection("googlecloudusers")
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    Log.e("Firestore", "Users listener error", exception)
+                    return@addSnapshotListener
                 }
+                val users = snapshot?.documents?.mapNotNull { document ->
+                    document.toObject(User::class.java)?.apply { id = document.id }
+                } ?: emptyList()
+                trySend(users)
             }
-            usersLiveData.value = users
-        }
-        return usersLiveData
+        awaitClose { registration.remove() }
     }
 
 

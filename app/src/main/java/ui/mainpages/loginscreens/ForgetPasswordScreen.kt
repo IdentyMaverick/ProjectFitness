@@ -13,14 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,36 +29,40 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.GrozzTextField
+import com.grozzbear.ui.theme.GrozzBackground
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.ResetUiState
+
+private const val LoginTag = "login"
 
 @Composable
 fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewModel) {
     val resetState by authViewModel.resetUiState.collectAsState()
     val context = LocalContext.current
     val emailText = remember { mutableStateOf("") }
-    val maxLength = 35
+    val isLoading = resetState is ResetUiState.Loading
+    val scrollState = rememberScrollState()
 
-    // Durum Takibi: Şifre sıfırlama başarılı olduğunda yapılacaklar
     LaunchedEffect(resetState) {
         when (resetState) {
             is ResetUiState.Success -> {
@@ -84,92 +87,95 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFF181F26))
+            .background(GrozzBackground)
     ) {
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(id = R.drawable.grozzforget),
             contentDescription = null,
-            alpha = 0.8f, // Metinlerin daha iyi okunması için hafifçe düşürdüm
-            contentScale = ContentScale.Crop // Boşlukları kapatır
+            alpha = 0.8f,
+            contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.45f to Color.Transparent,
+                            1.0f to GrozzBackground.copy(alpha = 0.85f)
+                        )
+                    )
+                )
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars), // Uçtan uca tasarım için güvenli alan
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp, bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
-                modifier = Modifier.size(300.dp)
-                    .graphicsLayer(translationY = 100f)
+                modifier = Modifier
+                    .size(160.dp)
+                    .padding(bottom = 8.dp)
             )
 
             Text(
                 text = "RESET",
-                fontFamily = FontFamily(Font(R.font.oswaldbold)),
-                color = Color.White,
-                fontSize = 40.sp
+                style = MaterialTheme.typography.displayLarge,
+                color = GrozzOnBackground,
+                textAlign = TextAlign.Center
             )
             Text(
                 text = "PASSWORD",
-                fontFamily = FontFamily(Font(R.font.oswaldbold)),
-                color = Color(0xFFF1C40F),
-                fontSize = 30.sp
+                style = MaterialTheme.typography.displayMedium,
+                color = GrozzYellow,
+                textAlign = TextAlign.Center
             )
 
-            val infoText = buildAnnotatedString {
-                withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = Color(0xFFF1C40F))) {
-                    append("No worries, ")
-                }
-                append("we’ll send you reset instructions.")
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = infoText,
-                color = Color.White,
-                fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = GrozzYellow)) {
+                        append("No worries, ")
+                    }
+                    withStyle(SpanStyle(color = GrozzOnBackground)) {
+                        append("we'll send you reset instructions.")
+                    }
+                },
+                style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 40.dp)
+                modifier = Modifier.padding(horizontal = 32.dp)
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // E-Mail Giriş Alanı
-            OutlinedTextField(
+            GrozzTextField(
                 value = emailText.value,
-                onValueChange = { if (it.length <= maxLength) emailText.value = it },
+                onValueChange = { emailText.value = it },
+                placeholder = "E-Mail Address",
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            GrozzPrimaryButton(
+                text = "Reset Password",
+                loading = isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                placeholder = {
-                    Text(
-                        "E-Mail Address",
-                        color = Color(0xFF4B5F71),
-                        fontFamily = FontFamily(Font(R.font.lexendregular))
-                    )
-                },
-                textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFF1C2126),
-                    unfocusedContainerColor = Color(0xFF1C2126),
-                    focusedBorderColor = Color(0xFF4B5F71),
-                    unfocusedBorderColor = Color(0xFF2E353D),
-                    cursorColor = Color(0xFFF1C40F),
-                    focusedLabelColor = Color.Transparent,
-                    unfocusedLabelColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(25.dp))
-
-            // Reset Butonu
-            Button(
+                    .padding(horizontal = 16.dp)
+                    .widthIn(max = 420.dp),
                 onClick = {
                     if (emailText.value.isEmpty()) {
                         Toast.makeText(
@@ -180,44 +186,44 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                     } else {
                         authViewModel.reset(emailText.value)
                     }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
-                shape = RoundedCornerShape(20.dp),
-                enabled = resetState !is ResetUiState.Loading
-            ) {
-                if (resetState is ResetUiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.Black)
-                } else {
-                    Text("Reset Password", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
-            }
+            )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // Geri Dönüş Linki
             val backToLoginText = buildAnnotatedString {
                 withStyle(
                     SpanStyle(
-                        color = Color(0xFFD9D9D9),
-                        fontFamily = FontFamily(Font(R.font.lexendregular))
+                        color = GrozzTextSecondary,
+                        fontWeight = FontWeight.Normal
                     )
                 ) {
                     append("Back to ")
                 }
+                pushStringAnnotation(tag = LoginTag, annotation = LoginTag)
                 withStyle(
                     SpanStyle(
-                        color = Color(0xFFF1C40F),
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily(Font(R.font.lexendbold))
+                        color = GrozzYellow,
+                        fontWeight = FontWeight.Bold
                     )
                 ) {
                     append("Login")
                 }
+                pop()
             }
 
             ClickableText(
                 text = backToLoginText,
-                onClick = { navController.navigate(Screens.LoginScreen.route) }
+                style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+                onClick = { offset ->
+                    if (isLoading) return@ClickableText
+                    backToLoginText
+                        .getStringAnnotations(LoginTag, offset, offset)
+                        .firstOrNull()
+                        ?.let {
+                            navController.navigate(Screens.LoginScreen.route)
+                        }
+                }
             )
         }
     }

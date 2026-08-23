@@ -1,6 +1,6 @@
 package com.grozzbear.projectfitness.viewmodel
 
-import SocialViewModel
+import viewmodel.SocialViewModel
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
@@ -10,7 +10,6 @@ import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import com.grozzbear.projectfitness.data.local.viewmodel.ActivityViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
-import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutViewModel
 import data.local.viewmodel.ActivityInsideViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
 import data.local.viewmodel.FaqcontactfeedbackScreenViewModel
@@ -58,9 +57,6 @@ class WorkoutViewModelFactory(
 
             modelClass.isAssignableFrom(ActivityInsideViewModel::class.java) ->
                 ActivityInsideViewModel(repository) as T
-
-            modelClass.isAssignableFrom(WorkoutViewModel::class.java) ->
-                WorkoutViewModel(repository) as T
 
             modelClass.isAssignableFrom(HomesViewModel::class.java) ->
                 HomesViewModel(

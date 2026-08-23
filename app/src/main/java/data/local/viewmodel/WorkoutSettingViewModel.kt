@@ -18,12 +18,6 @@ class WorkoutSettingViewModel(
 ) : ViewModel() {
     val workoutFlow = repo.observeWorkoutFull(workoutId)
 
-    fun deleteSelectedExercise(exerciseId: String, workutId: String) {
-        viewModelScope.launch {
-            repo.deleteSelectedExercise(exerciseId, workutId)
-        }
-    }
-
     fun addSet(setId: String, exerciseId: String) {
         viewModelScope.launch {
             repo.addSet(setId, exerciseId, 0, 0f)

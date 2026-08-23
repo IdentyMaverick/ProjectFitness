@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.WriteBatch
@@ -626,6 +627,12 @@ class WorkoutRepository(
 
     fun observeUserWorkoutHistory(nickname: String): Flow<List<WorkoutHistoryEntity>> =
         callbackFlow {
+            if (nickname.isBlank()) {
+                trySend(emptyList())
+                awaitClose { }
+                return@callbackFlow
+            }
+            var workoutsListener: ListenerRegistration? = null
             val userQuery = firestore.collection(FirestorePaths.USERS)
                 .whereEqualTo("nickname", nickname)
 
@@ -636,32 +643,31 @@ class WorkoutRepository(
                     return@addSnapshotListener
                 }
 
-                val userDoc = userSnapshot?.documents?.firstOrNull()
-                val userId = userDoc?.id
+                workoutsListener?.remove()
+                workoutsListener = null
 
+                val userId = userSnapshot?.documents?.firstOrNull()?.id
                 if (userId != null) {
-                    val workoutsListener = historyCol(userId)
+                    workoutsListener = historyCol(userId)
                         .orderBy("dateTimestamp", Query.Direction.DESCENDING)
                         .addSnapshotListener { workoutSnapshot, workoutError ->
                             if (workoutError != null) {
                                 Log.e("Firebase", "Antrenman çekme hatası: ${workoutError.message}")
                                 return@addSnapshotListener
                             }
-
                             val history =
                                 workoutSnapshot?.toObjects(WorkoutHistoryEntity::class.java)
                                     ?: emptyList()
                             trySend(history)
                         }
-
                 } else {
                     trySend(emptyList())
                 }
             }
 
             awaitClose {
+                workoutsListener?.remove()
                 userListener.remove()
-                Log.d("Firebase", "Akış kapatıldı, dinleyiciler temizlendi.")
             }
         }
 

@@ -263,12 +263,6 @@ class WorkoutLogViewModel(
         }
     }
 
-    suspend fun loadProgress(updateProgress: (Float) -> Unit) {
-        for (i in 1..100) {
-            updateProgress(i.toFloat() / 100); delay(100)
-        }
-    }
-
     fun toggleSetDone(exerciseName: String, setIndex: Int, isClicked: Boolean) {
         viewModelScope.launch {
             val logId = addedExerciseMap[exerciseName] ?: return@launch

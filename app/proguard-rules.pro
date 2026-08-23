@@ -6,7 +6,6 @@
 -keep class com.grozzbear.data.models.** { *; }
 -keep class com.google.gson.** { *; }
 
--keep class dagger.hilt.** { *; }
 -keepattributes *Annotation*
 
 -keep class * extends androidx.room.RoomDatabase

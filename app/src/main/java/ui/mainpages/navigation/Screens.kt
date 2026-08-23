@@ -1,5 +1,7 @@
 package ui.mainpages.navigation
 
+import androidx.navigation.NavController
+
 sealed class Screens(val route: String) {
     object WorkoutCompleteAnalysisScreen : Screens("workoutcompleteanalysisscreen")
     object InfoHorizontalScreen : Screens("infohorizontalscreen")
@@ -38,4 +40,11 @@ sealed class Screens(val route: String) {
     object OldWorkoutDetails : Screens(route = "oldworkoutdetails")
     object NotificationScreen : Screens(route = "notification")
     object ActivityInside : Screens(route = "activityinside")
+}
+
+fun NavController.navigateToLoginAfterLogout() {
+    navigate(Screens.LoginScreen.route) {
+        popUpTo(graph.id) { inclusive = true }
+        launchSingleTop = true
+    }
 }

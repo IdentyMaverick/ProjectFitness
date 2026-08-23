@@ -1,13 +1,10 @@
 package ui.mainpages.mainpages
 
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,20 +20,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -48,7 +43,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,603 +50,427 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.grozzbear.R
+import com.grozzbear.projectfitness.data.local.entity.WorkoutEntity
 import com.grozzbear.projectfitness.data.local.viewmodel.ActivityViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.GrozzTopBarLogo
+import com.grozzbear.ui.theme.GrozzError
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.safeWorkoutPainter
 import ui.mainpages.navigation.NavigationBar
 import ui.mainpages.navigation.Screens
+import ui.mainpages.navigation.navigateToLoginAfterLogout
 import viewmodel.AuthViewModel
 
-
-@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Activity(
     navController: NavController,
     activityViewModel: ActivityViewModel,
     authViewModel: AuthViewModel,
-    homesViewModel: HomesViewModel
+    @Suppress("UNUSED_PARAMETER") homesViewModel: HomesViewModel
 ) {
-
-    //Database Creation*************************************************************************************************************************************************************
-    var lazyListState: LazyListState = rememberLazyListState()
     val currentUser = FirebaseAuth.getInstance().currentUser?.uid
+    val myWorkouts by activityViewModel.myWorkoutsFlow.collectAsState(initial = emptyList())
+
+    var selectedWorkoutId by remember { mutableStateOf<String?>(null) }
+    var showMenuSheet by remember { mutableStateOf(false) }
+    val deleteSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(currentUser) {
         if (!currentUser.isNullOrBlank()) {
             activityViewModel.refreshWorkouts(currentUser)
         }
     }
-    val myWorkoutsList =
-        activityViewModel.myWorkoutsFlow.collectAsState(initial = emptyList()).value
 
-    //******************************************************************************************************************************************************************************
-
-    // Variable Initiliaze -------------------------------------------------------------------------
-    var clickedProfile by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var expand by remember { mutableStateOf(false) }
-    var selectedWorkoutId by remember { mutableStateOf<String?>(null) }
-    var showMenuSheetActivity by remember { mutableStateOf(false) }
-    val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var expanded by rememberSaveable { mutableStateOf(false) }
-    val workouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val cardWidth = screenWidth * 0.85f
-    val challengePagerState = rememberPagerState(pageCount = { workouts.size })
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-
-    // UI Codes ------------------------------------------------------------------------------------
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBarActivity(
-                clickedProfile = clickedProfile,
-                onProfileClick = {
-                    clickedProfile = true
-                    navController.navigate("profile")
-                },
-                onMenuClick = { showMenuSheetActivity = true },
-                topPadding = topPadding
+            ActivityTopBar(
+                onMenuClick = { showMenuSheet = true }
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         bottomBar = {
-            // senin NavigationBar fonksiyonun zaten hazır
-            val indexs = 1
-            val flagg = false
-            val flagg2 = true
-            val flagg3 = false
-            val flagg4 = false
-            NavigationBar(navController = navController, indexs, flagg, flagg2, flagg3, flagg4)
+            NavigationBar(
+                navController = navController,
+                indexs = 1,
+                flag = false,
+                flag2 = true,
+                flag3 = false,
+                flag4 = false
+            )
         },
         floatingActionButton = {
-            ExtendedActivityButton(
-                onConfirmClick = { navController.navigate(Screens.ChooseExercises.route) },
-                expanded = expanded,
-                onExpandChange = { expanded = it }
-            )
+            FloatingActionButton(
+                onClick = { navController.navigate(Screens.CreateWorkout.route) },
+                containerColor = GrozzYellow,
+                contentColor = GrozzOnPrimary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Create workout"
+                )
+            }
         },
-        floatingActionButtonPosition = FabPosition.EndOverlay,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .clickable(
-                    enabled = true,
-                    onClick = { expanded = false },
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                )
+                .padding(paddingValues),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 88.dp)
         ) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp)
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
-                        HorizontalDivider(
-                            thickness = 3.dp,
-                            color = Color(0xFFF1C40F),
-                            modifier = Modifier.width(45.dp)
-                        )
-                        Spacer(Modifier.height(20.dp))
-                        Text(
-                            text = "RECOMMENDED",
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            letterSpacing = 0.sp,
-                            fontFamily = FontFamily(Font(R.font.oswaldbold))
-                        )
-                        Text(
-                            text = "FOR YOU",
-                            color = Color(0xFFF1C40F),
-                            fontSize = 24.sp,
-                            letterSpacing = 0.sp,
-                            fontFamily = FontFamily(Font(R.font.oswaldbold))
-                        )
-                    }
-                }
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp)
-                ) {
-                    Text(
-                        text = "Based on your focus",
-                        color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.lexendregular)),
-                    )
-                }
-                Spacer(Modifier.height(10.dp))
-                HorizontalPager(
-                    state = challengePagerState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp), // Kartın yüksekliğini buradan kontrol et
-                    contentPadding = PaddingValues(horizontal = 10.dp), // Yandaki kartların ne kadar görüneceğini belirler
-                    pageSpacing = 16.dp, // Kartlar arasındaki boşluk
-                    verticalAlignment = Alignment.CenterVertically
-                ) { pageIndex ->
-                    val item = workouts[pageIndex]
-                    val totalIcons = 5
-                    val challengeDifficulty = item.component1().workoutRating
-                    Box(
-                        modifier = Modifier
-                            .width(cardWidth)
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(24.dp)) // Daha yumuşak köşeler
-                            .background(
-                                Color(0xFF1C2126),
-                                shape = RoundedCornerShape(0.dp)
-                            )
-                            .clickable(onClick = {
-                                navController.navigate("workoutsettingscreen/${item.workout.workoutId}") {
-                                    popUpTo(Screens.Home.route)
-                                }
-                            }),
-                        //.border(3.dp, Color(0xFFF1C40F), RoundedCornerShape(24.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = item.workout.image),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.Transparent,
-                                            Color.Black.copy(alpha = 0.9f)
-                                        ),
-                                        startY = 100f // Kararmanın başladığı nokta
-                                    )
-                                )
-                        )
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(20.dp),
-                            verticalArrangement = Arrangement.Bottom // İçeriği aşağı yasla
-                        ) {
-                            Text(
-                                text = item.workout.workoutType.uppercase(), // Kategori ismi
-                                color = Color(0xFFF1C40F),
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
-                            )
-                            Text(
-                                text = item.component1().workoutName,
-                                color = Color.White,
-                                style = TextStyle(
-                                    fontSize = 24.sp,
-                                    fontFamily = FontFamily(Font(R.font.oswaldbold))
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                WorkoutTag(
-                                    text = "45 mins",
-                                    icon = R.drawable.shutterspeedfilledicon128,
-                                    Color.Gray,
-                                    Color.Gray
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                for (i in 1..totalIcons) {
-                                    val iconColor =
-                                        if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.skullicon128),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(15.dp),
-                                        tint = iconColor
-                                    )
-
-                                    if (i < totalIcons) {
-                                        Spacer(modifier = Modifier.size(2.dp))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            item {
+                ActivityHeader(
+                    workoutCount = myWorkouts.size,
+                    onCreateClick = { navController.navigate(Screens.CreateWorkout.route) }
+                )
+                Spacer(modifier = Modifier.height(20.dp))
             }
-            Spacer(Modifier.height(20.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
-                    HorizontalDivider(
-                        thickness = 3.dp,
-                        color = Color(0xFFF1C40F),
-                        modifier = Modifier.width(45.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Text(
-                        text = "YOUR",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        letterSpacing = 0.sp,
-                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                    )
-                    Text(
-                        text = "WORKOUTS",
-                        color = Color(0xFFF1C40F),
-                        fontSize = 24.sp,
-                        letterSpacing = 0.sp,
-                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                    )
-                }
-            }
-            Spacer(Modifier.height(10.dp))
-            if (myWorkoutsList.isNotEmpty()) {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier
-                        .padding(horizontal = 30.dp)
-                ) {
-                    itemsIndexed(myWorkoutsList) { index, item ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(
-                                    Color(0xFF1C2126),
-                                    shape = RoundedCornerShape(0.dp)
-                                )
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("workoutsettingscreen/${item.workoutId}") {
-                                            popUpTo(Screens.Activity.route)
-                                        }
-                                    },
-                                    onLongClick = {
-                                        expand = true
-                                        selectedWorkoutId = item.workoutId
-                                    }),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.infohorizontalscreensecondphoto), // Resmini buraya koy
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                Color.Black.copy(alpha = 0.9f)
-                                            ),
-                                            startY = 100f // Kararmanın başladığı nokta
-                                        )
-                                    )
-                            )
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(20.dp),
-                                verticalArrangement = Arrangement.Bottom // İçeriği aşağı yasla
-                            ) {
-                                Text(
-                                    text = item.workoutType.uppercase(), // Kategori ismi
-                                    color = Color(0xFFF1C40F),
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    ),
-                                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                                )
-                                Text(
-                                    text = item.workoutName,
-                                    color = Color.White,
-                                    style = TextStyle(
-                                        fontSize = 24.sp,
-                                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                                    )
-                                )
 
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    WorkoutTag(
-                                        text = item.workoutType,
-                                        icon = R.drawable.shutterspeedfilledicon128,
-                                        Color.Gray,
-                                        Color.Gray
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(Modifier.size(10.dp))
-                    }
-                }
-                if (selectedWorkoutId != null) {
-                    LongClickModalBottom(
-                        sheetState = sheetState,
-                        onDismiss = {
-                            selectedWorkoutId = null
-                        },
-                        onDeleteClick = {
-                            Log.d("Delete", "Silinecek ID: $selectedWorkoutId")
-                            activityViewModel.deleteWorkouts(selectedWorkoutId!!)
-
-                            selectedWorkoutId = null
-                        }
+            if (myWorkouts.isEmpty()) {
+                item {
+                    ActivityEmptyState(
+                        onCreateClick = { navController.navigate(Screens.CreateWorkout.route) }
                     )
                 }
             } else {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.dumbbell),
-                        contentDescription = null,
-                        tint = Color(0xFF2C3138),
-                        modifier = Modifier.size(100.dp)
-                    )
-                    Spacer(Modifier.size(50.dp))
-                    Text(
-                        "No Workouts Yet",
-                        color = Color.White,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                        fontSize = 22.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Create your first workout plan and start your journey today.",
-                        style = TextStyle(
-                            fontFamily = FontFamily(Font(R.font.lexendregular)),
-                            fontSize = 16.sp,
-                            color = Color.Gray,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                }
-            }
-            if (showMenuSheetActivity) {
-                ModalBottomSheet(
-                    onDismissRequest = { showMenuSheetActivity = false },
-                    sheetState = menuSheetState,
-                    containerColor = Color(0xFF1C2126)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp, bottom = 40.dp)
-                    ) {
-                        Text(
-                            text = "Menu",
-                            style = TextStyle(
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
-                            ),
-                            modifier = Modifier.padding(horizontal = 24.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        MenuItemRow(
-                            iconRes = R.drawable.accountcircle,
-                            text = "View Profile",
-                            onClick = { navController.navigate(Screens.Home.Profile.route) }
-                        )
-
-                        MenuItemRow(
-                            iconRes = R.drawable.settings,
-                            text = "Settings",
-                            onClick = { navController.navigate(Screens.HomesSettings.route) }
-                        )
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            thickness = 0.5.dp,
-                            color = Color.Gray.copy(alpha = 0.3f)
-                        )
-
-                        MenuItemRow(
-                            iconRes = R.drawable.logouticon128,
-                            text = "Log Out",
-                            textColor = Color(0xFFFF4444),
-                            onClick = {
-                                authViewModel.logout()
-                                navController.navigate(Screens.LoginScreen.route)
+                items(myWorkouts, key = { it.workoutId }) { workout ->
+                    MyWorkoutCard(
+                        workout = workout,
+                        onClick = {
+                            navController.navigate("workoutsettingscreen/${workout.workoutId}") {
+                                popUpTo(Screens.Activity.route)
                             }
-                        )
-                    }
+                        },
+                        onLongClick = { selectedWorkoutId = workout.workoutId }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }
+    }
 
+    if (selectedWorkoutId != null) {
+        LongClickModalBottom(
+            sheetState = deleteSheetState,
+            onDismiss = { selectedWorkoutId = null },
+            onDeleteClick = {
+                val id = selectedWorkoutId
+                if (id != null) {
+                    Log.d("Delete", "Silinecek ID: $id")
+                    activityViewModel.deleteWorkouts(id)
+                }
+                selectedWorkoutId = null
+            }
+        )
+    }
+
+    if (showMenuSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showMenuSheet = false },
+            sheetState = menuSheetState,
+            containerColor = GrozzSurface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 40.dp)
+            ) {
+                Text(
+                    text = "Menu",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = GrozzOnBackground,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                MenuItemRow(
+                    iconRes = R.drawable.accountcircle,
+                    text = "View Profile",
+                    onClick = {
+                        showMenuSheet = false
+                        navController.navigate(Screens.Home.Profile.route)
+                    }
+                )
+                MenuItemRow(
+                    iconRes = R.drawable.settings,
+                    text = "Settings",
+                    onClick = {
+                        showMenuSheet = false
+                        navController.navigate(Screens.HomesSettings.route)
+                    }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
+                    thickness = 0.5.dp,
+                    color = GrozzTextSecondary.copy(alpha = 0.25f)
+                )
+                MenuItemRow(
+                    iconRes = R.drawable.logouticon128,
+                    text = "Log Out",
+                    textColor = GrozzError,
+                    onClick = {
+                        showMenuSheet = false
+                        authViewModel.logout()
+                        navController.navigateToLoginAfterLogout()
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun HomeTopBarActivity(
-    clickedProfile: Boolean,
-    onProfileClick: () -> Unit,
-    onMenuClick: () -> Unit,
-    topPadding: Dp
-) {
+private fun ActivityTopBar(onMenuClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        IconButton(onClick = onProfileClick) {
+        IconButton(onClick = onMenuClick) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
+                contentDescription = "Menu",
+                modifier = Modifier.size(26.dp),
+                tint = GrozzOnBackground
             )
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-        Image(
-            painter = painterResource(R.drawable.grozzlogo),
-            contentDescription = "Grozz Logo",
-            modifier = Modifier.size(100.dp))
+        GrozzTopBarLogo()
 
-        Spacer(Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-        IconButton(onClick = onMenuClick) {
-            Icon(
-                painter = painterResource(R.drawable.projectfitnesspointheavy),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
+        // Balance the leading icon so the logo stays centered.
+        Spacer(modifier = Modifier.size(48.dp))
+    }
+}
+
+@Composable
+private fun ActivityHeader(
+    workoutCount: Int,
+    onCreateClick: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HorizontalDivider(
+            thickness = 3.dp,
+            color = GrozzYellow,
+            modifier = Modifier.width(40.dp)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "YOUR",
+            fontFamily = Oswald,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = GrozzOnBackground
+        )
+        Text(
+            text = "WORKOUTS",
+            fontFamily = Oswald,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = GrozzYellow
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = if (workoutCount == 0) {
+                "Build plans you can reuse anytime."
+            } else {
+                "$workoutCount custom ${if (workoutCount == 1) "plan" else "plans"}"
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = GrozzTextSecondary
+        )
+        if (workoutCount > 0) {
+            Spacer(modifier = Modifier.height(16.dp))
+            GrozzPrimaryButton(
+                text = "Create workout",
+                onClick = onCreateClick,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
 @Composable
-fun ExtendedActivityButton(
-    onConfirmClick: () -> Unit,
-    expanded: Boolean,
-    onExpandChange: (Boolean) -> Unit
+private fun ActivityEmptyState(onCreateClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp, bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.dumbbell),
+            contentDescription = null,
+            tint = GrozzMuted,
+            modifier = Modifier.size(88.dp)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "No workouts yet",
+            style = MaterialTheme.typography.titleLarge,
+            color = GrozzOnBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Create your first workout plan and start your journey today.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = GrozzTextSecondary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        GrozzPrimaryButton(
+            text = "Create workout",
+            onClick = onCreateClick,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun MyWorkoutCard(
+    workout: WorkoutEntity,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    ExtendedFloatingActionButton(
-        onClick = {
-            if (!expanded) {
-                onExpandChange(true)
-            } else {
-                onConfirmClick()
-                onExpandChange(false)
-            }
-        },
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Add,
-                null,
-                Modifier.size(30.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(112.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(GrozzSurface)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
             )
-        },
-        text = {
-            Text(
-                "Create Workout",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    fontSize = 18.sp
+    ) {
+        Image(
+            painter = safeWorkoutPainter(workout.image),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.88f)
+                        ),
+                        startY = 40f
+                    )
                 )
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                text = workout.workoutType.ifBlank { "Custom" }.uppercase(),
+                color = GrozzYellow,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                fontFamily = Lexend
             )
-        },
-        containerColor = Color(0xFFF1C40F),
-        expanded = expanded,
-        modifier = Modifier.padding(bottom = 50.dp)
-    )
+            Text(
+                text = workout.workoutName,
+                color = GrozzOnBackground,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LongClickModalBottom(
     sheetState: SheetState,
-    onDismiss: () -> Unit,      // Kapatma eylemi
-    onDeleteClick: () -> Unit   // Silme eylemi
+    onDismiss: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     ModalBottomSheet(
-        onDismissRequest = {
-            onDismiss()
-        },
+        onDismissRequest = onDismiss,
         sheetState = sheetState,
-        // Modifier.height(300.dp) yerine wrapContentHeight daha sağlıklı olabilir ama senin tercihin
-        modifier = Modifier.height(300.dp),
-        containerColor = Color(0xFF1C2126) // Arka plan rengi (Opsiyonel)
+        containerColor = GrozzSurface
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .padding(bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Remove Workout",
-                style = TextStyle(
-                    fontSize = 20.sp,
-                    color = Color.White,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                )
+                text = "Remove workout",
+                style = MaterialTheme.typography.titleLarge,
+                color = GrozzOnBackground
             )
-
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "This deletes the plan from your library.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GrozzTextSecondary,
+                textAlign = TextAlign.Center
+            )
             Spacer(modifier = Modifier.height(20.dp))
-
-            // Silme Butonu Örneği
-            androidx.compose.material3.Button(
+            Button(
                 onClick = onDeleteClick,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color.Red
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GrozzError,
+                    contentColor = GrozzOnBackground
                 ),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(20.dp)
             ) {
-                Text("Delete", color = Color.White)
+                Text(
+                    text = "Delete",
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Long-press a workout anytime to remove it.",
+                style = MaterialTheme.typography.bodySmall,
+                color = GrozzTextSecondary.copy(alpha = 0.7f)
+            )
         }
     }
 }

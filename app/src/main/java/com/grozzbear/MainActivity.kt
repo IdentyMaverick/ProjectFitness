@@ -4,18 +4,17 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.core.view.WindowCompat
 import com.grozzbear.projectfitness.data.local.db.DbProvider
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
-import data.local.viewmodel.LeaderboardViewModel
+import com.grozzbear.ui.theme.ProjectFitnessTheme
 import ui.mainpages.navigation.Navigation
 import ui.mainpages.openscreen.SplashScreen
 
@@ -31,35 +30,22 @@ class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         actionBar?.hide()
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
+            false
         setContent {
-            var showSplash by remember { mutableStateOf(true) }
+            ProjectFitnessTheme {
+                var showSplash by remember { mutableStateOf(true) }
 
-            if (showSplash) {
-                SplashScreen(onTimeout = { showSplash = false })
-            } else {
-                SetSystemBarsColor()
-                Main(workoutRepository)
+                if (showSplash) {
+                    SplashScreen(onTimeout = { showSplash = false })
+                } else {
+                    Main(workoutRepository)
+                }
             }
         }
-    }
-}
-
-@Composable
-fun SetSystemBarsColor() {
-    val systemUiController = rememberSystemUiController()
-
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = Color(0xFF121417),
-            darkIcons = false
-        )
-
-        systemUiController.setNavigationBarColor(
-            color = Color(0xFF121417),
-            darkIcons = false
-        )
     }
 }
 

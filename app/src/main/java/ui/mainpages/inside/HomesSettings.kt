@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
 import ui.mainpages.navigation.Screens
+import ui.mainpages.navigation.navigateToLoginAfterLogout
 import viewmodel.AuthViewModel
 import viewmodel.ProjectFitnessViewModel
 import viewmodel.ViewModelProfile
@@ -105,7 +106,7 @@ fun HomesSettings(
             // Log Out
             SettingRow("Log Out", onClick = {
                 authViewModel.logout()
-                navController.navigate(Screens.LoginScreen.route)
+                navController.navigateToLoginAfterLogout()
             }, textColor = Color.Red, type = "logout")
 
         }

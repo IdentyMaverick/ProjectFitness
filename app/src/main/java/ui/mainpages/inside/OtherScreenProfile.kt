@@ -1,6 +1,15 @@
+package ui.mainpages.inside
+
+import android.os.Build
 import android.util.Log
 import androidx.annotation.Keep
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,7 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -63,10 +71,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.grozzbear.R
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.remote.FirestorePaths
-import ui.mainpages.inside.HomeTopBarProfile
 import viewmodel.AuthViewModel
-import viewmodel.ProfileUiState
 import viewmodel.ProfileViewModel
+import viewmodel.SocialViewModel
 
 @Keep
 data class WorkoutCompleteUser(
@@ -88,17 +95,18 @@ fun OtherScreenProfile(
     val db = FirebaseFirestore.getInstance()
     val myNickname by socialViewModel.nickname.collectAsState()
     val config = LocalConfiguration.current
-    val screenHeightDp = config.screenHeightDp.dp
 
     val user by socialViewModel.getUserByNicknameLive(nickname).observeAsState()
 
-    // Takip verileri (Kullanıcı nickname'ine göre)
-    val otherFollowers by socialViewModel.getFollowers(nickname)
-        .observeAsState(initial = emptyList())
-    val otherFollowing by socialViewModel.getFollowing(nickname)
-        .observeAsState(initial = emptyList())
-    val myFollowingList by socialViewModel.getFollowing(myNickname)
-        .observeAsState(initial = emptyList())
+    val otherFollowers by remember(nickname) {
+        socialViewModel.getFollowers(nickname)
+    }.collectAsState(initial = emptyList())
+    val otherFollowing by remember(nickname) {
+        socialViewModel.getFollowing(nickname)
+    }.collectAsState(initial = emptyList())
+    val myFollowingList by remember(myNickname) {
+        socialViewModel.getFollowing(myNickname)
+    }.collectAsState(initial = emptyList())
 
     val isFollowing = myFollowingList.contains(nickname)
     Log.d("Following list", myFollowingList.toString())
@@ -107,11 +115,11 @@ fun OtherScreenProfile(
     val tabTitles = listOf("Stats", "Activity")
     val scrollState = rememberScrollState()
     val workoutHistoryFull by profileViewModel.workoutHistoryFull.collectAsState()
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+    val topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
     val isPhotoExpanded = remember { mutableStateOf(false) }
     val blurAlpha by animateDpAsState(
         targetValue = if (isPhotoExpanded.value) 15.dp else 0.dp,
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 50),
+        animationSpec = tween(durationMillis = 50),
         label = "blurAnimation"
     )
 
@@ -659,10 +667,10 @@ fun OtherScreenProfile(
                             modifier = Modifier.fillMaxSize().clickable { isPhotoExpanded.value = false },
                             contentAlignment = Alignment.Center
                         ) {
-                            androidx.compose.animation.AnimatedVisibility(
+                            AnimatedVisibility(
                                 visible = isPhotoExpanded.value,
-                                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
-                                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
+                                enter = fadeIn() + scaleIn(initialScale = 0.8f),
+                                exit = fadeOut() + scaleOut(targetScale = 0.8f)
                             ) {
                                 Box(
                                     modifier = Modifier

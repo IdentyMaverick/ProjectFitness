@@ -56,18 +56,27 @@ class AuthViewModel(
         viewModelScope.launch {
             _registerState.value = RegisterUiState.Loading
             try {
-                // 1) User oluştur
                 val uid = authRepository.register(email, password)
-
-                // 2) Profil yaz
                 val profile = UserProfile(
                     first = fullName,
                     nickname = nickname,
                     email = email,
                     userPhotoUri = ""
                 )
-                userRepository.createUserProfile(uid, profile)
-
+                try {
+                    userRepository.createUserProfile(uid, profile)
+                } catch (profileError: Exception) {
+                    try {
+                        authRepository.deleteCurrentUser()
+                    } catch (deleteError: Exception) {
+                        Log.e(
+                            "Auth",
+                            "Profile write failed and auth rollback also failed",
+                            deleteError
+                        )
+                    }
+                    throw profileError
+                }
                 _registerState.value = RegisterUiState.Success
             } catch (e: Exception) {
                 _registerState.value = RegisterUiState.Error(e.message ?: "Register failed")
@@ -84,12 +93,12 @@ class AuthViewModel(
             _loginUiState.value = LoginUiState.Loading
             try {
                 val uid = authRepository.login(email, password)
-                var profile = userRepository.getUserProfile(uid)
+                ensureUserProfile(uid, displayName = null, email = email)
                 userRepository.setUserOnline(uid, true)
-
                 _loginUiState.value = LoginUiState.Success
                 saveUserFcmToken(uid)
             } catch (e: Exception) {
+                authRepository.logout()
                 _loginUiState.value = LoginUiState.Error(e.message ?: "Login failed")
             }
         }
@@ -109,21 +118,12 @@ class AuthViewModel(
             _loginUiState.value = LoginUiState.Loading
             try {
                 val uid = authRepository.loginWithGoogle(idToken)
-                if (userRepository.getUserProfile(uid) == null) {
-                    userRepository.createUserProfile(
-                        uid,
-                        UserProfile(
-                            first = displayName?.takeIf { it.isNotBlank() } ?: "Sporcu",
-                            nickname = googleNickname(displayName, email),
-                            email = email.orEmpty(),
-                            userPhotoUri = photoUrl.orEmpty()
-                        )
-                    )
-                }
+                ensureUserProfile(uid, displayName, email, photoUrl)
                 userRepository.setUserOnline(uid, true)
                 _loginUiState.value = LoginUiState.Success
                 saveUserFcmToken(uid)
             } catch (e: Exception) {
+                authRepository.logout()
                 _loginUiState.value = LoginUiState.Error(e.message ?: "Google sign-in failed")
             }
         }
@@ -131,6 +131,24 @@ class AuthViewModel(
 
     fun onGoogleSignInFailed(message: String) {
         _loginUiState.value = LoginUiState.Error(message)
+    }
+
+    private suspend fun ensureUserProfile(
+        uid: String,
+        displayName: String?,
+        email: String?,
+        photoUrl: String? = null
+    ) {
+        if (userRepository.getUserProfile(uid) != null) return
+        userRepository.createUserProfile(
+            uid,
+            UserProfile(
+                first = displayName?.takeIf { it.isNotBlank() } ?: "Sporcu",
+                nickname = googleNickname(displayName, email),
+                email = email.orEmpty(),
+                userPhotoUri = photoUrl.orEmpty()
+            )
+        )
     }
 
     private fun googleNickname(displayName: String?, email: String?): String {

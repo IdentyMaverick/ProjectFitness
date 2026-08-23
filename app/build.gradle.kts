@@ -3,7 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -85,7 +84,6 @@ android {
 dependencies {
     val nav_version = "2.8.5"
     val room_version = "2.6.1"
-    val hilt_version = "2.51"
     val vico_version = "2.0.0-alpha.28"
 
     // Core & Lifecycle
@@ -116,10 +114,8 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
 
-    // Google Auth & Hilt
+    // Google Auth
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-    implementation("com.google.dagger:hilt-android:$hilt_version")
-    kapt("com.google.dagger:hilt-android-compiler:$hilt_version")
 
     // Üçüncü Parti Kütüphaneler [cite: 9]
     implementation("com.chargemap.compose:numberpicker:1.0.3")

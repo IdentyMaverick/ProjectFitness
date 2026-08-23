@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Grozz</string>
+    <!-- Used by Google Sign-In to request an ID token for Firebase (Web/OAuth client id). -->
+    <string name="default_web_client_id">975521849945-j4m2sk1mcq7o5mcohnnulec0s3f6dpne.apps.googleusercontent.com</string>
 </resources>

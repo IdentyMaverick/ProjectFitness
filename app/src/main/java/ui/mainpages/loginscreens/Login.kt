@@ -7,24 +7,27 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,32 +37,36 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.grozzbear.R
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.GrozzTextField
+import com.grozzbear.ui.theme.GrozzBackground
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.LoginUiState
+
+private const val SignUpTag = "sign_up"
 
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -68,9 +75,9 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
     val emailText = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
-    val maxLength = 35
+    val isLoading = loginState is LoginUiState.Loading
+    val scrollState = rememberScrollState()
 
-    // Durum takibi: Başarı veya Hata durumunda yapılacak işlemler
     LaunchedEffect(loginState) {
         when (loginState) {
             is LoginUiState.Success -> {
@@ -94,110 +101,105 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFF181F26))
+            .background(GrozzBackground)
     ) {
-        // --- ARKA PLAN GÖRSELİ ---
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(id = R.drawable.grozzlogin),
             contentDescription = null,
             alpha = 0.9f,
-            contentScale = ContentScale.Crop // Boşlukları kapatır ve tam kaplar
+            contentScale = ContentScale.Crop
+        )
+
+        // Soft bottom fade so footer text stays readable over the photo
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.45f to Color.Transparent,
+                            1.0f to GrozzBackground.copy(alpha = 0.85f)
+                        )
+                    )
+                )
         )
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp, bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo
             Image(
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
-                modifier = Modifier.size(300.dp)
-                    .graphicsLayer(translationY = 100f)
+                modifier = Modifier
+                    .size(160.dp)
+                    .padding(bottom = 8.dp)
             )
 
             Text(
                 text = "WELCOME",
-                fontFamily = FontFamily(Font(R.font.oswaldbold)),
+                style = MaterialTheme.typography.displayLarge,
                 color = Color.White,
-                fontSize = 40.sp
+                textAlign = TextAlign.Center
             )
             Text(
                 text = "BACK",
-                fontFamily = FontFamily(Font(R.font.oswaldbold)),
-                color = Color(0xFFF1C40F),
-                fontSize = 30.sp
+                style = MaterialTheme.typography.displayMedium,
+                color = GrozzYellow,
+                textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // E-Mail Field
-            OutlinedTextField(
+            GrozzTextField(
                 value = emailText.value,
-                onValueChange = { if (it.length <= maxLength) emailText.value = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                placeholder = {
-                    Text(
-                        "E-Mail",
-                        color = Color(0xFF4B5F71),
-                        fontFamily = FontFamily(Font(R.font.lexendregular))
-                    )
-                },
-                textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = commonTextFieldColors()
+                onValueChange = { emailText.value = it },
+                placeholder = "E-Mail",
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Password Field
-            OutlinedTextField(
+            GrozzTextField(
                 value = password.value,
-                onValueChange = { if (it.length <= maxLength) password.value = it },
+                onValueChange = { password.value = it },
+                placeholder = "Password",
+                visualTransformation = PasswordVisualTransformation(),
+                enabled = !isLoading,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+
+            Text(
+                text = "Forgot password?",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GrozzTextSecondary,
+                textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                placeholder = {
-                    Text(
-                        "Password",
-                        color = Color(0xFF4B5F71),
-                        fontFamily = FontFamily(Font(R.font.lexendregular))
-                    )
-                },
-                textStyle = TextStyle(color = Color.White, fontSize = 16.sp),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                visualTransformation = PasswordVisualTransformation(),
-                colors = commonTextFieldColors()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .clickable(enabled = !isLoading) {
+                        navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route)
+                    },
+                textAlign = TextAlign.End
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Forgot Password
-            Row(
+            GrozzPrimaryButton(
+                text = "Sign in",
+                loading = isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 50.dp)
-            ) {
-                Text(
-                    text = "Forget Password ?",
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable {
-                        navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route)
-                    },
-                    color = Color(0xFFD9D9D9),
-                    fontSize = 15.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(50.dp))
-
-            // Sign-in Button
-            Button(
+                    .padding(horizontal = 16.dp)
+                    .widthIn(max = 420.dp),
                 onClick = {
                     if (emailText.value.isEmpty() || password.value.isEmpty()) {
                         Toast.makeText(context, "E-Mail or Password empty", Toast.LENGTH_SHORT)
@@ -205,81 +207,76 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                     } else {
                         authViewModel.login(emailText.value, password.value)
                     }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
-                shape = RoundedCornerShape(20.dp),
-                enabled = loginState !is LoginUiState.Loading
-            ) {
-                if (loginState is LoginUiState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color(0xFFF1C40F))
-                } else {
-                    Text(text = "Sign-in", fontWeight = FontWeight.Bold, color = Color.Black)
                 }
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = Color.White.copy(alpha = 0.25f)
+                )
+                Text(
+                    text = "OR LOGIN WITH",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    color = Color.White.copy(alpha = 0.25f)
+                )
             }
 
-            // Alt Kısım (Divider ve Google Login)
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Divider(
-                        Modifier
-                            .weight(1f)
-                            .padding(start = 40.dp),
-                        color = Color.White.copy(0.3f),
-                        thickness = 1.dp
+            Spacer(modifier = Modifier.height(12.dp))
+
+            GoogleSignInButton(
+                authViewModel,
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            val signUpText = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = GrozzTextSecondary,
+                        fontWeight = FontWeight.Normal
                     )
-                    Text(
-                        "OR LOGIN WITH",
-                        Modifier.padding(horizontal = 12.dp),
-                        color = Color.White.copy(0.6f),
-                        fontSize = 12.sp
-                    )
-                    Divider(
-                        Modifier
-                            .weight(1f)
-                            .padding(end = 40.dp),
-                        color = Color.White.copy(0.3f),
-                        thickness = 1.dp
-                    )
+                ) {
+                    append("Don't have an account yet? ")
                 }
-
-                GoogleSignInButton(
-                    authViewModel,
-                    enabled = loginState !is LoginUiState.Loading
-                )
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                // Sign-up Navigation
-                val annotatedText = buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            color = Color(0xFFD9D9D9),
-                            fontSize = 15.sp
-                        )
-                    ) { append("Don’t have an account yet ?") }
-                    withStyle(
-                        SpanStyle(
-                            color = Color(0xFFF1C40F),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    ) { append(" Sign-up") }
+                pushStringAnnotation(tag = SignUpTag, annotation = SignUpTag)
+                withStyle(
+                    SpanStyle(
+                        color = GrozzYellow,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Sign up")
                 }
-                ClickableText(
-                    text = annotatedText,
-                    modifier = Modifier.padding(bottom = 50.dp),
-                    onClick = { offset ->
-                        // "Sign-up" kelimesinin aralığına tıklandığında tetiklenir
-                        if (offset >= 27) {
+                pop()
+            }
+
+            ClickableText(
+                text = signUpText,
+                style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+                onClick = { offset ->
+                    if (isLoading) return@ClickableText
+                    signUpText
+                        .getStringAnnotations(SignUpTag, offset, offset)
+                        .firstOrNull()
+                        ?.let {
                             navController.navigate(Screens.LoginScreen.RegisterScreen.route)
                         }
-                    }
-                )
-            }
+                }
+            )
         }
     }
 }
@@ -327,21 +324,10 @@ fun GoogleSignInButton(authViewModel: AuthViewModel, enabled: Boolean = true) {
         Image(
             painterResource(R.drawable.google),
             contentDescription = "Google Sign In",
-            modifier = Modifier.size(35.dp)
+            modifier = Modifier.size(40.dp)
         )
     }
 }
-
-@Composable
-fun commonTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedContainerColor = Color(0xFF1C2126),
-    unfocusedContainerColor = Color(0xFF1C2126),
-    focusedBorderColor = Color(0xFF4B5F71),
-    unfocusedBorderColor = Color(0xFF2E353D),
-    cursorColor = Color(0xFFF1C40F),
-    focusedLabelColor = Color.Transparent,
-    unfocusedLabelColor = Color.Transparent
-)
 
 private fun googleSignInErrorMessage(e: ApiException): String {
     return when (e.statusCode) {

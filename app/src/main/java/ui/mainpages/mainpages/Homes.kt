@@ -5,18 +5,16 @@
 
 package ui.mainpages.mainpages
 
-import SocialViewModel
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,35 +29,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,45 +60,42 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.storage
 import com.grozzbear.R
+import com.grozzbear.projectfitness.data.local.entity.WorkoutWithExercises
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.GrozzTopBarLogo
+import com.grozzbear.ui.theme.GrozzError
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.safeWorkoutPainter
 import ui.mainpages.navigation.NavigationBar
 import ui.mainpages.navigation.Screens
+import ui.mainpages.navigation.navigateToLoginAfterLogout
 import viewmodel.AuthViewModel
 import viewmodel.ProjectFitnessViewModel
+import viewmodel.SocialViewModel
 import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
-import androidx.compose.animation.core.tween
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.ui.layout.LayoutCoordinates
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,32 +109,9 @@ fun Home(
     socialViewModel: SocialViewModel,
     workoutSettingViewModel: WorkoutSettingViewModel
 ) {
-    val context = LocalContext.current
-    val scopes = rememberCoroutineScope()
-    val db = remember { FirebaseFirestore.getInstance() }
     val uid = Firebase.auth.currentUser?.uid
-    val sharedPreferences =
-        remember { context.getSharedPreferences("rememberbuttonStatus", Context.MODE_PRIVATE) }
-    val sharedPreferences2 =
-        remember { context.getSharedPreferences("workoutIdNumber", Context.MODE_PRIVATE) }
-
-    val workoutIdNumberState = remember {
-        mutableIntStateOf(sharedPreferences2.getInt("number", 2))
-    }
-    var rememberMeBoo by remember {
-        mutableStateOf(sharedPreferences.getBoolean("bool", false))
-    }
-
-    // =========================================================
-    // UI States
-    // =========================================================
-    var clickedAdd by remember { mutableStateOf(false) }
-    var clickedProfile by remember { mutableStateOf(false) }
     var showMenuSheet by remember { mutableStateOf(false) }
-    var showWorkoutRemoveSheet by remember { mutableStateOf(false) }
     val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val removeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var isPressed by remember { mutableStateOf(false) }
 
     val storageRef = remember { Firebase.storage.reference }
     val profileRef = remember(uid) {
@@ -153,31 +119,31 @@ fun Home(
     }
 
     val workouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
-    val challangesWorkouts =
+    val challengeWorkouts =
         workouts.filter { it.workout.workoutType.contains("challange", ignoreCase = true) }
     val coachWorkouts =
         workouts.filter { it.workout.workoutType.contains("coach", ignoreCase = true) }
     val userName by homesViewModel.userName.collectAsState()
-    val selectedWorkout = randomPick()
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val cardWidth = screenWidth * 0.85f
-    var expanded by rememberSaveable { mutableStateOf(false) }
     val nickname by homesViewModel.nickname.collectAsState()
-    val notification by socialViewModel.getNotification(nickname).observeAsState()
-    val unReadCount = notification?.count { !it.isRead } ?: 0
+    val notification by remember(nickname) {
+        socialViewModel.getNotification(nickname)
+    }.collectAsState(initial = emptyList())
+    val unReadCount = notification.count { !it.isRead }
     socialViewModel.setNickname(nickname)
-    val challengePagerState = rememberPagerState(pageCount = { challangesWorkouts.size })
-    val coachPagerState = rememberPagerState(pageCount = { coachWorkouts.size })
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-    val isLoading = workouts.isEmpty() || userName.isEmpty()
+
+    val featuredWorkout = remember(challengeWorkouts, coachWorkouts, workouts) {
+        challengeWorkouts.firstOrNull()
+            ?: coachWorkouts.firstOrNull()
+            ?: workouts.firstOrNull()
+    }
+    val challengePagerState = rememberPagerState(pageCount = { challengeWorkouts.size.coerceAtLeast(1) })
+    val isLoading = workouts.isEmpty() || userName.isEmpty() || userName == "Yükleniyor..."
 
     LaunchedEffect(uid) {
         if (uid.isNullOrBlank()) return@LaunchedEffect
         profileRef.downloadUrl
             .addOnSuccessListener { uri ->
                 viewModelProfile.selectedImageUri.value = uri.toString()
-                Log.d("Firebase", "Success profile url")
             }
             .addOnFailureListener { exception ->
                 Log.e("Firebase", "Failed profile url", exception)
@@ -185,7 +151,6 @@ fun Home(
     }
 
     LaunchedEffect(Unit) {
-        Log.d("called", "called")
         homesViewModel.refreshExercises()
         if (!uid.isNullOrBlank()) {
             homesViewModel.getUserName(uid)
@@ -195,431 +160,160 @@ fun Home(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBarHomes(
-                clickedProfile = clickedProfile,
-                onProfileClick = {
-                    clickedProfile = true
-                    navController.navigate("profile")
+            HomeTopBar(
+                onProfileClick = { showMenuSheet = true },
+                onNotificationsClick = {
+                    navController.navigate(Screens.NotificationScreen.route)
                 },
-                onMenuClick = { showMenuSheet = true },
-                navController = navController,
-                unreadCount = unReadCount,
-                topPadding = topPadding
+                unreadCount = unReadCount
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         bottomBar = {
-            val indexs = 0
-            val flag = true
-            val flag2 = false
-            val flag3 = false
-            val flag4 = false
-            NavigationBar(navController = navController, indexs, flag, flag2, flag3, flag4)
+            NavigationBar(
+                navController = navController,
+                indexs = 0,
+                flag = true,
+                flag2 = false,
+                flag3 = false,
+                flag4 = false
+            )
         },
-        floatingActionButton = {
-            ExtendedStartButton({
-                navController.navigate("workoutsettingscreen/$selectedWorkout") {
-                    popUpTo(Screens.Home.route)
-                }
-            }, expanded, onExpand = {
-                expanded = it
-            })
-        },
-        floatingActionButtonPosition = FabPosition.EndOverlay,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         if (isLoading) {
-            Column(
+            HomeLoadingState(Modifier.padding(paddingValues))
+        } else {
+            LazyColumn(
                 modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize(),
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(bottom = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(20.dp))
-                Box(modifier = Modifier.width(150.dp).height(24.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
-                Spacer(Modifier.height(8.dp))
-                Box(modifier = Modifier.width(200.dp).height(16.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
-
-                Spacer(Modifier.height(40.dp))
-
-                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)) {
-                    Box(modifier = Modifier.width(120.dp).height(60.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
+                item {
+                    GreetingSection(userName = userName)
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                Spacer(Modifier.height(20.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .padding(horizontal = 30.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .shimmerEffect()
-                )
-
-                Spacer(Modifier.height(30.dp))
-
-                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)) {
-                    Box(modifier = Modifier.width(120.dp).height(60.dp).clip(RoundedCornerShape(8.dp)).shimmerEffect())
-                }
-            }
-        } else
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .clickable(
-                    onClick = { expanded = false },
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            GreetingText(userName)
-            Spacer(
-                modifier = Modifier
-                    .padding(top = 10.dp)
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
-                    HorizontalDivider(
-                        thickness = 3.dp,
-                        color = Color(0xFFF1C40F),
-                        modifier = Modifier.width(45.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Text(
-                        text = "CHALLANGES",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        letterSpacing = 0.sp,
-                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                    )
-                    Text(
-                        text = "CATALOGUE",
-                        color = Color(0xFFF1C40F),
-                        fontSize = 24.sp,
-                        letterSpacing = 0.sp,
-                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Button(
-                    onClick = { navController.navigate(route = Screens.AllWorkouts.route) },
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .height(20.dp)
-                        .width(55.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                ) {
-                    Text(
-                        "See All",
-                        style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendextrabold))),
-                        color = Color(0xFFF1C40F),
-                        fontSize = 12.sp
-                    )
-                }
-            }
-
-            HorizontalPager(
-                state = challengePagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp), // Kartın yüksekliğini buradan kontrol et
-                contentPadding = PaddingValues(horizontal = 30.dp), // Yandaki kartların ne kadar görüneceğini belirler
-                pageSpacing = 16.dp, // Kartlar arasındaki boşluk
-                verticalAlignment = Alignment.CenterVertically
-            ) { pageIndex ->
-                val item = challangesWorkouts[pageIndex]
-                val totalIcons = 5
-                val challengeDifficulty = item.component1().workoutRating
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth() // Pager içinde olduğu için genişliği Pager yönetir
-                        .height(150.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0xFF1C2126))
-                        .clickable(onClick = {
-                            navController.navigate("workoutsettingscreen/${item.workout.workoutId}")
-                        }),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Image(
-                        painter = painterResource(id = item.workout.image),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.9f)
-                                    ),
-                                    startY = 100f // Kararmanın başladığı nokta
-                                )
-                            )
-                    )
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.Bottom // İçeriği aşağı yasla
-                    ) {
-                        Text(
-                            text = item.workout.workoutType.uppercase(), // Kategori ismi
-                            color = Color(0xFFF1C40F),
-                            style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = item.component1().workoutName,
-                            color = Color.White,
-                            style = TextStyle(
-                                fontSize = 24.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            WorkoutTag(
-                                text = "45 mins",
-                                icon = R.drawable.shutterspeedfilledicon128,
-                                Color.Gray,
-                                Color.Gray
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            for (i in 1..totalIcons) {
-                                val iconColor =
-                                    if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                Icon(
-                                    painter = painterResource(id = R.drawable.skullicon128),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(15.dp),
-                                    tint = iconColor
-                                )
-
-                                if (i < totalIcons) {
-                                    Spacer(modifier = Modifier.size(2.dp))
+                item {
+                    featuredWorkout?.let { featured ->
+                        HomeHeroCard(
+                            workout = featured,
+                            onStartClick = {
+                                navController.navigate(
+                                    "workoutsettingscreen/${featured.workout.workoutId}"
+                                ) {
+                                    popUpTo(Screens.Home.route)
                                 }
                             }
+                        )
+                        Spacer(modifier = Modifier.height(28.dp))
+                    }
+                }
+
+                item {
+                    SectionHeader(
+                        titleTop = "CHALLENGES",
+                        titleBottom = "CATALOGUE",
+                        actionLabel = "See all",
+                        onActionClick = { navController.navigate(Screens.AllWorkouts.route) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                item {
+                    if (challengeWorkouts.isEmpty()) {
+                        EmptyCatalogueHint(
+                            text = "No challenges yet. Browse all workouts to get started."
+                        )
+                    } else {
+                        HorizontalPager(
+                            state = challengePagerState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(176.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            pageSpacing = 14.dp
+                        ) { pageIndex ->
+                            val item = challengeWorkouts[pageIndex]
+                            WorkoutCatalogueCard(
+                                workout = item,
+                                onClick = {
+                                    navController.navigate(
+                                        "workoutsettingscreen/${item.workout.workoutId}"
+                                    )
+                                }
+                            )
                         }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        PageIndicator(
+                            numberOfPages = challengeWorkouts.size,
+                            selectedPage = challengePagerState.currentPage
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(28.dp))
+                }
+
+                if (coachWorkouts.isNotEmpty()) {
+                    item {
+                        CoachPicksTeaser(
+                            count = coachWorkouts.size,
+                            onClick = { navController.navigate(Screens.AllWorkouts.route) }
+                        )
                     }
                 }
             }
-            PageIndicator(challangesWorkouts.size, challengePagerState.currentPage)
-            Spacer(Modifier.size(10.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 30.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(-10.dp)) {
-                    HorizontalDivider(
-                        thickness = 3.dp,
-                        color = Color(0xFFF1C40F),
-                        modifier = Modifier.width(45.dp)
-                    )
-                    Spacer(Modifier.height(20.dp))
-                    Text(
-                        text = "COACH'S",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        letterSpacing = 0.sp,
-                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                    )
-                    Text(
-                        text = "PICKS",
-                        color = Color(0xFFF1C40F),
-                        fontSize = 24.sp,
-                        letterSpacing = 0.sp,
-                        fontFamily = FontFamily(Font(R.font.oswaldbold))
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Button(
-                    onClick = { navController.navigate(route = Screens.AllWorkouts.route) },
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .height(20.dp)
-                        .width(55.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                ) {
-                    Text(
-                        "See All",
-                        style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendextrabold))),
-                        color = Color(0xFFF1C40F),
-                        fontSize = 12.sp
-                    )
-                }
-            }
-
-            HorizontalPager(
-                state = coachPagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp), // Kartın yüksekliğini buradan kontrol et
-                contentPadding = PaddingValues(horizontal = 30.dp), // Yandaki kartların ne kadar görüneceğini belirler
-                pageSpacing = 16.dp, // Kartlar arasındaki boşluk
-                verticalAlignment = Alignment.CenterVertically
-            ) { pageIndex ->
-                val item = coachWorkouts[pageIndex]
-                val totalIcons = 5
-                val challengeDifficulty = item.component1().workoutRating
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .height(150.dp)
-                        .width(cardWidth)
-                        .background(
-                            Color(0xFF1C2126),
-                            shape = RoundedCornerShape(0.dp)
-                        )
-                        .clickable(onClick = { navController.navigate("workoutsettingscreen/${item.workout.workoutId}") }),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Image(
-                        painter = painterResource(id = item.workout.image), // Resmini buraya koy
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.9f)
-                                    ),
-                                    startY = 100f // Kararmanın başladığı nokta
-                                )
-                            )
-                    )
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.Bottom // İçeriği aşağı yasla
-                    ) {
-                        Text(
-                            text = item.workout.workoutType.uppercase(), // Kategori ismi
-                            color = Color(0xFFF1C40F),
-                            style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = item.component1().workoutName,
-                            color = Color.White,
-                            style = TextStyle(
-                                fontSize = 24.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            WorkoutTag(
-                                text = "45 mins",
-                                icon = R.drawable.shutterspeedfilledicon128,
-                                Color.Gray,
-                                Color.Gray
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            for (i in 1..totalIcons) {
-                                val iconColor =
-                                    if (i <= challengeDifficulty) Color(0xFFF1C40F) else Color.White
-
-                                Icon(
-                                    painter = painterResource(id = R.drawable.skullicon128),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(15.dp),
-                                    tint = iconColor
-                                )
-
-                                if (i < totalIcons) {
-                                    Spacer(modifier = Modifier.size(2.dp))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            PageIndicator(coachWorkouts.size, coachPagerState.currentPage)
         }
-
     }
 
     if (showMenuSheet) {
         ModalBottomSheet(
             onDismissRequest = { showMenuSheet = false },
             sheetState = menuSheetState,
-            containerColor = Color(0xFF1C2126),
-            modifier = Modifier.height(350.dp)
+            containerColor = GrozzSurface
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 40.dp)
+                    .padding(top = 8.dp, bottom = 40.dp)
             ) {
                 Text(
                     text = "Menu",
-                    style = TextStyle(
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendbold))
-                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = GrozzOnBackground,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
+                Spacer(modifier = Modifier.height(12.dp))
                 MenuItemRow(
-                    iconRes = R.drawable.accountcircle, // Kendi ikonun
+                    iconRes = R.drawable.accountcircle,
                     text = "View Profile",
-                    onClick = { navController.navigate(Screens.Home.Profile.route) }
+                    onClick = {
+                        showMenuSheet = false
+                        navController.navigate(Screens.Home.Profile.route)
+                    }
                 )
-
                 MenuItemRow(
-                    iconRes = R.drawable.settings, // Ayarlar ikonu eklemelisin
+                    iconRes = R.drawable.settings,
                     text = "Settings",
-                    onClick = { navController.navigate(Screens.HomesSettings.route) }
+                    onClick = {
+                        showMenuSheet = false
+                        navController.navigate(Screens.HomesSettings.route)
+                    }
                 )
-
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
                     thickness = 0.5.dp,
-                    color = Color.Gray.copy(alpha = 0.3f)
+                    color = GrozzTextSecondary.copy(alpha = 0.25f)
                 )
-
                 MenuItemRow(
                     iconRes = R.drawable.logouticon128,
                     text = "Log Out",
-                    textColor = Color(0xFFFF4444),
+                    textColor = GrozzError,
                     onClick = {
+                        showMenuSheet = false
                         authViewModel.logout()
-                        navController.navigate(Screens.LoginScreen.route)
+                        navController.navigateToLoginAfterLogout()
                     }
                 )
             }
@@ -627,63 +321,55 @@ fun Home(
     }
 }
 
-// =========================================================
-// TOP BAR
-// =========================================================
 @Composable
-private fun HomeTopBarHomes(
-    clickedProfile: Boolean,
+private fun HomeTopBar(
     onProfileClick: () -> Unit,
-    onMenuClick: () -> Unit,
-    navController: NavController,
-    unreadCount: Int,
-    topPadding: Dp
+    onNotificationsClick: () -> Unit,
+    unreadCount: Int
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            // Only status-bar inset here. Scaffold contentWindowInsets are zeroed,
+            // and bottom nav applies navigationBarsPadding once by itself.
             .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         IconButton(onClick = onProfileClick) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
+                contentDescription = "Menu",
+                modifier = Modifier.size(26.dp),
+                tint = GrozzOnBackground
             )
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-        Image(
-            painter = painterResource(R.drawable.grozzlogo),
-            contentDescription = "Grozz Logo",
-            modifier = Modifier.size(100.dp))
+        GrozzTopBarLogo()
 
-        Spacer(Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
-        IconButton(
-            onClick = { navController.navigate(Screens.NotificationScreen.route) },
-            modifier = Modifier.size(50.dp)
-        ) {
+        IconButton(onClick = onNotificationsClick) {
             BadgedBox(
                 badge = {
                     if (unreadCount > 0) {
-                        Badge(containerColor = Color.Red) {
-                            Text(unreadCount.toString(), color = Color.White)
+                        Badge(containerColor = GrozzError) {
+                            Text(
+                                text = unreadCount.toString(),
+                                color = GrozzOnBackground,
+                                fontSize = 10.sp
+                            )
                         }
                     }
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.circlenotifications), // Kendi ikonunu ekle
+                    painter = painterResource(R.drawable.circlenotifications),
                     contentDescription = "Notifications",
-                    tint = Color.White,
-                    modifier = Modifier.size(25.dp)
+                    tint = GrozzOnBackground,
+                    modifier = Modifier.size(26.dp)
                 )
             }
         }
@@ -691,58 +377,332 @@ private fun HomeTopBarHomes(
 }
 
 @Composable
-fun ExtendedStartButton(
-    onConfirmClick: () -> Unit,
-    expanded: Boolean,
-    onExpand: (Boolean) -> Unit
+private fun GreetingSection(userName: String) {
+    val firstName = userName.trim().split(" ").firstOrNull().orEmpty().ifBlank { "Athlete" }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Hello, ",
+                style = MaterialTheme.typography.headlineMedium,
+                color = GrozzOnBackground
+            )
+            Text(
+                text = firstName,
+                style = MaterialTheme.typography.headlineMedium,
+                color = GrozzYellow
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = "Ready to crush your goals today?",
+            style = MaterialTheme.typography.bodyMedium,
+            color = GrozzTextSecondary.copy(alpha = 0.7f)
+        )
+    }
+}
+
+@Composable
+private fun HomeHeroCard(
+    workout: WorkoutWithExercises,
+    onStartClick: () -> Unit
 ) {
-    ExtendedFloatingActionButton(
-        onClick = {
-            if (!expanded) {
-                onExpand(true)
-            } else {
-                CoroutineScope(Dispatchers.Main).launch {
-                    onConfirmClick()
-                    delay(500)
-                    onExpand(false)
+    val exerciseCount = workout.exercises.size
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(210.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(GrozzSurface)
+    ) {
+        Image(
+            painter = safeWorkoutPainter(workout.workout.image),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.15f),
+                            Color.Black.copy(alpha = 0.85f)
+                        )
+                    )
+                )
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "START TRAINING",
+                style = MaterialTheme.typography.labelMedium,
+                color = GrozzYellow,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.Bold
+            )
+            Column {
+                Text(
+                    text = workout.workout.workoutName,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = GrozzOnBackground,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = if (exerciseCount > 0) {
+                        "$exerciseCount exercises · ${workout.workout.workoutType}"
+                    } else {
+                        workout.workout.workoutType
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GrozzTextSecondary
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                GrozzPrimaryButton(
+                    text = "Start workout",
+                    onClick = onStartClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    titleTop: String,
+    titleBottom: String,
+    actionLabel: String,
+    onActionClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.Bottom
+    ) {
+        Column {
+            HorizontalDivider(
+                thickness = 3.dp,
+                color = GrozzYellow,
+                modifier = Modifier.width(40.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = titleTop,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = GrozzOnBackground
+            )
+            Text(
+                text = titleBottom,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = GrozzYellow
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        TextButton(onClick = onActionClick) {
+            Text(
+                text = actionLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = GrozzYellow
+            )
+        }
+    }
+}
+
+@Composable
+private fun WorkoutCatalogueCard(
+    workout: WorkoutWithExercises,
+    onClick: () -> Unit
+) {
+    val difficulty = workout.workout.workoutRating.coerceIn(0, 5)
+    val exerciseCount = workout.exercises.size
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(GrozzSurface)
+            .clickable(onClick = onClick)
+    ) {
+        Image(
+            painter = safeWorkoutPainter(workout.workout.image),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f)),
+                        startY = 80f
+                    )
+                )
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(18.dp),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Text(
+                text = workout.workout.workoutType.uppercase(),
+                color = GrozzYellow,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = workout.workout.workoutName,
+                color = GrozzOnBackground,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (exerciseCount > 0) {
+                    WorkoutTag(
+                        text = "$exerciseCount exercises",
+                        icon = R.drawable.shutterspeedfilledicon128,
+                        textColor = GrozzTextSecondary,
+                        iconColor = GrozzTextSecondary
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+                repeat(5) { index ->
+                    Icon(
+                        painter = painterResource(id = R.drawable.skullicon128),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = if (index < difficulty) GrozzYellow else Color.White.copy(alpha = 0.35f)
+                    )
+                    if (index < 4) Spacer(modifier = Modifier.size(2.dp))
                 }
             }
-        },
-        icon = {
-            Icon(
-                painter = painterResource(R.drawable.localfiredepartmenticon128),
-                "Extended workout start button",
-                Modifier.size(30.dp)
-            )
-        },
-        text = {
-            Text(
-                "Quick Workout",
-                style = TextStyle(
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                    fontSize = 18.sp
-                )
-            )
-        },
-        containerColor = Color(0xFFF1C40F),
-        expanded = expanded,
+        }
+    }
+}
+
+@Composable
+private fun CoachPicksTeaser(count: Int, onClick: () -> Unit) {
+    Row(
         modifier = Modifier
-            .padding(bottom = 50.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(GrozzSurface)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Coach's picks",
+                style = MaterialTheme.typography.titleMedium,
+                color = GrozzOnBackground
+            )
+            Text(
+                text = "$count workouts ready in catalogue",
+                style = MaterialTheme.typography.bodySmall,
+                color = GrozzTextSecondary
+            )
+        }
+        Text(
+            text = "Browse",
+            style = MaterialTheme.typography.labelLarge,
+            color = GrozzYellow
+        )
+    }
+}
+
+@Composable
+private fun EmptyCatalogueHint(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = GrozzTextSecondary,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
     )
+}
+
+@Composable
+private fun HomeLoadingState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Box(
+            modifier = Modifier
+                .width(160.dp)
+                .height(22.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .shimmerEffect()
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Box(
+            modifier = Modifier
+                .width(220.dp)
+                .height(14.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .shimmerEffect()
+        )
+        Spacer(modifier = Modifier.height(28.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(210.dp)
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .shimmerEffect()
+        )
+        Spacer(modifier = Modifier.height(28.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .shimmerEffect()
+        )
+    }
 }
 
 @Composable
 fun MenuItemRow(
     iconRes: Int,
     text: String,
-    textColor: Color = Color.White,
+    textColor: Color = GrozzOnBackground,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 16.dp), // Tıklama alanı geniş olsun
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -751,23 +711,16 @@ fun MenuItemRow(
             tint = textColor,
             modifier = Modifier.size(24.dp)
         )
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Text(
             text = text,
-            style = TextStyle(
-                color = textColor,
-                fontSize = 16.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
-            )
+            color = textColor,
+            fontFamily = Lexend,
+            fontSize = 16.sp
         )
-
         Spacer(modifier = Modifier.weight(1f))
-
-        // Sağa küçük bir ok işareti (Opsiyonel, şık durur)
         Icon(
-            painter = painterResource(id = R.drawable.keyboarddoublearrowright), // > işareti
+            painter = painterResource(id = R.drawable.keyboarddoublearrowright),
             contentDescription = null,
             tint = Color.Gray,
             modifier = Modifier.size(16.dp)
@@ -776,75 +729,12 @@ fun MenuItemRow(
 }
 
 @Composable
-fun GreetingText(userName: String) {
-    val gradientColors = listOf(
-        Color(0xFFF1C40F), // Parlak Sarı
-        Color(0xFFF1C40F)  // Turuncu/Kırmızı
-    )
-    val userFirstName = userName.split(" ")[0]
-    val annotatedString = buildAnnotatedString {
-        withStyle(
-            style = SpanStyle(
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 20.sp,
-                fontFamily = FontFamily(Font(R.font.oswaldbold))
-            )
-        ) {
-            append(userFirstName)
-        }
-    }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.graphicsLayer(
-            translationY = -50f
-        )
-    ) {
-        Row() {
-            Text(
-                text = "Hello, ",
-                style = TextStyle(
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontFamily = FontFamily(Font(R.font.oswaldbold))
-                )
-            )
-            Text(
-                text = annotatedString,
-                style = TextStyle(
-                    brush = Brush.horizontalGradient(colors = gradientColors)
-                )
-            )
-        }
-        Text(
-            text = "Ready to crush your goals today?",
-            style = TextStyle(
-                color = Color.Gray.copy(alpha = 0.5f),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.ExtraBold,
-                fontStyle = FontStyle.Italic,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
-            )
-        )
-    }
-}
-
-@Composable
-fun randomPick(): String {
-    val workoutList = listOf<String>(
-        "push",
-        "pull"
-    )
-    return workoutList.random()
-
-}
-
-@Composable
 fun PageIndicator(
     numberOfPages: Int,
     selectedPage: Int,
     modifier: Modifier = Modifier
 ) {
+    if (numberOfPages <= 1) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -856,9 +746,9 @@ fun PageIndicator(
                 modifier = Modifier
                     .padding(2.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) Color(0xFFF1C40F) else Color.Gray.copy(alpha = 0.5f))
-                    .size(if (isSelected) 8.dp else 6.dp) // Seçili olanı biraz daha büyük yapabilirsin
-                    .animateContentSize() // Geçişlerde yumuşak bir efekt verir
+                    .background(if (isSelected) GrozzYellow else Color.Gray.copy(alpha = 0.45f))
+                    .size(if (isSelected) 8.dp else 6.dp)
+                    .animateContentSize()
             )
         }
     }
@@ -866,13 +756,12 @@ fun PageIndicator(
 
 fun Modifier.shimmerEffect(): Modifier = composed {
     var size by remember { mutableStateOf(IntSize.Zero) }
-    val transition = rememberInfiniteTransition(label = "")
+    val transition = rememberInfiniteTransition(label = "shimmer")
     val startOffsetX by transition.animateFloat(
         initialValue = -2 * size.width.toFloat(),
         targetValue = 2 * size.width.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000)
-        ), label = ""
+        animationSpec = infiniteRepeatable(animation = tween(1000)),
+        label = "shimmerOffset"
     )
 
     background(
@@ -880,7 +769,7 @@ fun Modifier.shimmerEffect(): Modifier = composed {
             colors = listOf(
                 Color(0xFF22262B),
                 Color(0xFF35393F),
-                Color(0xFF22262B),
+                Color(0xFF22262B)
             ),
             start = Offset(startOffsetX, 0f),
             end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())

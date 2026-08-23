@@ -1,3 +1,5 @@
+package viewmodel
+
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.annotation.Keep
@@ -6,12 +8,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.Query
+import data.remote.FirestorePaths
 import data.remote.FirestoreRepository
 import data.remote.User
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
 @Keep
@@ -99,12 +106,12 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         }
     }
 
-    fun getFollowers(nickname: String): LiveData<List<String>> {
-        return repository.getFollowers(nickname)
+    fun getFollowers(nickname: String): Flow<List<String>> {
+        return repository.observeFollowers(nickname)
     }
 
-    fun getFollowing(nickname: String): LiveData<List<String>> {
-        return repository.getFollowing(nickname)
+    fun getFollowing(nickname: String): Flow<List<String>> {
+        return repository.observeFollowing(nickname)
     }
 
     @SuppressLint("RestrictedApi")
@@ -117,14 +124,19 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         return userLiveData
     }
 
-    fun getAllUsers(): LiveData<List<User>> {
-        return repository.getAllUsers()
+    fun getAllUsers(): Flow<List<User>> {
+        return repository.observeAllUsers()
     }
 
-    fun getNotification(nickname: String): LiveData<List<NotificationModel>> {
-        val liveData = MutableLiveData<List<NotificationModel>>()
+    fun getNotification(nickname: String): Flow<List<NotificationModel>> = callbackFlow {
+        if (nickname.isBlank()) {
+            trySend(emptyList())
+            awaitClose { }
+            return@callbackFlow
+        }
         val db = FirebaseFirestore.getInstance()
-        db.collection("googlecloudusers")
+        var notificationsRegistration: ListenerRegistration? = null
+        val userRegistration = db.collection(FirestorePaths.USERS)
             .whereEqualTo("nickname", nickname)
             .addSnapshotListener { snapshots, exception ->
                 if (exception != null) {
@@ -132,31 +144,33 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
                     return@addSnapshotListener
                 }
 
-                val userDoc = snapshots?.documents?.firstOrNull()
-                val userId = userDoc?.id
-                if (userId != null) {
-                    db.collection("googlecloudusers")
-                        .document(userId)
-                        .collection("notifications")
-                        .orderBy("time", Query.Direction.DESCENDING)
-                        .addSnapshotListener { notificationSnapshots, notificationException ->
-                            if (notificationException != null) {
-                                Log.e("Firestore", "Notification Error", notificationException)
-                                return@addSnapshotListener
-                            }
+                notificationsRegistration?.remove()
+                notificationsRegistration = null
 
-                            // 3. Hata Düzeltme: Tür dönüşümü (mapNotNull ve toObject)
-                            val list = notificationSnapshots?.documents?.mapNotNull { doc ->
-                                val model = doc.toObject(NotificationModel::class.java)
-
-                                model?.copy(id = doc.id)
-                            } ?: emptyList<NotificationModel>()
-                            val typedList: List<NotificationModel> = list
-
-                            liveData.postValue(typedList)
-                        }
+                val userId = snapshots?.documents?.firstOrNull()?.id
+                if (userId == null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
                 }
+
+                notificationsRegistration = db.collection(FirestorePaths.USERS)
+                    .document(userId)
+                    .collection("notifications")
+                    .orderBy("time", Query.Direction.DESCENDING)
+                    .addSnapshotListener { notificationSnapshots, notificationException ->
+                        if (notificationException != null) {
+                            Log.e("Firestore", "Notification Error", notificationException)
+                            return@addSnapshotListener
+                        }
+                        val list = notificationSnapshots?.documents?.mapNotNull { doc ->
+                            doc.toObject(NotificationModel::class.java)?.copy(id = doc.id)
+                        } ?: emptyList()
+                        trySend(list)
+                    }
             }
-        return liveData
+        awaitClose {
+            notificationsRegistration?.remove()
+            userRegistration.remove()
+        }
     }
 }

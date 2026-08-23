@@ -34,7 +34,7 @@ class HomesViewModel(
         }
     }
 
-    suspend fun refreshExercises() {
+    fun refreshExercises() {
         viewModelScope.launch {
             repo.syncExercisesFromFirestore()
         }

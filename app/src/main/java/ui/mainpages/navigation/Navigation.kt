@@ -1,7 +1,7 @@
 package ui.mainpages.navigation
 
-import OtherScreenProfile
-import SocialViewModel
+import ui.mainpages.inside.OtherScreenProfile
+import viewmodel.SocialViewModel
 import WorkoutCompleteScreen
 import activity.inside.ActivityInside
 import activity.inside.CreateWorkout
@@ -35,9 +35,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -219,7 +221,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
 
             navigation(
                 route = "create_workout_graph",
-                startDestination = Screens.ChooseExercises.route
+                startDestination = Screens.CreateWorkout.route
             ) {
 
                 composable(
@@ -259,10 +261,12 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                         factory = featureFactory
                     )
 
-                    CreateWorkout(
+                    ChooseExercises(
                         navController = navController,
+                        viewModelSave = viewModel,
+                        workoutinViewModel = workoutinModel,
                         createWorkoutViewModel = createWorkoutViewModel,
-                        chooseExercisesViewModel = chooseExercisesViewModel
+                        activityInsideViewModel = activityInsideViewModel
                     )
                 }
 
@@ -301,12 +305,10 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                         factory = featureFactory
                     )
 
-                    ChooseExercises(
+                    CreateWorkout(
                         navController = navController,
-                        viewModelSave = viewModel,
-                        workoutinViewModel = workoutinModel,
                         createWorkoutViewModel = createWorkoutViewModel,
-                        activityInsideViewModel = activityInsideViewModel
+                        chooseExercisesViewModel = chooseExercisesViewModel
                     )
                 }
 
@@ -1073,12 +1075,16 @@ fun NavigationBar(
 ) {
 
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
+    // Scaffold already owns layout slots. Disable NavigationBar's default
+    // windowInsets and apply navigationBarsPadding once so insets aren't nested.
     NavigationBar(
-        Modifier
-            .height(64.dp)
+        modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF121417)),
-        containerColor = Color(0xFF121417)
+            .navigationBarsPadding()
+            .background(Color(0xFF121417))
+            .height(64.dp),
+        containerColor = Color(0xFF121417),
+        windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
 
         var flag = flag
@@ -1378,11 +1384,13 @@ fun NavigationBarLeaderboard(
             }
         }
         NavigationBar(
-            Modifier
-                .height(60.dp)
+            modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF121417)),
-            containerColor = Color(0xFF121417)
+                .navigationBarsPadding()
+                .background(Color(0xFF121417))
+                .height(64.dp),
+            containerColor = Color(0xFF121417),
+            windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
 
             var flag = flag

@@ -1,6 +1,6 @@
 package ui.mainpages.inside
 
-import SocialViewModel
+import viewmodel.SocialViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,8 +45,10 @@ import com.grozzbear.R
 @Composable
 fun NotificationScreen(navController: NavController, socialViewModel: SocialViewModel) {
     val nickname by socialViewModel.nickname.collectAsState()
-    val notification by socialViewModel.getNotification(nickname).observeAsState()
-    val notificationList = notification ?: emptyList()
+    val notification by remember(nickname) {
+        socialViewModel.getNotification(nickname)
+    }.collectAsState(initial = emptyList())
+    val notificationList = notification
     LaunchedEffect(notificationList) {
         notificationList.filter { !it.isRead }.forEach {
             socialViewModel.markAllAsRead(nickname)

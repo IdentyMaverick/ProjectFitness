@@ -1,6 +1,6 @@
 package ui.mainpages.inside
 
-import SocialViewModel
+import viewmodel.SocialViewModel
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -47,7 +47,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -75,15 +74,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.ktx.auth
 import com.grozzbear.R
-import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
-import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
 import ui.mainpages.navigation.Screens
@@ -125,10 +117,12 @@ fun Profile(
     //Image select options
     val nickname = remember { mutableStateOf("") }
     val _user = com.google.firebase.ktx.Firebase.auth.currentUser
-    val getFollowers by socialViewModel.getFollowers(nickname.value)
-        .observeAsState(initial = emptyList())
-    val getFollowing by socialViewModel.getFollowing(nickname.value)
-        .observeAsState(initial = emptyList())
+    val getFollowers by remember(nickname.value) {
+        socialViewModel.getFollowers(nickname.value)
+    }.collectAsState(initial = emptyList())
+    val getFollowing by remember(nickname.value) {
+        socialViewModel.getFollowing(nickname.value)
+    }.collectAsState(initial = emptyList())
     var numberOfFollows = getFollowing.size
     var numberOfFollowers = getFollowers.size
     val allHistoricalWorkouts by authViewModel.allHistoricalWorkouts.collectAsState(emptyList())

@@ -45,19 +45,6 @@ class CreateWorkoutViewModel(
     private val _selectedExerciseIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
     val selectedExerciseIds: StateFlow<Set<String>> = _selectedExerciseIds.asStateFlow()
 
-    val selectedCatalogExercises: StateFlow<List<ExerciseCatalogEntity>> = combine(
-        catalogWorkoutList,
-        _selectedExerciseIds
-    ) { list, ids ->
-        list.filter { item ->
-            ids.any { selectedId -> selectedId.trim() == item.id.trim() }
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = emptyList()
-    )
-
     private val _draftExercises = MutableStateFlow<List<ExerciseDraft>>(emptyList())
     val draftExercises: StateFlow<List<ExerciseDraft>> = _draftExercises.asStateFlow()
 

@@ -14,17 +14,25 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import viewmodel.ProfileViewModel
 import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
 
 class LeaderboardViewModel(
     val repository: WorkoutRepository,
-    val profileViewModel: ProfileViewModel
+    requireNotNull: ProfileViewModel
 ) : ViewModel() {
     private val _leaderboardData = MutableStateFlow<List<LeaderboardEntry>>(emptyList())
     val leaderboardData: StateFlow<List<LeaderboardEntry>> = _leaderboardData
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private var fetchJob: Job? = null
+
     val currentUserRankInfo: StateFlow<Pair<Int, LeaderboardEntry>?> =
         leaderboardData.map { entries ->
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
@@ -83,13 +91,24 @@ class LeaderboardViewModel(
     }
 
     fun fetchLeaderboard(exerciseName: String) {
-        viewModelScope.launch {
-            repository.getLeaderboard(exerciseName).collect { entries ->
-                val updatedEntries = entries.map { entry ->
-                    val photo = fetchUserImage(entry.userId)
-                    entry.copy(userPhotoUri = photo)
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            _isLoading.value = true
+            _leaderboardData.value = emptyList()
+            try {
+                repository.getLeaderboard(exerciseName).collect { entries ->
+                    val updatedEntries = entries.map { entry ->
+                        val photo = fetchUserImage(entry.userId)
+                        entry.copy(userPhotoUri = photo)
+                    }
+                    _leaderboardData.value = updatedEntries
+                    _isLoading.value = false
                 }
-                _leaderboardData.value = updatedEntries
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("LeaderboardVM", "Leaderboard fetch failed: ${e.message}")
+                _isLoading.value = false
             }
         }
     }

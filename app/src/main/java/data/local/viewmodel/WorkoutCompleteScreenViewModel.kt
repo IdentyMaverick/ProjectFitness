@@ -19,7 +19,7 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 class WorkoutCompleteScreenViewModel(
-    repo: WorkoutRepository,
+    repository: WorkoutRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
     val currentUserUid: String?
@@ -39,7 +39,6 @@ class WorkoutCompleteScreenViewModel(
 
 
     init {
-        // ViewModel oluştuğu an kullanıcı adını çekmeye başlar
         getUserName()
         Log.d("init worked", "init worked")
     }

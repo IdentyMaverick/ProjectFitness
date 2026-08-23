@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
+import com.grozzbear.ui.util.safeWorkoutPainter
 import ui.mainpages.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,7 +153,7 @@ fun AllWorkouts(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = item.workout.image),
+                            painter = safeWorkoutPainter(item.workout.image),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()

@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -50,6 +51,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -72,7 +74,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -81,7 +82,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -100,15 +101,26 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.ktx.Firebase
-import com.grozzbear.Application
 import com.grozzbear.R
-import dagger.hilt.android.internal.Contexts.getApplication
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.GrozzTopBarLogo
+import com.grozzbear.ui.theme.GrozzBorder
+import com.grozzbear.ui.theme.GrozzError
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.db.VideoCacheProvider
 import data.local.viewmodel.LeaderboardViewModel
 import data.remote.LeaderboardEntry
 import ui.mainpages.navigation.NavigationBarLeaderboard
 import ui.mainpages.navigation.Screens
+import ui.mainpages.navigation.navigateToLoginAfterLogout
 import viewmodel.AuthViewModel
 import viewmodel.ProfileUiState
 import viewmodel.ProfileViewModel
@@ -121,34 +133,27 @@ fun LeaderBoard(
     leaderboardViewModel: LeaderboardViewModel,
     profileViewModel: ProfileViewModel
 ) {
-    var expandableMuscle by remember { mutableStateOf(false) }
     var expandableExercise by remember { mutableStateOf(false) }
     var expandableModalBottomExercise by remember { mutableStateOf(false) }
 
-    val muscleList =
-        remember { listOf("Chest", "Back", "Legs", "Shoulders", "Arms") }
     val exerciseList =
         remember { listOf("Dumbbell Bench Press", "Standing Barbell Overhead Press") }
-    val filterOption = remember { listOf("Only Verified", "All") }
 
-    var selectedMuscle by remember { mutableStateOf("Muscle Group") }
     var selectedExercise by remember { mutableStateOf("Dumbbell Bench Press") }
     var selectedModalBottomExercise by remember { mutableStateOf("Dumbbell Bench Press") }
-
-    val topTabTitles = listOf("Global")
-    var selectedTopTabIndex by remember { mutableIntStateOf(0) }
 
     var showMenuSheetLeaderBoard by remember { mutableStateOf(false) }
     val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val leaderboardEntries by leaderboardViewModel.leaderboardData.collectAsState()
-    Log.d("leaderboardEntries", leaderboardEntries.toString())
-    val verifiedLeaderboardEntries = leaderboardEntries.filter { it.verificationStatus == "verified" }
+    val isLoading by leaderboardViewModel.isLoading.collectAsState()
+    val verifiedLeaderboardEntries = remember(leaderboardEntries) {
+        leaderboardEntries.filter { it.verificationStatus == "verified" }
+    }
     val rankInfo by leaderboardViewModel.currentUserRankInfo.collectAsState()
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-    val isLoading = leaderboardEntries.isEmpty()
     val infoDialog = remember { mutableStateOf(false) }
-    var tabTitles = listOf("All", "Only Verified")
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabTitles = listOf("All", "Verified")
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val displayEntries = if (selectedTabIndex == 0) leaderboardEntries else verifiedLeaderboardEntries
     val isVideoModalBottomSheetVisible = remember { mutableStateOf(false) }
     var showMenuSheetPrAdd by remember { mutableStateOf(false) }
     val showMenuSheetPrAddState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -156,20 +161,19 @@ fun LeaderBoard(
     val isSelectedVideo = remember { mutableStateOf(false) }
     val weightInMBS = remember { mutableStateOf("0") }
     val volumeInMBS = remember { mutableStateOf("0") }
-    val oneRepMax = remember { mutableStateOf(0.0) }
-    val userUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    val userUid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     val profileState = profileViewModel.profileState.collectAsState().value
     val username = remember { mutableStateOf("") }
     val videoUrl = remember { mutableStateOf("") }
 
     LaunchedEffect(userUid) {
-        profileViewModel.load(userUid)
+        if (userUid.isNotBlank()) {
+            profileViewModel.load(userUid)
+        }
     }
 
     LaunchedEffect(selectedExercise) {
-        if (selectedExercise != "Exercise") {
-            leaderboardViewModel.fetchLeaderboard(selectedExercise)
-        }
+        leaderboardViewModel.fetchLeaderboard(selectedExercise)
     }
 
     Scaffold(
@@ -178,12 +182,11 @@ fun LeaderBoard(
             HomeTopBarLeaderboard(
                 onProfileClick = { navController.navigate("profile") },
                 onMenuClick = { showMenuSheetLeaderBoard = true },
-                topPadding = topPadding,
                 infoDialog = { infoDialog.value = it },
                 onPlusClick = { showMenuSheetPrAdd = true }
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         bottomBar = {
             NavigationBarLeaderboard(
                 navController = navController,
@@ -196,58 +199,47 @@ fun LeaderBoard(
         },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        when(profileState) {
+        when (profileState) {
             is ProfileUiState.Ready -> {
-                val profile = profileState.profile
-                username.value = profile.nickname
+                username.value = profileState.profile.nickname
             }
+            else -> Unit
         }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .graphicsLayer(
-                    translationY = -50f
-                ),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row() {
+            Row {
                 Text(
                     text = "PR",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    letterSpacing = 0.sp,
-                    fontFamily = FontFamily(Font(R.font.oswaldbold))
+                    color = GrozzOnBackground,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontFamily = Oswald
                 )
-                Spacer(Modifier.width(5.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "RANKINGS",
-                    color = Color(0xFFF1C40F),
-                    fontSize = 24.sp,
-                    letterSpacing = 0.sp,
-                    fontFamily = FontFamily(Font(R.font.oswaldbold))
+                    color = GrozzYellow,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontFamily = Oswald
                 )
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
+            FilterDropdown(
+                text = selectedExercise,
+                expanded = expandableExercise,
+                onExpandChange = { expandableExercise = it },
+                items = exerciseList,
+                onItemSelected = { selectedExercise = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FilterDropdown(
-                    text = selectedExercise,
-                    expanded = expandableExercise,
-                    onExpandChange = { expandableExercise = it },
-                    items = exerciseList,
-                    onItemSelected = { selectedExercise = it },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
+                    .padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             SecondaryTabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = Color.Transparent,
@@ -262,85 +254,94 @@ fun LeaderBoard(
                         selected = isSelected,
                         onClick = { selectedTabIndex = index },
                         modifier = Modifier
-                            .padding(horizontal = 0.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .then(
-                                if (isSelected) Modifier.background(Color(0xFFF1C40F))
+                                if (isSelected) Modifier.background(GrozzYellow)
                                 else Modifier
                             ),
                         text = {
                             Text(
                                 text = string,
-                                style = TextStyle(
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontSize = 15.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                ),
-                                color = if (isSelected) Color.Black else Color(0xFF4B5F71)
+                                style = MaterialTheme.typography.labelLarge,
+                                fontFamily = Lexend,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) GrozzOnPrimary else GrozzMuted
                             )
                         }
                     )
                 }
             }
-            if (selectedTabIndex == 0) {
-                if (isLoading) {
+
+            when {
+                isLoading -> {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Spacer(Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         repeat(5) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp).height(50.dp).clip(RoundedCornerShape(12.dp)).shimmerEffect())
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 5.dp)
+                                    .height(50.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .shimmerEffect()
+                            )
                         }
-                    }
-                } else {
-                    if (selectedTopTabIndex == 0) {
-                        Leaderboard(leaderboardEntries, navController, leaderboardViewModel, onInfoClick = {infoDialog.value = true}, onVideoModalBottomClick = {isVideoModalBottomSheetVisible.value = true}, proofUrl = { videoUrl.value = it })
                     }
                 }
-            }
-            else {
-                if (isLoading) {
+                displayEntries.isEmpty() -> {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                            .padding(horizontal = 32.dp, vertical = 48.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(Modifier.height(10.dp))
-                        repeat(5) {
-                            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp).height(50.dp).clip(RoundedCornerShape(12.dp)).shimmerEffect())
-                        }
+                        Text(
+                            text = "No rankings yet",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = GrozzOnBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Be the first to add a PR for this lift.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = GrozzTextSecondary,
+                            textAlign = TextAlign.Center
+                        )
                     }
-                } else {
-                    if (selectedTopTabIndex == 0) {
-                        Leaderboard(verifiedLeaderboardEntries, navController, leaderboardViewModel, onInfoClick = {infoDialog.value = true}, onVideoModalBottomClick = {isVideoModalBottomSheetVisible.value = true}, proofUrl = { videoUrl.value = it })
-                    }
+                }
+                else -> {
+                    Leaderboard(
+                        displayEntries,
+                        navController,
+                        leaderboardViewModel,
+                        onInfoClick = { infoDialog.value = true },
+                        onVideoModalBottomClick = { isVideoModalBottomSheetVisible.value = true },
+                        proofUrl = { videoUrl.value = it }
+                    )
                 }
             }
         }
-
         if (showMenuSheetLeaderBoard) {
             ModalBottomSheet(
                 onDismissRequest = { showMenuSheetLeaderBoard = false },
                 sheetState = menuSheetState,
-                containerColor = Color(0xFF1C2126)
+                containerColor = GrozzSurface
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp, bottom = 40.dp)
                 ) {
-                    // Başlık (Opsiyonel)
                     Text(
                         text = "Menu",
-                        style = TextStyle(
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontFamily = FontFamily(Font(R.font.lexendbold))
-                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = GrozzOnBackground,
                         modifier = Modifier.padding(horizontal = 24.dp)
                     )
 
@@ -349,11 +350,14 @@ fun LeaderBoard(
                     MenuItemRow(
                         iconRes = R.drawable.accountcircle,
                         text = "Add PR",
-                        onClick = { navController.navigate(Screens.Home.Profile.route) }
+                        onClick = {
+                            showMenuSheetLeaderBoard = false
+                            showMenuSheetPrAdd = true
+                        }
                     )
 
                     MenuItemRow(
-                        iconRes = R.drawable.settings, // Ayarlar ikonu eklemelisin
+                        iconRes = R.drawable.settings,
                         text = "Settings",
                         onClick = { navController.navigate(Screens.HomesSettings.route) }
                     )
@@ -361,301 +365,289 @@ fun LeaderBoard(
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
                         thickness = 0.5.dp,
-                        color = Color.Gray.copy(alpha = 0.3f)
+                        color = GrozzBorder
                     )
 
                     MenuItemRow(
                         iconRes = R.drawable.logouticon128,
                         text = "Log Out",
-                        textColor = Color(0xFFFF4444),
+                        textColor = GrozzError,
                         onClick = {
                             authViewModel.logout()
-                            navController.navigate(Screens.LoginScreen.route)
+                            navController.navigateToLoginAfterLogout()
                         }
                     )
                 }
             }
         }
         if (showMenuSheetPrAdd) {
+            var isCompressing by remember { mutableStateOf(false) }
+            val context = LocalContext.current
+            val estimatedOneRepMax = remember(weightInMBS.value, volumeInMBS.value) {
+                estimateOneRepMax(weightInMBS.value, volumeInMBS.value)
+            }
+
             ModalBottomSheet(
-                onDismissRequest = { showMenuSheetPrAdd = false },
+                onDismissRequest = {
+                    if (!isCompressing) showMenuSheetPrAdd = false
+                },
                 sheetState = showMenuSheetPrAddState,
-                containerColor = Color(0xFF1C2126),
-                modifier = Modifier.fillMaxSize()
+                containerColor = GrozzSurface
             ) {
-                LazyColumn(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 40.dp, start = 20.dp, end = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxHeight(0.92f)
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp)
                 ) {
-                    item {
-                        Text(
-                            text = "Add PR",
-                            style = TextStyle(
-                                color = Color(0xFFF1C40F),
-                                fontSize = 25.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
-                            ),
-                            modifier = Modifier.padding(vertical = 16.dp)
-                        )
-                    }
+                    Text(
+                        text = "Add PR",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = GrozzYellow,
+                        fontFamily = Lexend,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
 
-                    item {
-                        Text(
-                            text = "SELECT EXERCISE",
-                            style = TextStyle(
-                                color = Color.White.copy(alpha = 0.5f),
-                                fontSize = 15.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextrabold))
-                            ),
-                            modifier = Modifier.fillMaxWidth().padding(start = 20.dp,end = 20.dp, top = 16.dp)
-                        )
-                    }
-
-                    item {
-                        FilterDropdownModalBottomPr(
-                            text = selectedModalBottomExercise,
-                            expanded = expandableModalBottomExercise,
-                            onExpandChange = { expandableModalBottomExercise = it },
-                            items = exerciseList,
-                            onItemSelected = { selectedModalBottomExercise = it }
-                        )
-                    }
-
-                    item {
-                        Text(
-                            text = "LIFT WEIGHT",
-                            style = TextStyle(
-                                color = Color.White.copy(alpha = 0.5f),
-                                fontSize = 15.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextrabold))
-                            ),
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-                        )
-                    }
-
-                    item {
-                        WeightInputField(weight = { weightInMBS.value = it }, weightString = weightInMBS.value)
-                    }
-
-                    item {
-                        Text(
-                            text = "VOLUME",
-                            style = TextStyle(
-                                color = Color.White.copy(alpha = 0.5f),
-                                fontSize = 15.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextrabold))
-                            ),
-                            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 16.dp)
-                        )
-                    }
-
-                    item {
-                        VolumeInputField(volume = { volumeInMBS.value = it }, volumeString = volumeInMBS.value)
-                    }
-
-                    item {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "YOUR 1 REP MAX IS = ",
-                                style = TextStyle(
-                                    color = Color.White.copy(alpha = 0.5f),
-                                    fontSize = 15.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendextrabold))
-                                ),
-                                modifier = Modifier.padding(vertical = 16.dp)
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        contentPadding = PaddingValues(bottom = 12.dp)
+                    ) {
+                        item { AddPrSectionLabel("Exercise") }
+                        item {
+                            FilterDropdownModalBottomPr(
+                                text = selectedModalBottomExercise,
+                                expanded = expandableModalBottomExercise,
+                                onExpandChange = { expandableModalBottomExercise = it },
+                                items = exerciseList,
+                                onItemSelected = { selectedModalBottomExercise = it }
                             )
-                            OneRepMax(weightInMBS.value,volumeInMBS.value, rpm = { oneRepMax.value = it })
+                        }
+                        item { AddPrSectionLabel("Lift weight") }
+                        item {
+                            WeightInputField(
+                                weight = { weightInMBS.value = it },
+                                weightString = weightInMBS.value
+                            )
+                        }
+                        item { AddPrSectionLabel("Reps") }
+                        item {
+                            VolumeInputField(
+                                volume = { volumeInMBS.value = it },
+                                volumeString = volumeInMBS.value
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Estimated 1RM  ",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = GrozzMuted,
+                                    fontFamily = Lexend
+                                )
+                                Text(
+                                    text = "${estimatedOneRepMax.toInt()} KG",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = GrozzYellow,
+                                    fontFamily = Lexend
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        item { AddPrSectionLabel("Proof video") }
+                        item {
+                            Text(
+                                text = "Upload a clip under 15 seconds for verification.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = GrozzTextSecondary,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp)
+                            )
+                        }
+                        item {
+                            ProofUploadAddPr(
+                                onUriSelected = { selectedUri.value = it },
+                                isSelectedVideo = {
+                                    isSelectedVideo.value = it
+                                    if (!it) selectedUri.value = null
+                                },
+                                isSelectedVideoBoolean = isSelectedVideo.value
+                            )
                         }
                     }
 
-                    item {
-                        Text(
-                            text = "UPLOAD YOUR LIFTING VIDEO FOR VERIFY",
-                            style = TextStyle(
-                                color = Color.White.copy(alpha = 0.5f),
-                                fontSize = 12.sp,
-                                fontFamily = FontFamily(Font(R.font.lexendextrabold))
-                            ),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
-                        )
-                    }
+                    GrozzPrimaryButton(
+                        text = if (isCompressing) "Compressing..." else "Add PR",
+                        loading = isCompressing,
+                        enabled = !isCompressing,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 20.dp),
+                        onClick = {
+                            val weightVal = weightInMBS.value.toDoubleOrNull()
+                            val repsVal = volumeInMBS.value.toDoubleOrNull()
+                            val uri = selectedUri.value
 
-                    item {
-                        ProofUploadAddPr(
-                            onUriSelected = { selectedUri.value = it },
-                            leaderboardViewModel = leaderboardViewModel,
-                            selectedUri = selectedUri.value,
-                            selectedModalBottomExercise = selectedModalBottomExercise,
-                            showMenuSheetPrAdd = { showMenuSheetPrAdd = it },
-                            isSelectedVideo = { isSelectedVideo.value = it },
-                            isSelectedVideoBoolean = isSelectedVideo.value,
-                            weightInMBS = weightInMBS.value,
-                            volumeInMBS = volumeInMBS.value,
-                            oneRepMax = oneRepMax.value,
-                            nickname = username.value
-                        )
-                    }
+                            when {
+                                selectedModalBottomExercise.isBlank() -> {
+                                    Toast.makeText(context, "Select an exercise.", Toast.LENGTH_SHORT).show()
+                                }
+                                weightVal == null || weightVal <= 0.0 -> {
+                                    Toast.makeText(context, "Enter a valid lift weight.", Toast.LENGTH_SHORT).show()
+                                }
+                                repsVal == null || repsVal <= 0.0 -> {
+                                    Toast.makeText(context, "Enter valid reps.", Toast.LENGTH_SHORT).show()
+                                }
+                                uri == null || !isSelectedVideo.value -> {
+                                    Toast.makeText(context, "Add a proof video under 15 seconds.", Toast.LENGTH_SHORT).show()
+                                }
+                                username.value.isBlank() -> {
+                                    Toast.makeText(context, "Profile name is still loading. Try again.", Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {
+                                    isCompressing = true
+                                    val outputFile = java.io.File.createTempFile("compressed_v", ".mp4", context.cacheDir)
+                                    val outputPath = outputFile.absolutePath
+                                    val oneRm = estimateOneRepMax(weightInMBS.value, volumeInMBS.value)
+
+                                    val transformerListener = object : Transformer.Listener {
+                                        override fun onCompleted(
+                                            composition: androidx.media3.transformer.Composition,
+                                            exportResult: androidx.media3.transformer.ExportResult
+                                        ) {
+                                            val compressedUri = Uri.fromFile(outputFile)
+                                            val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                            if (!uid.isNullOrBlank()) {
+                                                leaderboardViewModel.uploadPrProof(
+                                                    compressedUri,
+                                                    uid,
+                                                    selectedModalBottomExercise,
+                                                    oneRm,
+                                                    username.value
+                                                )
+                                            }
+                                            isCompressing = false
+                                            showMenuSheetPrAdd = false
+                                            isSelectedVideo.value = false
+                                            selectedUri.value = null
+                                            Toast.makeText(context, "PR submitted for verification.", Toast.LENGTH_SHORT).show()
+                                        }
+
+                                        override fun onError(
+                                            composition: androidx.media3.transformer.Composition,
+                                            exportResult: androidx.media3.transformer.ExportResult,
+                                            exportException: androidx.media3.transformer.ExportException
+                                        ) {
+                                            isCompressing = false
+                                            Log.e("TransformerError", exportException.message ?: "Unknown error")
+                                            Toast.makeText(context, "Compression failed, please try again.", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+
+                                    transformMedia3(
+                                        context = context,
+                                        transformerListener = transformerListener,
+                                        outputPath = outputPath,
+                                        mediaItem = MediaItem.fromUri(uri)
+                                    )
+                                }
+                            }
+                        }
+                    )
                 }
             }
         }
         if (infoDialog.value) {
             Dialog(onDismissRequest = { infoDialog.value = false }) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(color = Color.Transparent, shape = RoundedCornerShape(20.dp)).clickable { infoDialog.value = false },
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(GrozzSurface)
                 ) {
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = infoDialog.value,
-                        enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
-                        exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().padding(vertical = 200.dp).background(color = Color(0xFF121417), shape = RoundedCornerShape(20.dp)).clickable { infoDialog.value = false },
-                            contentAlignment = Alignment.Center
+                        Image(
+                            painter = painterResource(R.drawable.grozzlogo),
+                            contentDescription = null,
+                            modifier = Modifier.size(72.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize()
-                                    .padding(vertical = 20.dp, horizontal = 20.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.grozzlogo),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(150.dp).graphicsLayer(
-                                        translationY = -150f
-                                    ),
-                                )}
-                            Column(
-                                modifier = Modifier.fillMaxSize()
-                                    .padding(vertical = 20.dp, horizontal = 20.dp).graphicsLayer(
-                                        translationY = 130f
-                                    ),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text(
-                                        text = "PR",
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        fontSize = 25.sp
-                                    )
-                                    Spacer(modifier = Modifier.width(1.dp))
-                                    Text(
-                                        text = "RANKINGS",
-                                        color = Color(0xFFF1C40F),
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        fontSize = 25.sp
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(20.dp))
-                                Row(
-                                    modifier = Modifier,
-                                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.checkcircleicon128),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    Text(
-                                        text = "Not Verified",
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Row(
-                                    modifier = Modifier,
-                                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.checkcircleicon128),
-                                        contentDescription = null,
-                                        tint = Color.Yellow,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    Text(
-                                        text = "Waiting for Verification Lifting",
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Row(
-                                    modifier = Modifier,
-                                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.checkcircleicon128),
-                                        contentDescription = null,
-                                        tint = Color.Blue,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    Text(
-                                        text = "Verified Lifting",
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(50.dp))
-                                Row(
-                                    modifier = Modifier,
-                                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.arrowuploadprogress128icon),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    Text(
-                                        text = "Upload Your PR Lifting for Verification",
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Row(
-                                    modifier = Modifier,
-                                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.videocallfilledicon128),
-                                        contentDescription = null,
-                                        tint = Color(0xFFF1C40F),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(Modifier.weight(1f))
-                                    Text(
-                                        text = "Verified Lifting Video",
-                                        color = Color.White,
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(20.dp))
-                                Text(
-                                    text = "* Verification controls updates every 6 hours.",
-                                    color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
+                            Text(
+                                text = "PR",
+                                color = GrozzOnBackground,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontFamily = Lexend
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "RANKINGS",
+                                color = GrozzYellow,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontFamily = Lexend
+                            )
                         }
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        LeaderboardInfoRow(
+                            iconRes = R.drawable.checkcircleicon128,
+                            iconTint = GrozzOnBackground,
+                            label = "Not verified"
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LeaderboardInfoRow(
+                            iconRes = R.drawable.checkcircleicon128,
+                            iconTint = GrozzYellow,
+                            label = "Waiting for verification"
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LeaderboardInfoRow(
+                            iconRes = R.drawable.checkcircleicon128,
+                            iconTint = Color(0xFF5B9BD5),
+                            label = "Verified lifting"
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        LeaderboardInfoRow(
+                            iconRes = R.drawable.arrowuploadprogress128icon,
+                            iconTint = GrozzOnBackground,
+                            label = "Upload your PR for verification"
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LeaderboardInfoRow(
+                            iconRes = R.drawable.videocallfilledicon128,
+                            iconTint = GrozzYellow,
+                            label = "Verified lifting video"
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = "Verification status updates about every 6 hours.",
+                            color = GrozzTextSecondary,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
@@ -663,6 +655,33 @@ fun LeaderBoard(
     }
     if (isVideoModalBottomSheetVisible.value) {
         VideoModalBottomSheet(isVideoModalBottomSheetVisible = {isVideoModalBottomSheetVisible.value = it}, videoUrl = videoUrl.value)
+    }
+}
+
+@Composable
+private fun LeaderboardInfoRow(
+    iconRes: Int,
+    iconTint: Color,
+    label: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Icon(
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(22.dp)
+        )
+        Text(
+            text = label,
+            color = GrozzOnBackground,
+            style = MaterialTheme.typography.bodyMedium,
+            fontFamily = Lexend,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -679,33 +698,40 @@ fun FilterDropdown(
         Button(
             onClick = { onExpandChange(true) },
             modifier = Modifier
-                .border(1.dp, Color(0xFFF1C40F), RoundedCornerShape(10.dp))
+                .border(1.dp, GrozzYellow, RoundedCornerShape(10.dp))
                 .fillMaxWidth()
                 .height(40.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(100.dp),
+            shape = RoundedCornerShape(10.dp),
             contentPadding = PaddingValues(horizontal = 12.dp)
         ) {
             Text(
                 text,
-                color = Color(0xFFF1C40F),
-                fontSize = 15.sp,
-                maxLines = 1,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                color = GrozzYellow,
+                style = MaterialTheme.typography.labelLarge,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1
             )
-            Icon(Icons.Filled.ArrowDropDown, null, tint = Color(0xFFF1C40F))
+            Icon(Icons.Filled.ArrowDropDown, null, tint = GrozzYellow)
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandChange(false) },
             modifier = Modifier
-                .background(Color.White)
+                .background(GrozzSurface)
                 .fillMaxWidth(0.4f)
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(item, color = Color.Black) },
+                    text = {
+                        Text(
+                            item,
+                            color = GrozzOnBackground,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
                     onClick = {
                         onItemSelected(item)
                         onExpandChange(false)
@@ -729,27 +755,27 @@ fun FilterDropdownModalBottomPr(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { onExpandChange(!expanded) },
-        modifier = modifier.padding(vertical = 16.dp)
+        modifier = modifier.padding(vertical = 8.dp)
     ) {
         Button(
             onClick = { },
             modifier = Modifier
-                .menuAnchor(
-                    type = MenuAnchorType.PrimaryEditable,
-                )
-                .border(1.dp, Color(0xFFF1C40F), RoundedCornerShape(10.dp))
+                .menuAnchor(type = MenuAnchorType.PrimaryEditable)
+                .border(1.dp, GrozzYellow, RoundedCornerShape(10.dp))
                 .fillMaxWidth()
-                .height(40.dp),
+                .height(44.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            shape = RoundedCornerShape(100.dp),
+            shape = RoundedCornerShape(10.dp),
             contentPadding = PaddingValues(horizontal = 12.dp)
         ) {
             Text(
-                text,
-                color = Color(0xFFF1C40F),
-                fontSize = 15.sp,
+                text = text,
+                color = GrozzYellow,
+                style = MaterialTheme.typography.labelLarge,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                modifier = Modifier.weight(1f)
             )
             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
         }
@@ -757,11 +783,17 @@ fun FilterDropdownModalBottomPr(
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandChange(false) },
-            modifier = Modifier.background(Color(0xFF121417))
+            modifier = Modifier.background(GrozzSystemBar)
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(item, color = Color.White) },
+                    text = {
+                        Text(
+                            item,
+                            color = GrozzOnBackground,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
                     onClick = {
                         onItemSelected(item)
                         onExpandChange(false)
@@ -774,12 +806,16 @@ fun FilterDropdownModalBottomPr(
 }
 
 @Composable
-fun HomeTopBarLeaderboard(onProfileClick: () -> Unit, onMenuClick: () -> Unit, topPadding: Dp, infoDialog: (Boolean) -> Unit, onPlusClick: () -> Unit) {
+fun HomeTopBarLeaderboard(
+    onProfileClick: () -> Unit,
+    onMenuClick: () -> Unit,
+    infoDialog: (Boolean) -> Unit,
+    onPlusClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(top = topPadding)
             .padding(horizontal = 16.dp)
             .height(56.dp),
         contentAlignment = Alignment.Center
@@ -791,33 +827,25 @@ fun HomeTopBarLeaderboard(onProfileClick: () -> Unit, onMenuClick: () -> Unit, t
             IconButton(onClick = onProfileClick) {
                 Icon(
                     painter = painterResource(R.drawable.accountcircle),
-                    contentDescription = null,
+                    contentDescription = "Profile",
                     modifier = Modifier.size(25.dp),
-                    tint = Color.White
+                    tint = GrozzOnBackground
                 )
             }
-            IconButton(onClick = onProfileClick) {
+            IconButton(onClick = onPlusClick) {
                 Icon(
                     painter = painterResource(R.drawable.addicon128),
-                    contentDescription = null,
-                    modifier = Modifier.size(25.dp).clickable(
-                        onClick = { onPlusClick() }
-                    ),
-                    tint = Color(0xFFF1C40F)
+                    contentDescription = "Add PR",
+                    modifier = Modifier.size(25.dp),
+                    tint = GrozzYellow
                 )
             }
         }
 
-        // 2. ORTA TARAF (Logo - Her zaman tam merkezde)
-        Image(
-            painter = painterResource(R.drawable.grozzlogo),
-            contentDescription = "Grozz Logo",
-            modifier = Modifier
-                .size(100.dp)
-                .align(Alignment.Center)
+        GrozzTopBarLogo(
+            modifier = Modifier.align(Alignment.Center)
         )
 
-        // 3. SAĞ TARAF (Menü ve Yeni Eklenecek Buton)
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),
             verticalAlignment = Alignment.CenterVertically
@@ -825,17 +853,17 @@ fun HomeTopBarLeaderboard(onProfileClick: () -> Unit, onMenuClick: () -> Unit, t
             IconButton(onClick = { infoDialog(true) }) {
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = Color.White
+                    contentDescription = "Info",
+                    tint = GrozzOnBackground
                 )
             }
 
             IconButton(onClick = onMenuClick) {
                 Icon(
                     painter = painterResource(R.drawable.projectfitnesspointheavy),
-                    contentDescription = null,
+                    contentDescription = "Menu",
                     modifier = Modifier.size(25.dp),
-                    tint = Color.White
+                    tint = GrozzOnBackground
                 )
             }
         }
@@ -844,31 +872,41 @@ fun HomeTopBarLeaderboard(onProfileClick: () -> Unit, onMenuClick: () -> Unit, t
 
 @Composable
 fun LazyColumnItem(index: Int, item: LeaderboardEntry, navController: NavController, onInfoClick: () -> Unit, onVideoModalBottomClick: () -> Unit, getUrl: (String) -> Unit) {
+    val rankColor = when (index) {
+        0 -> GrozzYellow
+        1 -> Color(0xFFC0C0C0)
+        2 -> Color(0xFF88540B)
+        else -> GrozzMuted
+    }
+    val statusTint = when (item.verificationStatus) {
+        "verified" -> Color(0xFF5B9BD5)
+        "pendent" -> GrozzYellow
+        else -> GrozzOnBackground
+    }
+
     Box(
         modifier = Modifier
             .background(
-                Color.Black.copy(alpha = 0.4f),
+                GrozzSurface.copy(alpha = 0.85f),
                 shape = RoundedCornerShape(10.dp)
             )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .padding(horizontal = 20.dp),
+                .height(56.dp)
+                .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = (index + 1).toString(),
-                color = if (index == 0) {
-                    Color(0xFFF1C40F)
-                } else if (index == 1) {
-                    Color(0xFFC0C0C0)
-                } else if (index == 2) Color(0xFF88540B) else Color.Gray,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+                color = rankColor,
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Lexend,
+                modifier = Modifier.width(28.dp)
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             AsyncImage(
                 model = item.userPhotoUri ?: R.drawable.grozzlogo,
                 contentDescription = null,
@@ -881,87 +919,74 @@ fun LazyColumnItem(index: Int, item: LeaderboardEntry, navController: NavControl
                                 Screens.Home.Profile.route
                             )
                         } else {
-                            navController.navigate("otherscreenprofile/${item.userName}")
+                            navController.navigate("otherscreenprofile/${item.userId}")
                         }
                     },
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = item.userName,
-                    color = Color.White,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
+                    color = GrozzOnBackground,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = Lexend,
+                    maxLines = 1
                 )
-                Spacer(Modifier.width(5.dp))
                 if (item.hasPro) {
+                    Spacer(modifier = Modifier.width(6.dp))
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF1C40F))
-                            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
+                            .background(GrozzYellow)
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "PRO",
-                            color = Color.Black,
-                            fontSize = 8.sp,
+                            color = GrozzOnPrimary,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = item.weight.toInt().toString() + " KG",
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+                text = "${item.weight.toInt()} KG",
+                color = GrozzOnBackground,
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Lexend
             )
             Spacer(modifier = Modifier.width(10.dp))
+            Icon(
+                painter = painterResource(R.drawable.checkcircleicon128),
+                contentDescription = "Verification status",
+                tint = statusTint,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable(onClick = { onInfoClick() })
+            )
             if (item.verificationStatus == "verified") {
-                Icon(
-                    painter = painterResource(R.drawable.checkcircleicon128),
-                    contentDescription = null,
-                    tint = Color.Blue,
-                    modifier = Modifier.size(20.dp).clickable(
-                        onClick = { onInfoClick() }
-                    )
-                )
-                Spacer(Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Icon(
                     painter = painterResource(R.drawable.videocallfilledicon128),
-                    contentDescription = null,
-                    tint = Color(0xFFF1C40F),
-                    modifier = Modifier.size(20.dp).clickable(
-                        onClick = {
-                            onVideoModalBottomClick()
-                            getUrl(item.proofUrl)
-                        }
-                    )
-                )
-            } else if (item.verificationStatus == "pendent") {
-                Icon(
-                    painter = painterResource(R.drawable.checkcircleicon128),
-                    contentDescription = null,
-                    tint = Color.Yellow,
-                    modifier = Modifier.size(20.dp).clickable(
-                        onClick = { onInfoClick() }
-                    )
-                )
-            } else if (item.verificationStatus == "notVerified") {
-                Icon(
-                    painter = painterResource(R.drawable.checkcircleicon128),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp).clickable(
-                        onClick = { onInfoClick() }
-                    )
+                    contentDescription = "Watch proof",
+                    tint = GrozzYellow,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable(
+                            onClick = {
+                                onVideoModalBottomClick()
+                                getUrl(item.proofUrl)
+                            }
+                        )
                 )
             }
         }
     }
 }
-
 @Composable
 fun Leaderboard(
     leaderboardEntries: List<LeaderboardEntry>,
@@ -971,26 +996,25 @@ fun Leaderboard(
     onVideoModalBottomClick: () -> Unit,
     proofUrl: (String) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize()
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Spacer(Modifier.height(20.dp))
-        Box() {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                itemsIndexed(leaderboardEntries) { index, item ->
-                    LazyColumnItem(index, item, navController, onInfoClick, onVideoModalBottomClick, getUrl = { proofUrl(it) })
-                    Spacer(Modifier.height(10.dp))
-                }
-            }
+        itemsIndexed(leaderboardEntries) { index, item ->
+            LazyColumnItem(
+                index,
+                item,
+                navController,
+                onInfoClick,
+                onVideoModalBottomClick,
+                getUrl = { proofUrl(it) }
+            )
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoModalBottomSheet(isVideoModalBottomSheetVisible: (Boolean) -> Unit, videoUrl: String) {
@@ -1047,27 +1071,54 @@ fun VideoPlayerSheet(videoUrl: String, onDismiss: () -> Unit) {
 }
 
 @Composable
+private fun AddPrSectionLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelLarge,
+        color = GrozzMuted,
+        fontFamily = Lexend,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 4.dp)
+    )
+}
+
+fun estimateOneRepMax(weight: String, reps: String): Double {
+    val weightVal = weight.toDoubleOrNull() ?: 0.0
+    val repsVal = (reps.toDoubleOrNull() ?: 0.0).coerceAtMost(36.0)
+    return if (weightVal > 0 && repsVal > 0) {
+        weightVal / (1.0278 - (0.0278 * repsVal))
+    } else {
+        0.0
+    }
+}
+
+@Composable
 fun WeightInputField(weight: (String) -> Unit, weightString: String) {
-    var text by remember { mutableStateOf(weightString) }
+    var text by remember(weightString) { mutableStateOf(weightString) }
 
     TextField(
         value = text,
         onValueChange = {
-            text = it
-            weight(it)
-                        },
+            if (it.isEmpty() || it.matches(Regex("^\\d*\\.?\\d*$"))) {
+                text = it
+                weight(it)
+            }
+        },
         textStyle = TextStyle(
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = GrozzOnBackground,
+            fontFamily = Lexend
         ),
         suffix = {
             Text(
                 text = "KG",
                 style = TextStyle(
-                    fontSize = 24.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF1C40F)
+                    color = GrozzYellow,
+                    fontFamily = Lexend
                 )
             )
         },
@@ -1075,58 +1126,11 @@ fun WeightInputField(weight: (String) -> Unit, weightString: String) {
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
-            cursorColor = Color.White,
-            focusedIndicatorColor = Color.Gray, // The bottom line color when active
-            unfocusedIndicatorColor = Color.DarkGray // The bottom line color when inactive
-        ),
-        placeholder = {
-            Text(
-                text = "000",
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.DarkGray
-                )
-            )
-        },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
-fun VolumeInputField(volume: (String) -> Unit, volumeString: String) {
-    var text by remember { mutableStateOf(volumeString) }
-
-    TextField(
-        value = text,
-        onValueChange = {
-            text = it
-            volume(it)
-                        },
-        textStyle = TextStyle(
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        ),
-        suffix = {
-            Text(
-                text = "REPS",
-                style = TextStyle(
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF1C40F)
-                )
-            )
-        },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            cursorColor = Color.White,
-            focusedIndicatorColor = Color.Gray,
-            unfocusedIndicatorColor = Color.DarkGray
+            cursorColor = GrozzYellow,
+            focusedIndicatorColor = GrozzYellow,
+            unfocusedIndicatorColor = GrozzBorder,
+            focusedTextColor = GrozzOnBackground,
+            unfocusedTextColor = GrozzOnBackground
         ),
         placeholder = {
             Text(
@@ -1134,7 +1138,64 @@ fun VolumeInputField(volume: (String) -> Unit, volumeString: String) {
                 style = TextStyle(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.DarkGray
+                    color = GrozzMuted,
+                    fontFamily = Lexend
+                )
+            )
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun VolumeInputField(volume: (String) -> Unit, volumeString: String) {
+    var text by remember(volumeString) { mutableStateOf(volumeString) }
+
+    TextField(
+        value = text,
+        onValueChange = {
+            if (it.isEmpty() || it.matches(Regex("^\\d*$"))) {
+                text = it
+                volume(it)
+            }
+        },
+        textStyle = TextStyle(
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = GrozzOnBackground,
+            fontFamily = Lexend
+        ),
+        suffix = {
+            Text(
+                text = "REPS",
+                style = TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GrozzYellow,
+                    fontFamily = Lexend
+                )
+            )
+        },
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            cursorColor = GrozzYellow,
+            focusedIndicatorColor = GrozzYellow,
+            unfocusedIndicatorColor = GrozzBorder,
+            focusedTextColor = GrozzOnBackground,
+            unfocusedTextColor = GrozzOnBackground
+        ),
+        placeholder = {
+            Text(
+                text = "0",
+                style = TextStyle(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GrozzMuted,
+                    fontFamily = Lexend
                 )
             )
         },
@@ -1144,210 +1205,113 @@ fun VolumeInputField(volume: (String) -> Unit, volumeString: String) {
     )
 }
 
-@Composable
-fun OneRepMax(weight: String, reps: String, rpm: (Double) -> Unit) {
-    val weightVal = weight.toDoubleOrNull() ?: 0.0
-    val repsVal = reps.toDoubleOrNull() ?: 0.0
-
-    val repsAtMax = repsVal.coerceAtMost(36.0)
-
-    val oneRepMax = if (weightVal > 0 && repsAtMax > 0) {
-        weightVal / (1.0278 - (0.0278 * repsAtMax))
-    } else 0.0
-
-    rpm(oneRepMax)
-
-    Text(
-        text = "${oneRepMax.toInt()} RPM",
-        style = TextStyle(
-            color = Color(0xFFF1C40F),
-            fontSize = 15.sp,
-            fontFamily = FontFamily(Font(R.font.lexendextrabold))
-        ),
-    )
-}
-
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun ProofUploadAddPr(
     onUriSelected: (android.net.Uri) -> Unit,
-    leaderboardViewModel: LeaderboardViewModel,
-    selectedUri: android.net.Uri?,
-    selectedModalBottomExercise: String,
-    showMenuSheetPrAdd: (Boolean) -> Unit,
     isSelectedVideo: (Boolean) -> Unit,
-    isSelectedVideoBoolean: Boolean,
-    weightInMBS: String,
-    volumeInMBS: String,
-    oneRepMax: Double,
-    nickname: String
+    isSelectedVideoBoolean: Boolean
 ) {
     val context = LocalContext.current
-    var isCompressing by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { video: Uri? ->
         video?.let { uri ->
             val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(context, uri)
-            val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            val durationInMs = time?.toLong() ?: 0
-
-            if (durationInMs <= 15_000) {
-                onUriSelected(uri)
-                isSelectedVideo(true)
-            } else {
-                Toast.makeText(context, "Video must be under 15 seconds.", Toast.LENGTH_SHORT).show()
+            try {
+                retriever.setDataSource(context, uri)
+                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                val durationInMs = time?.toLong() ?: 0
+                if (durationInMs <= 15_000) {
+                    onUriSelected(uri)
+                    isSelectedVideo(true)
+                } else {
+                    Toast.makeText(context, "Video must be under 15 seconds.", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("ProofUpload", "Failed to read video", e)
+                Toast.makeText(context, "Could not read that video.", Toast.LENGTH_SHORT).show()
+            } finally {
+                retriever.release()
             }
         }
     }
-    if (!isSelectedVideoBoolean){
+
+    if (!isSelectedVideoBoolean) {
         Box(
             modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .border(1.dp, GrozzBorder, RoundedCornerShape(12.dp))
+                .background(GrozzSystemBar)
                 .clickable {
                     launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
-                }
-                .fillMaxWidth()
+                },
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.grozzforget),
-                contentDescription = null,
-                alpha = 0.5f,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .clip(RoundedCornerShape(10.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop,
-            )
-            Icon(
-                painter = painterResource(R.drawable.videocallfilledicon128),
-                contentDescription = null,
-                modifier = Modifier.align(Alignment.Center).padding(bottom = 40.dp),
-                tint = Color(0xFFF1C40F)
-            )
-            Text(
-                text = "Upload Media",
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp)
-            )
-            Spacer(Modifier.height(5.dp))
-            Text(
-                text = "Make sure that video should be under 15 seconds",
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendlight)),
-                fontSize = 12.sp,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    painter = painterResource(R.drawable.videocallfilledicon128),
+                    contentDescription = null,
+                    tint = GrozzYellow,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Upload video",
+                    color = GrozzOnBackground,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontFamily = Lexend
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Max 15 seconds",
+                    color = GrozzTextSecondary,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
-}else {
+    } else {
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .border(1.dp, GrozzYellow.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                .background(GrozzSystemBar)
         ) {
-            Image(
-                painter = painterResource(R.drawable.grozzforget),
-                contentDescription = null,
-                alpha = 0.5f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .size(100.dp)
-                    .align(Alignment.Center)
-                    .clip(RoundedCornerShape(10.dp))
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop,
-            )
             Icon(
                 imageVector = Icons.Default.Done,
                 contentDescription = null,
-                modifier = Modifier.padding(bottom = 40.dp).size(40.dp).align(Alignment.Center),
-                tint = Color.Green
+                modifier = Modifier
+                    .size(36.dp)
+                    .align(Alignment.Center),
+                tint = Color(0xFF4CAF50)
             )
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = null,
-                modifier = Modifier.padding(bottom = 40.dp, top = 10.dp, end = 10.dp).size(20.dp).align(Alignment.TopEnd).clickable(
-                    onClick = {
-                        isSelectedVideo(false)
-                    }
-                ),
-                tint = Color.Red
+                contentDescription = "Remove video",
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(22.dp)
+                    .align(Alignment.TopEnd)
+                    .clickable { isSelectedVideo(false) },
+                tint = GrozzError
             )
             Text(
-                text = "Added Successfully",
-                color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
-                modifier = Modifier.padding(bottom = 30.dp).align(Alignment.BottomCenter)
-            )
-        }
-}
-    Spacer(Modifier.height(20.dp))
-    Box(
-        modifier = Modifier.fillMaxSize().padding(bottom = 30.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Button(
-            onClick = {
-                if (selectedUri != null && weightInMBS.isNotEmpty() && volumeInMBS.isNotEmpty()) {
-                    isCompressing = true
-
-                    // 1. Sıkıştırılmış dosya için geçici yer oluştur
-                    val outputFile = java.io.File.createTempFile("compressed_v", ".mp4", context.cacheDir)
-                    val outputPath = outputFile.absolutePath
-
-                    // 2. Transformer Dinleyicisi
-                    val transformerListener = object : Transformer.Listener {
-                        override fun onCompleted(composition: androidx.media3.transformer.Composition, exportResult: androidx.media3.transformer.ExportResult) {
-                            // SIKISTIRMA BITTI -> SIMDI YUKLE
-                            val compressedUri = Uri.fromFile(outputFile)
-                            val uid = FirebaseAuth.getInstance().currentUser?.uid
-                            if (!uid.isNullOrBlank()) {
-                                leaderboardViewModel.uploadPrProof(
-                                    compressedUri,
-                                    uid,
-                                    selectedModalBottomExercise,
-                                    oneRepMax,
-                                    nickname
-                                )
-                            }
-
-                            isCompressing = false
-                            showMenuSheetPrAdd(false)
-                            isSelectedVideo(false)
-                            Toast.makeText(context, "PR added with compressed video!", Toast.LENGTH_SHORT).show()
-                        }
-
-                        override fun onError(composition: androidx.media3.transformer.Composition, exportResult: androidx.media3.transformer.ExportResult, exportException: androidx.media3.transformer.ExportException) {
-                            isCompressing = false
-                            Log.e("TransformerError", exportException.message ?: "Unknown error")
-                            Toast.makeText(context, "Compression failed, please try again.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
-                    transformMedia3(
-                        context = context,
-                        transformerListener = transformerListener,
-                        outputPath = outputPath,
-                        mediaItem = MediaItem.fromUri(selectedUri)
-                    )
-
-                } else {
-                    Toast.makeText(context, "Fill all required fields.", Toast.LENGTH_SHORT).show()
-                }
-            },
-            enabled = !isCompressing,
-            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth().height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1C40F)),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = if (isCompressing) "COMPRESSING..." else "ADD PR",
-                style = TextStyle(fontFamily = FontFamily(Font(R.font.lexendextrabold)), fontSize = 13.sp)
+                text = "Video ready",
+                color = GrozzOnBackground,
+                style = MaterialTheme.typography.titleMedium,
+                fontFamily = Lexend,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp)
             )
         }
     }
 }
-
 @androidx.annotation.OptIn(UnstableApi::class)
 fun transformMedia3(
     context: Context,

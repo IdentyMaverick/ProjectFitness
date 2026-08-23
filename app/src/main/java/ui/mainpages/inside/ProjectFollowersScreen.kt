@@ -1,6 +1,6 @@
 package ui.mainpages.inside
 
-import SocialViewModel
+import viewmodel.SocialViewModel
 import android.widget.Toast
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -67,11 +66,14 @@ fun ProjectFollowersScreen(
     val context = LocalContext.current
     val myNickname by socialViewModel.nickname.collectAsState()
 
-    val getAllUserState by socialViewModel.getAllUsers().observeAsState(initial = emptyList())
-    val getFollowers by socialViewModel.getFollowers(myNickname)
-        .observeAsState(initial = emptyList())
-    val getFollowing by socialViewModel.getFollowing(myNickname)
-        .observeAsState(initial = emptyList())
+    val getAllUserState by remember { socialViewModel.getAllUsers() }
+        .collectAsState(initial = emptyList())
+    val getFollowers by remember(myNickname) {
+        socialViewModel.getFollowers(myNickname)
+    }.collectAsState(initial = emptyList())
+    val getFollowing by remember(myNickname) {
+        socialViewModel.getFollowing(myNickname)
+    }.collectAsState(initial = emptyList())
 
     val searchedText = remember { mutableStateOf("") }
 

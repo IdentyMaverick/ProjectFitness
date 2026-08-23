@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -52,13 +53,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
 import data.local.viewmodel.ActivityInsideViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
+import ui.mainpages.navigation.Screens
 import viewmodel.ViewModelSave
 import viewmodel.WorkoutinViewModel
 
@@ -121,18 +125,23 @@ fun ChooseExercises(
                 muscleOk && equipmentOk && searchOk
             }
         }
-    val topPadding = if (android.os.Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
     val exerciseCounter = selectedIdsByViewModel.size
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0),
-        topBar = { HomeTopBarCreateWorkout(navController, topPadding) },
-        containerColor = Color(0xFF121417),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = { HomeTopBarCreateWorkout(navController) },
+        containerColor = GrozzSystemBar,
         floatingActionButton = {
             ExtendedStartButtonCreateWorkout(
                 onConfirmClick = {
                     createWorkoutViewModel.onConfirmSelection()
-                    navController.popBackStack()
+                    val returnedToEditor = navController.popBackStack(
+                        route = Screens.CreateWorkout.route,
+                        inclusive = false
+                    )
+                    if (!returnedToEditor) {
+                        navController.navigate(Screens.CreateWorkout.route)
+                    }
                 },
                 totalSelectedExercise = exerciseCounter.toString()
             )
@@ -342,12 +351,12 @@ fun SearchBox(text: MutableState<String>) {
 }
 
 @Composable
-fun HomeTopBarCreateWorkout(navController: NavController, topPadding: Dp) {
+fun HomeTopBarCreateWorkout(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { navController.popBackStack() }) {
@@ -355,25 +364,25 @@ fun HomeTopBarCreateWorkout(navController: NavController, topPadding: Dp) {
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = Color.White
+                tint = GrozzOnBackground
             )
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "ADD",
-            color = Color.White,
+            color = GrozzOnBackground,
             fontSize = 20.sp,
             fontFamily = FontFamily(Font(R.font.oswaldbold))
         )
-        Spacer(Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "EXERCISES",
-            color = Color(0xFFF1C40F),
+            color = GrozzYellow,
             fontSize = 20.sp,
             fontFamily = FontFamily(Font(R.font.oswaldbold))
         )
-        Spacer(Modifier.weight(1f))
-        Spacer(Modifier.width(48.dp))
+        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(48.dp))
     }
 }
 

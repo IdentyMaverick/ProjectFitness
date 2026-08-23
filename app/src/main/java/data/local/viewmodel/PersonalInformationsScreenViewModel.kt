@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import viewmodel.ProfileViewModel
 
 class PersonalInformationsScreenViewModel(
-    private val repo: WorkoutRepository,
+    repository: WorkoutRepository,
     private val profileViewModel: ProfileViewModel,
     private val userRepo: UserRepository
 ) : ViewModel() {

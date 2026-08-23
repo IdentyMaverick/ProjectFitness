@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 
 class WorkoutCompleteAnalysisScreenViewModel(
     private val repo: WorkoutRepository,
-    private val userRepository: UserRepository
+    userRepository: UserRepository
 ) : ViewModel() {
     val _activeWorkoutId = MutableStateFlow("")
     private val _exerciseList = MutableStateFlow<List<ExerciseLogWithSets>>(emptyList())
@@ -22,7 +22,6 @@ class WorkoutCompleteAnalysisScreenViewModel(
     val _ratioDistribution = MutableStateFlow<Map<String, Float>>(emptyMap())
     val ratioDistribution: StateFlow<Map<String, Float>> = _ratioDistribution
     val _totalSetCount = MutableStateFlow(0)
-    val totalSetCount: StateFlow<Int> = _totalSetCount
 
 
     fun setWorkoutList() {

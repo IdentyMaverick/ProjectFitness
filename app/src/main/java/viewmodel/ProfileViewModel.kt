@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,8 +33,17 @@ class ProfileViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
-    private val _userHistory = MutableStateFlow<List<WorkoutHistoryEntity>>(emptyList())
-    val userHistory: StateFlow<List<WorkoutHistoryEntity>> = _userHistory
+    private val targetNickname = MutableStateFlow("")
+    val userHistory: StateFlow<List<WorkoutHistoryEntity>> = targetNickname
+        .flatMapLatest { nickname ->
+            if (nickname.isBlank()) flowOf(emptyList())
+            else repo.observeUserWorkoutHistory(nickname)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     fun setUserId(uid: String) {
         userId.value = uid
@@ -65,11 +75,7 @@ class ProfileViewModel(
         }
     }
 
-    fun loadUserWorkouts(targetUserId: String) {
-        viewModelScope.launch {
-            repo.observeUserWorkoutHistory(targetUserId).collect { history ->
-                _userHistory.value = history
-            }
-        }
+    fun loadUserWorkouts(targetNickname: String) {
+        this.targetNickname.value = targetNickname
     }
 }
