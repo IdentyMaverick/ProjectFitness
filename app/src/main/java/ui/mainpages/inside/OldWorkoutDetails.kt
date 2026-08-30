@@ -33,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.projectfitness.data.local.entity.SetEntity
+import com.grozzbear.ui.components.formatWeightKg
 import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
@@ -66,10 +69,10 @@ import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
 import data.local.entity.ExerciseLogWithSets
+import data.local.entity.SetLogEntity
 import data.local.entity.WorkoutHistoryFull
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
-import ui.mainpages.mainpages.MenuItemRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -83,8 +86,13 @@ fun OldWorkoutDetails(
     val workout by oldWorkoutDetailsViewModel.workoutDetails.collectAsState(initial = null)
     val formattedDate by workoutCompleteScreenViewModel.formattedDate.collectAsState()
     val elapsedTime by workoutCompleteScreenViewModel.elapsedTime.collectAsState()
-    var showMenuSheet by remember { mutableStateOf(false) }
-    val menuSheetState = rememberModalBottomSheetState()
+    val isEditModeEnabled by oldWorkoutDetailsViewModel.isEditModeEnabled.collectAsState()
+    val draft by oldWorkoutDetailsViewModel.draft.collectAsState()
+    val displayed = if (isEditModeEnabled) draft else workout
+
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var editingSet by remember { mutableStateOf<SetLogEntity?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(workout) {
         workout?.let {
@@ -102,16 +110,24 @@ fun OldWorkoutDetails(
                 title = workout?.workoutHistory?.workoutName.orEmpty(),
                 canManage = canManage,
                 onBack = {
+                    if (!isEditModeEnabled) {
                     oldWorkoutDetailsViewModel.clearTargetUser()
-                    navController.popBackStack()
+                    navController.popBackStack() }
+                    else {
+                        oldWorkoutDetailsViewModel.exitEditMode()
+                    }
                 },
-                onMenuClick = { showMenuSheet = true }
+                onMenuClick = {
+                    workout?.let { oldWorkoutDetailsViewModel.enterEditMode(it) }
+                },
+                onEditClick = { oldWorkoutDetailsViewModel.saveEdits() },
+                isEditModeEnabled = isEditModeEnabled
             )
         },
         containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        val details = workout
+        val details = displayed
         if (details == null) {
             Box(
                 modifier = Modifier
@@ -214,35 +230,52 @@ fun OldWorkoutDetails(
                         items = details.exerciseWithSets,
                         key = { it.exerciseLog.logId }
                     ) { exerciseData ->
-                        ExerciseExpandableCard(exerciseData)
+                        ExerciseExpandableCard(
+                            exerciseData = exerciseData,
+                            isEditMode = isEditModeEnabled,
+                            onEditSet = { set ->
+                                editingSet = set
+                                showBottomSheet = true
+                            }
+                        )
                     }
                 }
             }
         }
-
-        if (showMenuSheet) {
+    }
+    if (showBottomSheet) {
+        val set = editingSet
+        if (set != null) {
             ModalBottomSheet(
-                onDismissRequest = { showMenuSheet = false },
-                sheetState = menuSheetState,
-                containerColor = GrozzSurface
+                onDismissRequest = {
+                    showBottomSheet = false
+                    editingSet = null
+                },
+                sheetState = sheetState,
+                containerColor = GrozzSurface,
+                tonalElevation = 0.dp
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(bottom = 16.dp)
-                ) {
-                    MenuItemRow(
-                        iconRes = R.drawable.terminate,
-                        text = "Delete workout",
-                        textColor = GrozzError,
-                        onClick = {
-                            showMenuSheet = false
-                            oldWorkoutDetailsViewModel.deleteHistorcialWorkoutById()
-                            navController.popBackStack()
-                        }
-                    )
-                }
+                EditSetBottomSheetContent(
+                    set = SetEntity(
+                        setId = set.setId.toString(),
+                        exerciseOwnerId = set.logOwnerId.toString(),
+                        reps = set.reps,
+                        weight = set.weight
+                    ),
+                    onSave = { updatedReps, updatedWeight ->
+                        oldWorkoutDetailsViewModel.updateDraftSet(
+                            set.setId,
+                            updatedReps,
+                            updatedWeight.toFloat()
+                        )
+                        showBottomSheet = false
+                        editingSet = null
+                    },
+                    onDelete = {
+                        showBottomSheet = false
+                        editingSet = null
+                    }
+                )
             }
         }
     }
@@ -331,10 +364,15 @@ private fun SummaryCard(
 }
 
 @Composable
-fun ExerciseExpandableCard(exerciseData: ExerciseLogWithSets) {
+fun ExerciseExpandableCard(
+    exerciseData: ExerciseLogWithSets,
+    isEditMode: Boolean,
+    onEditSet: (SetLogEntity) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
-    val completedSets = remember(exerciseData.setLogs) {
-        exerciseData.setLogs.filter { it.clicked }
+    val visibleSets = remember(exerciseData.setLogs) {
+        val clicked = exerciseData.setLogs.filter { it.clicked }
+        if (clicked.isNotEmpty()) clicked else exerciseData.setLogs
     }
     val bodyPart = exerciseData.exerciseLog.bodyPart.trim()
 
@@ -388,7 +426,7 @@ fun ExerciseExpandableCard(exerciseData: ExerciseLogWithSets) {
                 if (!expanded) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "${completedSets.size} sets",
+                        text = "${visibleSets.size} sets",
                         color = GrozzMuted,
                         fontSize = 12.sp,
                         fontFamily = Lexend
@@ -412,55 +450,152 @@ fun ExerciseExpandableCard(exerciseData: ExerciseLogWithSets) {
             Column {
                 Spacer(Modifier.height(20.dp))
                 Row(modifier = Modifier.fillMaxWidth()) {
+                    if (isEditMode){
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        ) {
+                            Text(
+                                "SET",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                "KG",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                "REPS",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                "ACTION",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.weight(1.5f),
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    } else {
                     SetHeaderCell("SET", Modifier.weight(1f), TextAlign.Start)
                     SetHeaderCell("KG", Modifier.weight(1f), TextAlign.Center)
                     SetHeaderCell("REPS", Modifier.weight(1f), TextAlign.Center)
+                }
                 }
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider(color = GrozzBorder)
                 Spacer(Modifier.height(4.dp))
 
-                if (completedSets.isEmpty()) {
+                if (visibleSets.isEmpty()) {
                     Text(
-                        text = "No completed sets",
+                        text = if (isEditMode) "No sets yet" else "No completed sets",
                         color = GrozzMuted,
                         fontSize = 13.sp,
                         fontFamily = Lexend,
                         modifier = Modifier.padding(vertical = 12.dp)
                     )
                 } else {
-                    completedSets.forEach { set ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "${set.setIndex + 1}",
-                                color = GrozzOnBackground,
-                                fontSize = 15.sp,
-                                fontFamily = Lexend,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = formatWeight(set.weight),
-                                color = GrozzOnBackground,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = "${set.reps}",
-                                color = GrozzOnBackground,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center
-                            )
+                    visibleSets.forEachIndexed { index, set ->
+                        if (isEditMode){
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    String.format("%02d", index + 1),
+                                    color = GrozzOnBackground,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    formatWeightKg(set.weight),
+                                    color = GrozzOnBackground,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    "${set.reps}",
+                                    color = GrozzOnBackground,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center
+                                )
+
+                                Row(
+                                    modifier = Modifier.weight(1.5f),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.editnote),
+                                        contentDescription = "Edit",
+                                        tint = GrozzYellow,
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clickable { onEditSet(set) }
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        painter = painterResource(R.drawable.closeicon128),
+                                        contentDescription = "Delete",
+                                        tint = GrozzError,
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clickable {  }
+                                    )
+                                }
+                            }
+                        }
+                        else {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${set.setIndex + 1}",
+                                    color = GrozzOnBackground,
+                                    fontSize = 15.sp,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = formatWeight(set.weight),
+                                    color = GrozzOnBackground,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = "${set.reps}",
+                                    color = GrozzOnBackground,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
@@ -492,7 +627,9 @@ private fun OldWorkoutDetailsTopBar(
     title: String,
     canManage: Boolean,
     onBack: () -> Unit,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    onEditClick: () -> Unit,
+    isEditModeEnabled: Boolean
 ) {
     Box(
         modifier = Modifier
@@ -530,11 +667,11 @@ private fun OldWorkoutDetailsTopBar(
 
         if (canManage) {
             IconButton(
-                onClick = onMenuClick,
+                onClick = if (isEditModeEnabled) onEditClick else onMenuClick,
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.projectfitnesspointheavy),
+                    painter = if (isEditModeEnabled) painterResource(R.drawable.checkcircleicon128) else painterResource(R.drawable.editnote),
                     contentDescription = "Menu",
                     modifier = Modifier.size(22.dp),
                     tint = GrozzOnBackground

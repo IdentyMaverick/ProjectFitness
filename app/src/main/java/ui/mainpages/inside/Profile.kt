@@ -458,7 +458,7 @@ fun Profile(
                                             onClick = {
                                                 oldWorkoutDetailsViewModel._sessionId.value =
                                                     item.workoutHistory.sessionId
-                                                oldWorkoutDetailsViewModel._flag.value = false
+                                                oldWorkoutDetailsViewModel._flag.value = true
                                                 navController.navigate("oldworkoutdetails")
                                             }
                                         )

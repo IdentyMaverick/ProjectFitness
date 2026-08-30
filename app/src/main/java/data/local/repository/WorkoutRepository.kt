@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.WriteBatch
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.dao.ExerciseCatalogDao
@@ -61,6 +62,19 @@ class WorkoutRepository(
         for (doc in current) batch.delete(doc.reference)
         val legacy = exerciseRef.collection(FirestorePaths.SETS_LEGACY).get().await()
         for (doc in legacy) batch.delete(doc.reference)
+    }
+
+    private suspend fun resolveSetDocument(
+        exerciseRef: DocumentReference,
+        setId: String
+    ): DocumentReference {
+        val currentCol = exerciseRef.collection(FirestorePaths.SETS)
+        val current = currentCol.get().await()
+        if (!current.isEmpty) return currentCol.document(setId)
+        val legacyCol = exerciseRef.collection(FirestorePaths.SETS_LEGACY)
+        val legacy = legacyCol.get().await()
+        if (!legacy.isEmpty) return legacyCol.document(setId)
+        return currentCol.document(setId)
     }
 
     fun observeWorkouts() = dao.observeWorkouts()
@@ -169,22 +183,28 @@ class WorkoutRepository(
         exerciseId: String,
         reps: Int,
         weight: Float,
-        note: String? = null
+        note: String? = null,
+        workoutId: String? = null
     ) {
+        val set = SetEntity(
+            setId = setId,
+            exerciseOwnerId = exerciseId,
+            reps = reps,
+            weight = weight,
+            note = note
+        )
         try {
-            dao.insertSet(
-                SetEntity(
-                    setId = setId,
-                    exerciseOwnerId = exerciseId,
-                    reps = reps,
-                    weight = weight,
-                    note = note
-                )
-            )
+            dao.insertSet(set)
+            if (workoutId.isNullOrBlank()) return
+
+            dao.touchWorkout(workoutId)
+            val exerciseRef = templateRef(workoutId)
+                .collection(FirestorePaths.EXERCISES)
+                .document(exerciseId)
+            resolveSetDocument(exerciseRef, setId).set(set).await()
         } catch (e: Exception) {
             Log.e("Exceptionstime", e.message.toString())
         }
-
     }
 
 
@@ -607,24 +627,47 @@ class WorkoutRepository(
             }
         }
 
-    suspend fun updateSet(setId: String, exerciseOwnerId: String, reps: Int, weight: Float) {
+    suspend fun updateSet(
+        setId: String,
+        exerciseOwnerId: String,
+        reps: Int,
+        weight: Float,
+        workoutId: String
+    ) {
         try {
-            dao.updateSet(
-                SetEntity(
-                    setId = setId,
-                    exerciseOwnerId = exerciseOwnerId,
-                    reps = reps,
-                    weight = weight
-                )
-            )
+            dao.updateSet(setId, reps, weight)
+            dao.touchWorkout(workoutId)
+
+            val exerciseRef = templateRef(workoutId)
+                .collection(FirestorePaths.EXERCISES)
+                .document(exerciseOwnerId)
+            resolveSetDocument(exerciseRef, setId).set(
+                mapOf(
+                    "setId" to setId,
+                    "exerciseOwnerId" to exerciseOwnerId,
+                    "reps" to reps,
+                    "weight" to weight
+                ),
+                SetOptions.merge()
+            ).await()
         } catch (e: Exception) {
             Log.e("WorkoutRepository", "Set güncellenemedi: ${e.message}")
         }
     }
 
-    suspend fun deleteSet(set: SetEntity) {
+    suspend fun deleteSet(set: SetEntity, workoutId: String? = null) {
         try {
             dao.deleteSet(set)
+            if (workoutId.isNullOrBlank()) return
+
+            dao.touchWorkout(workoutId)
+            val exerciseRef = templateRef(workoutId)
+                .collection(FirestorePaths.EXERCISES)
+                .document(set.exerciseOwnerId)
+            val batch = firestore.batch()
+            batch.delete(exerciseRef.collection(FirestorePaths.SETS).document(set.setId))
+            batch.delete(exerciseRef.collection(FirestorePaths.SETS_LEGACY).document(set.setId))
+            batch.commit().await()
         } catch (e: Exception) {
             Log.e("WorkoutRepository", "Set silinirken hata: ${e.message}")
         }

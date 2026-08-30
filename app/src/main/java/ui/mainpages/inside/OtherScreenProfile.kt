@@ -491,7 +491,7 @@ private fun OtherProfileContent(
                                             currentUser.id
                                         oldWorkoutDetailsViewModel._sessionId.value =
                                             item.sessionId
-                                        oldWorkoutDetailsViewModel._flag.value = true
+                                        oldWorkoutDetailsViewModel._flag.value = false
                                         navController.navigate("oldworkoutdetails")
                                     }
                                 )

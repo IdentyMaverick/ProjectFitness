@@ -38,20 +38,20 @@ class WorkoutSettingViewModel(
     }
 
     fun addSet(setId: String, exerciseId: String) {
-        viewModelScope.launch {
-            repo.addSet(setId, exerciseId, 0, 0f)
+        viewModelScope.launch(Dispatchers.IO) {
+            repo.addSet(setId, exerciseId, 0, 0f, workoutId = workoutId)
         }
     }
 
     fun updateSet(setId: String, exerciseOwnerId: String, newReps: Int, newWeight: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.updateSet(setId, exerciseOwnerId, newReps, newWeight.toFloat())
+            repo.updateSet(setId, exerciseOwnerId, newReps, newWeight.toFloat(), workoutId)
         }
     }
 
     fun deleteSet(set: SetEntity) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.deleteSet(set)
+            repo.deleteSet(set, workoutId)
         }
     }
 

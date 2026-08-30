@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutExerciseEntity
@@ -139,8 +138,8 @@ interface WorkoutDao {
     @Query("DELETE FROM set_logs WHERE setId IN (:setId)")
     suspend fun deleteMultipleSets(setId: List<Long>)
 
-    @Update
-    suspend fun updateSet(set: SetEntity)
+    @Query("UPDATE exercise_set SET reps = :reps, weight = :weight WHERE setId = :setId")
+    suspend fun updateSet(setId: String, reps: Int, weight: Float)
 
     @Delete
     suspend fun deleteSet(set: SetEntity)
