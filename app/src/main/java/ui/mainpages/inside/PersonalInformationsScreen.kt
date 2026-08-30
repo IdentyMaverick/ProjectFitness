@@ -1,6 +1,5 @@
 package ui.mainpages.inside
 
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,7 +33,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -69,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzSystemBar
 import data.local.viewmodel.PersonalInformationsScreenViewModel
 import data.remote.UserProfile
 import viewmodel.ProfileUiState
@@ -86,7 +84,6 @@ fun PersonalInformationsScreen(
 ) {
     val profileState by personalInformationsScreenViewModel.profileState.collectAsState()
     val context = LocalContext.current
-    val topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
 
     LaunchedEffect(Unit) {
         personalInformationsScreenViewModel.loadUid()
@@ -95,15 +92,15 @@ fun PersonalInformationsScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            PersonalInfoTopBar(
-                topPadding = topPadding,
+            SettingsFlowTopBar(
+                title = "PERSONAL INFO",
                 onBack = {
                     personalInformationsScreenViewModel.loadUid()
                     navController.popBackStack()
                 }
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when (val state = profileState) {
@@ -562,49 +559,13 @@ private fun BirthDateSelector(
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                text = birthDate.ifBlank { "Select date" },
+                text = if (birthDate.isBlank()) "Select date" else birthDate,
                 color = if (birthDate.isBlank()) InfoMuted else Color.White,
-                fontSize = 15.sp,
+                fontSize = 16.sp,
                 fontFamily = FontFamily(Font(R.font.lexendregular)),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-    }
-}
-
-@Composable
-private fun PersonalInfoTopBar(
-    topPadding: Dp,
-    onBack: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                painter = painterResource(R.drawable.left),
-                contentDescription = "Back",
-                modifier = Modifier.size(30.dp),
-                tint = Color.White
-            )
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        Text(
-            text = "PERSONAL INFO",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
-
-        Spacer(Modifier.weight(1f))
-        Spacer(Modifier.size(48.dp))
     }
 }

@@ -1,7 +1,8 @@
+package ui.mainpages.inside
+
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -42,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,8 +56,6 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,10 +63,24 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.grozzbear.R
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.theme.GrozzBorder
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.LeaderboardViewModel
 import data.local.viewmodel.WorkoutCompleteAnalysisScreenViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
 import ui.mainpages.navigation.Screens
+
+private val SetsAccent = Color(0xFF00E676)
+private val RepsAccent = Color(0xFFF87216)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -75,176 +90,231 @@ fun WorkoutCompleteScreen(
     workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel,
     leaderboardViewModel: LeaderboardViewModel
 ) {
-    val userName = workoutCompleteScreenViewModel.userName.collectAsState().value
-    val userFirstName = userName.split(" ")[0]
-    val formattedDate = workoutCompleteScreenViewModel.formattedDate.collectAsState().value
-    val elapsedTime = workoutCompleteScreenViewModel.elapsedTime.collectAsState().value
-    val totalSetsCompleted =
-        workoutCompleteScreenViewModel.totalSetsCompleted.collectAsState().value
-    val totalRepsCompleted =
-        workoutCompleteScreenViewModel.totalRepsCompleted.collectAsState().value
-    val card by workoutCompleteScreenViewModel.prExercises.collectAsState()
-    Log.d("CARDIS", card.toString())
+    val userName by workoutCompleteScreenViewModel.userName.collectAsState()
+    val userFirstName = remember(userName) {
+        userName.trim().substringBefore(' ').ifBlank { "Athlete" }
+    }
+    val formattedDate by workoutCompleteScreenViewModel.formattedDate.collectAsState()
+    val elapsedTime by workoutCompleteScreenViewModel.elapsedTime.collectAsState()
+    val totalSetsCompleted by workoutCompleteScreenViewModel.totalSetsCompleted.collectAsState()
+    val totalRepsCompleted by workoutCompleteScreenViewModel.totalRepsCompleted.collectAsState()
+    val prExercises by workoutCompleteScreenViewModel.prExercises.collectAsState()
     val scrollState = rememberScrollState()
-    val isUploaded = remember { mutableStateOf(false) }
+    var uploadedExercises by remember { mutableStateOf(setOf<String>()) }
+
+    fun goHome() {
+        navController.navigate(Screens.Home.route) {
+            popUpTo(Screens.Home.route) { inclusive = true }
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBarWorkoutCompleteScreen(navController)
+            HomeTopBarWorkoutCompleteScreen(onClose = ::goHome)
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
-        BackHandler(
-            enabled = true
-        ) {}
+        BackHandler(onBack = ::goHome)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(scrollState),
+                .verticalScroll(scrollState)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(24.dp))
+
             Box(
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(88.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Canvas(
-                    modifier = Modifier.matchParentSize()
-                ) {
-                    val circleRadius = size.minDimension / 2 // Dairenin yaricapi
-                    // Ic dolgu cizimi
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val circleRadius = size.minDimension / 2
                     drawCircle(
-                        color = Color(0xFFF1C40F).copy(alpha = 0.4f),
+                        color = GrozzYellow.copy(alpha = 0.35f),
                         radius = circleRadius,
                         style = Fill
-                    ) // Icini boyar
-                    drawCircle( // Dis kenarlik cizimi
-                        color = Color(0xFFF1C40F),
-                        radius = circleRadius,
-                        style = Stroke(width = 4f)
+                    )
+                    drawCircle(
+                        color = GrozzYellow,
+                        radius = circleRadius - 2.dp.toPx(),
+                        style = Stroke(width = 3.dp.toPx())
                     )
                 }
                 Icon(
                     painter = painterResource(R.drawable.trophyfilledicon128),
                     contentDescription = null,
-                    tint = Color(0xFFF1C40F)
+                    tint = GrozzYellow,
+                    modifier = Modifier.size(40.dp)
                 )
             }
+
             Spacer(Modifier.height(20.dp))
+
             Text(
                 text = "Great Job, $userFirstName",
-                color = Color.White,
-                fontSize = 30.sp,
-                fontFamily = FontFamily(Font(R.font.lexendsemibold))
+                color = GrozzOnBackground,
+                fontSize = 28.sp,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
-                text = "You Completed Workout",
-                color = Color(0xFFF1C40F),
-                fontSize = 18.sp,
-                fontFamily = FontFamily(Font(R.font.lexendsemibold))
+                text = "You completed your workout",
+                color = GrozzYellow,
+                fontSize = 16.sp,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
-                text = "$formattedDate - $elapsedTime",
-                color = Color(0xFF8A98AC),
-                fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.lexendsemibold))
+                text = listOf(formattedDate, elapsedTime)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
+                color = GrozzMuted,
+                fontSize = 14.sp,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(30.dp))
+
+            Spacer(Modifier.height(32.dp))
+
             Row(
-                horizontalArrangement = Arrangement.Center
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
             ) {
                 ProgressCircle(
-                    1f,
-                    totalSetsCompleted,
-                    "SETS COMPLETED",
-                    color = Color(0xFF00E676),
-                    id = R.drawable.timer10icon128,
-                    iconColor = Color(0xFF00E676)
+                    progress = 1f,
+                    value = totalSetsCompleted,
+                    label = "SETS COMPLETED",
+                    color = SetsAccent,
+                    iconRes = R.drawable.timer10icon128,
+                    iconColor = SetsAccent,
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(Modifier.width(20.dp))
                 ProgressCircle(
-                    1f,
-                    totalRepsCompleted,
-                    "REPS COMPLETED",
-                    color = Color(0xFFF87216),
-                    id = R.drawable.dumbbellicon128,
-                    iconColor = Color(0xFFF87216)
+                    progress = 1f,
+                    value = totalRepsCompleted,
+                    label = "REPS COMPLETED",
+                    color = RepsAccent,
+                    iconRes = R.drawable.dumbbellicon128,
+                    iconColor = RepsAccent,
+                    modifier = Modifier.weight(1f)
                 )
             }
-            Spacer(Modifier.height(40.dp))
-            if (card.isNotEmpty()) {
-                card.forEach {
-                    WorkoutRecordCard(onNavigate = {}, it, leaderboardViewModel, isUploadedClick = {isUploaded.value = true}, isUploaded = isUploaded.value)
+
+            if (prExercises.isNotEmpty()) {
+                Spacer(Modifier.height(28.dp))
+                Text(
+                    text = "PERSONAL RECORDS",
+                    color = GrozzMuted,
+                    fontSize = 12.sp,
+                    fontFamily = Lexend,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                )
+                prExercises.forEach { exercise ->
+                    WorkoutRecordCard(
+                        exerciseName = exercise,
+                        leaderboardViewModel = leaderboardViewModel,
+                        isUploaded = exercise in uploadedExercises,
+                        onUploaded = {
+                            uploadedExercises = uploadedExercises + exercise
+                        }
+                    )
+                    Spacer(Modifier.height(12.dp))
                 }
             }
-            WorkoutFullAnalysisButton(
-                onNavigate = {},
-                onNavigateAnalysis = {
+
+            Spacer(Modifier.height(24.dp))
+
+            GrozzPrimaryButton(
+                text = "View Full Analysis",
+                onClick = {
                     workoutCompleteAnalysisScreenViewModel.setWorkoutList()
-                    workoutCompleteAnalysisScreenViewModel.calculateMuscleDistribution()
-                    workoutCompleteAnalysisScreenViewModel.calculateRatioDistribution()
                     navController.navigate(Screens.WorkoutCompleteAnalysisScreen.route)
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
             )
-            Box() {
-                Spacer(modifier = Modifier.height(50.dp))
-            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "Done",
+                color = GrozzTextSecondary,
+                fontSize = 15.sp,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clickable(onClick = ::goHome)
+                    .padding(vertical = 12.dp)
+            )
         }
     }
 }
 
 @Composable
-private fun HomeTopBarWorkoutCompleteScreen(navController: NavController) {
-    Row(
+private fun HomeTopBarWorkoutCompleteScreen(onClose: () -> Unit) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .height(56.dp)
     ) {
-
-        IconButton(onClick = { navController.navigate(Screens.Home.route) }) {
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
             Icon(
                 painter = painterResource(R.drawable.closeicon128),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
+                contentDescription = "Close",
+                modifier = Modifier.size(24.dp),
+                tint = GrozzOnBackground
             )
         }
 
-        Spacer(Modifier.weight(1f))
-
-        Text(
-            text = "SESSION",
-            color = Color.White,
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
-        Spacer(Modifier.width(5.dp))
-        Text(
-            text = "SUMMARY",
-            color = Color(0xFFF1C40F),
-            fontSize = 24.sp,
-            letterSpacing = 0.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        IconButton(onClick = {}) { // WIP
-            Icon(
-                painter = painterResource(R.drawable.shareicon128),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.Transparent
+        Row(
+            modifier = Modifier.align(Alignment.Center),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "SESSION",
+                color = GrozzOnBackground,
+                fontSize = 22.sp,
+                letterSpacing = 0.sp,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = "SUMMARY",
+                color = GrozzYellow,
+                fontSize = 22.sp,
+                letterSpacing = 0.sp,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold
             )
         }
+
+        // Balance the close button so the title stays visually centered.
+        Spacer(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(48.dp)
+        )
     }
 }
 
@@ -254,228 +324,175 @@ private fun ProgressCircle(
     value: Int,
     label: String,
     color: Color,
-    id: Int = 0,
-    iconColor: Color
+    iconRes: Int,
+    iconColor: Color,
+    modifier: Modifier = Modifier
 ) {
     Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(GrozzSurface)
+            .border(1.dp, GrozzBorder, RoundedCornerShape(16.dp))
+            .padding(vertical = 20.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.size(90.dp),
+            modifier = Modifier.size(84.dp),
             contentAlignment = Alignment.Center
         ) {
-            Canvas(
-                modifier = Modifier.matchParentSize()
-            ) {
-                val strokeWidth = 5.dp.toPx() // Halkanın kalınlığı
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 5.dp.toPx()
                 val center = Offset(size.width / 2, size.height / 2)
                 val radius = (size.minDimension - strokeWidth) / 2
-                val color = color
 
                 drawCircle(
                     color = color,
                     radius = radius,
                     center = center,
-                    alpha = 0.2f, // Sönük görünmesi için
+                    alpha = 0.2f,
                     style = Stroke(width = strokeWidth)
                 )
-
-                // 2. İlerleme Yayını (Progress) Çiz
                 drawArc(
                     color = color,
                     startAngle = -90f,
-                    sweepAngle = 360f * progress, // Yüzdeye göre ne kadar döneceği
+                    sweepAngle = 360f * progress.coerceIn(0f, 1f),
                     useCenter = false,
                     topLeft = Offset(center.x - radius, center.y - radius),
                     size = Size(radius * 2, radius * 2),
-                    style = Stroke(
-                        width = strokeWidth,
-                        cap = StrokeCap.Round
-                    ) // Uçları yuvarlak yap
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                 )
             }
             Icon(
-                painter = painterResource(id),
+                painter = painterResource(iconRes),
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(16.dp))
         Text(
             text = "$value",
-            color = Color.White,
-            fontSize = 15.sp,
-            fontFamily = FontFamily(Font(R.font.lexendextrabold))
+            color = GrozzOnBackground,
+            fontSize = 22.sp,
+            fontFamily = Lexend,
+            fontWeight = FontWeight.ExtraBold
         )
-        Spacer(Modifier.height(5.dp))
+        Spacer(Modifier.height(4.dp))
         Text(
             text = label,
-            color = Color.White.copy(alpha = 0.5f),
-            fontSize = 12.sp,
-            fontFamily = FontFamily(Font(R.font.lexendmedium))
+            color = GrozzMuted,
+            fontSize = 11.sp,
+            fontFamily = Lexend,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
         )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WorkoutRecordCard(
-    onNavigate: () -> Unit,
-    card: String,
+private fun WorkoutRecordCard(
+    exerciseName: String,
     leaderboardViewModel: LeaderboardViewModel,
-    isUploadedClick: () -> Unit,
-    isUploaded: Boolean
+    isUploaded: Boolean,
+    onUploaded: () -> Unit
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(GrozzSurface)
+            .border(1.dp, GrozzYellow.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
             .padding(16.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.Gray.copy(alpha = 0.1f))
-            .padding(20.dp)
     ) {
-        Column() {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFF1C40F)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.workspacepremium128icon),
-                        contentDescription = null,
-                        modifier = Modifier.size(35.dp),
-                        tint = Color.Black
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "New Personal Record!",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Text(
-                        text = "${card} PR record passed",
-                        color = Color.White,
-                        fontSize = 15.sp,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
-            Spacer(Modifier.height(16.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Box(
                 modifier = Modifier
-                    .border(2.dp, Color.Transparent)
-                    .background(Color.Transparent)
-                    .height(150.dp)
-                    .fillMaxWidth(),
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(GrozzYellow),
                 contentAlignment = Alignment.Center
             ) {
-                    ProofUploadSection(
-                        onUriSelected = { uri ->
-                            val uid = FirebaseAuth.getInstance().currentUser?.uid
-                            if (!uid.isNullOrBlank()) {
-                                leaderboardViewModel.uploadPrProof(
-                                    uri,
-                                    uid,
-                                    card,
-                                    0.0,
-                                    ""
-                                )
-                            }
-                        },
-                        isUploadedClick,
-                        isUploaded = isUploaded
-                    )
+                Icon(
+                    painter = painterResource(R.drawable.workspacepremium128icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = GrozzOnPrimary
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "New Personal Record",
+                    color = GrozzOnBackground,
+                    fontSize = 17.sp,
+                    fontFamily = Lexend,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = "$exerciseName PR unlocked",
+                    color = GrozzTextSecondary,
+                    fontSize = 14.sp,
+                    fontFamily = Lexend,
+                    lineHeight = 18.sp
+                )
             }
         }
-    }
-}
-@Composable
-fun WorkoutFullAnalysisButton(onNavigateAnalysis: () -> Unit, onNavigate: () -> Unit) {
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        GradientSmallButton(
-            text = "View Full Analysis",
-            modifier = Modifier.height(50.dp).weight(1f),
-            onNavigate = onNavigateAnalysis
+        Spacer(Modifier.height(16.dp))
+
+        ProofUploadSection(
+            isUploaded = isUploaded,
+            onUriSelected = { uri ->
+                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                if (!uid.isNullOrBlank()) {
+                    leaderboardViewModel.uploadPrProof(
+                        uri,
+                        uid,
+                        exerciseName,
+                        0.0,
+                        ""
+                    )
+                    onUploaded()
+                }
+            }
         )
     }
 }
 
 @Composable
-fun GradientSmallButton(
-    text: String,
-    modifier: Modifier = Modifier,
-    onNavigate: () -> Unit
+private fun ProofUploadSection(
+    onUriSelected: (Uri) -> Unit,
+    isUploaded: Boolean
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .clickable { onNavigate() }
-            .background(Color.Gray.copy(alpha = 0.2f))
-            .height(40.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = text,
-                color = Color.White,
-                fontSize = 14.sp,
-                modifier = Modifier.weight(1f),
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
-            )
-
-            Icon(
-                painter = painterResource(id = R.drawable.keyboarddoublearrowright),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun ProofUploadSection(onUriSelected: (android.net.Uri) -> Unit, isUploadedClick: () -> Unit, isUploaded: Boolean) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { video: Uri? ->
-        video?.let { video ->
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(context, video)
-                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                val durationInMs = time?.toLong() ?: 0
-
-                if (durationInMs <= 15_000) {
-                    onUriSelected(video)
-                    isUploadedClick()
-                } else Toast.makeText(
-                    context,
-                    "Video must be under 15 seconds.",
-                    Toast.LENGTH_SHORT
-                ).show()
+        video ?: return@rememberLauncherForActivityResult
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(context, video)
+            val durationInMs = retriever
+                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                ?.toLongOrNull()
+                ?: 0L
+            if (durationInMs <= 15_000) {
+                onUriSelected(video)
+            } else {
+                Toast.makeText(context, "Video must be under 15 seconds.", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        } catch (_: Exception) {
+            Toast.makeText(context, "Could not read that video.", Toast.LENGTH_SHORT).show()
+        } finally {
+            retriever.release()
         }
     }
 
@@ -483,7 +500,9 @@ fun ProofUploadSection(onUriSelected: (android.net.Uri) -> Unit, isUploadedClick
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(GrozzSystemBar)
+            .border(1.dp, GrozzBorder, RoundedCornerShape(12.dp))
             .animateContentSize(
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioLowBouncy,
@@ -492,48 +511,49 @@ fun ProofUploadSection(onUriSelected: (android.net.Uri) -> Unit, isUploadedClick
             )
             .clickable(enabled = !isUploaded) {
                 launcher.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                )
             }
+            .padding(vertical = 20.dp, horizontal = 16.dp)
     ) {
         if (!isUploaded) {
             Icon(
                 painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
                 contentDescription = null,
-                tint = Color(0xFFF1C40F),
-                modifier = Modifier.size(64.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Upload Video/Photo to\nVerify Record",
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                tint = GrozzYellow,
+                modifier = Modifier.size(48.dp)
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "* Make sure that, your PR videos should be under 15 seconds.",
-                color = Color.Gray,
-                fontSize = 10.sp,
+                text = "Upload video to verify",
+                color = GrozzOnBackground,
+                fontSize = 15.sp,
+                fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Clips must be under 15 seconds.",
+                color = GrozzMuted,
+                fontSize = 12.sp,
+                fontFamily = Lexend,
+                textAlign = TextAlign.Center
+            )
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
-                    tint = Color.Green,
-                    modifier = Modifier.size(20.dp)
+                    tint = SetsAccent,
+                    modifier = Modifier.size(22.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Uploaded Successfully",
-                    color = Color.White,
+                    text = "Uploaded successfully",
+                    color = GrozzOnBackground,
                     fontSize = 14.sp,
+                    fontFamily = Lexend,
                     fontWeight = FontWeight.Medium
                 )
             }

@@ -2,7 +2,7 @@ package ui.mainpages.navigation
 
 import ui.mainpages.inside.OtherScreenProfile
 import viewmodel.SocialViewModel
-import WorkoutCompleteScreen
+import ui.mainpages.inside.WorkoutCompleteScreen
 import activity.inside.ActivityInside
 import activity.inside.CreateWorkout
 import android.media.MediaMetadataRetriever
@@ -26,6 +26,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +44,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -60,6 +62,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -80,6 +84,14 @@ import com.grozzbear.projectfitness.data.local.viewmodel.ActivityViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
 import com.grozzbear.projectfitness.viewmodel.WorkoutViewModelFactory
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
 import data.local.viewmodel.ActivityInsideViewModel
 import data.local.viewmodel.ChooseExercisesViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
@@ -102,6 +114,7 @@ import ui.mainpages.inside.NotificationScreen
 import ui.mainpages.inside.OldWorkoutDetails
 import ui.mainpages.inside.PersonalInformationsScreen
 import ui.mainpages.inside.Profile
+import ui.mainpages.inside.FindUsersScreen
 import ui.mainpages.inside.ProjectFollowScreen
 import ui.mainpages.inside.ProjectFollowersScreen
 import ui.mainpages.inside.WorkoutCompleteAnalysisScreen
@@ -223,52 +236,6 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 route = "create_workout_graph",
                 startDestination = Screens.CreateWorkout.route
             ) {
-
-                composable(
-                    Screens.ChooseExercises.route,
-                    enterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { 1000 },
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow
-                            )
-                        ) + fadeIn() + scaleIn(initialScale = 0.95f)
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { 1000 },
-                            animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
-                        ) + fadeOut() + scaleOut(targetScale = 0.95f)
-                    },
-                    popEnterTransition = {
-
-                        slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
-                    },
-                    popExitTransition = {
-
-                        slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                    }
-
-                ) { backStackEntry ->
-
-                    val parentEntry = remember(backStackEntry) {
-                        navController.getBackStackEntry("create_workout_graph")
-                    }
-
-                    val createWorkoutViewModel: CreateWorkoutViewModel = viewModel(
-                        parentEntry,
-                        factory = featureFactory
-                    )
-
-                    ChooseExercises(
-                        navController = navController,
-                        viewModelSave = viewModel,
-                        workoutinViewModel = workoutinModel,
-                        createWorkoutViewModel = createWorkoutViewModel,
-                        activityInsideViewModel = activityInsideViewModel
-                    )
-                }
 
                 composable(
                     Screens.CreateWorkout.route,
@@ -493,6 +460,81 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             }
 
             composable(
+                route = Screens.ChooseExercises.route,
+                arguments = listOf(
+                    navArgument(Screens.ChooseExercises.ARG_WORKOUT_ID) {
+                        type = NavType.StringType
+                        defaultValue = Screens.ChooseExercises.MODE_CREATE
+                    }
+                ),
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ) + fadeIn() + scaleIn(initialScale = 0.95f)
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { 1000 },
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
+                    ) + fadeOut() + scaleOut(targetScale = 0.95f)
+                },
+                popEnterTransition = {
+                    slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
+                },
+                popExitTransition = {
+                    slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
+                }
+            ) { backStackEntry ->
+                val workoutIdArg = backStackEntry.arguments
+                    ?.getString(Screens.ChooseExercises.ARG_WORKOUT_ID)
+                val isEdit = Screens.ChooseExercises.isEditMode(workoutIdArg)
+
+                val createWorkoutViewModel: CreateWorkoutViewModel? = if (!isEdit) {
+                    val parentEntry = remember(backStackEntry) {
+                        runCatching { navController.getBackStackEntry("create_workout_graph") }
+                            .getOrNull()
+                    }
+                    viewModel(
+                        parentEntry ?: backStackEntry,
+                        factory = featureFactory
+                    )
+                } else {
+                    null
+                }
+
+                val workoutSettingViewModel: WorkoutSettingViewModel? =
+                    if (isEdit && !workoutIdArg.isNullOrBlank()) {
+                        viewModel(
+                            key = "WorkoutSettingViewModel_$workoutIdArg",
+                            factory = remember(workoutIdArg) {
+                                object : androidx.lifecycle.ViewModelProvider.Factory {
+                                    @Suppress("UNCHECKED_CAST")
+                                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                                        return WorkoutSettingViewModel(workoutRepository, workoutIdArg) as T
+                                    }
+                                }
+                            }
+                        )
+                    } else {
+                        null
+                    }
+
+                ChooseExercises(
+                    navController = navController,
+                    viewModelSave = viewModel,
+                    workoutinViewModel = workoutinModel,
+                    createWorkoutViewModel = createWorkoutViewModel,
+                    workoutSettingViewModel = workoutSettingViewModel,
+                    activityInsideViewModel = activityInsideViewModel,
+                    targetWorkoutId = workoutIdArg
+                )
+            }
+
+            composable(
                 route = Screens.WorkoutLog.routeWithArg,
                 arguments = listOf(navArgument("workoutId") { type = NavType.StringType }),
                 enterTransition = {
@@ -617,6 +659,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             }
             composable(
                 route = Screens.ProjectFollowersScreen.route,
+                arguments = listOf(navArgument("nickname") { type = NavType.StringType }),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
@@ -641,14 +684,17 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
                 })
             {
+                val listOwnerNickname = it.arguments?.getString("nickname").orEmpty()
                 ProjectFollowersScreen(
                     navController = navController,
                     socialViewModel = socialViewModel,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    listOwnerNickname = listOwnerNickname
                 )
             }
             composable(
                 route = Screens.ProjectFollowScreen.route,
+                arguments = listOf(navArgument("nickname") { type = NavType.StringType }),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
@@ -673,7 +719,39 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
                 })
             {
+                val listOwnerNickname = it.arguments?.getString("nickname").orEmpty()
                 ProjectFollowScreen(
+                    navController = navController,
+                    socialViewModel = socialViewModel,
+                    authViewModel = authViewModel,
+                    listOwnerNickname = listOwnerNickname
+                )
+            }
+            composable(
+                route = Screens.FindUsersScreen.route,
+                enterTransition = {
+                    slideInHorizontally(
+                        initialOffsetX = { 1000 },
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    ) + fadeIn() + scaleIn(initialScale = 0.95f)
+                },
+                exitTransition = {
+                    slideOutHorizontally(
+                        targetOffsetX = { 1000 },
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
+                    ) + fadeOut() + scaleOut(targetScale = 0.95f)
+                },
+                popEnterTransition = {
+                    slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
+                },
+                popExitTransition = {
+                    slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
+                }
+            ) {
+                FindUsersScreen(
                     navController = navController,
                     socialViewModel = socialViewModel,
                     authViewModel = authViewModel
@@ -681,6 +759,9 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             }
             composable(
                 route = Screens.AllWorkouts.route,
+                arguments = listOf(
+                    navArgument(Screens.AllWorkouts.ARG_FILTER) { type = NavType.StringType }
+                ),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
@@ -705,7 +786,13 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
                 })
             {
-                AllWorkouts(navController = navController, homesViewModel = homesViewModel)
+                val filter = it.arguments?.getString(Screens.AllWorkouts.ARG_FILTER)
+                    ?: Screens.AllWorkouts.FILTER_ALL
+                AllWorkouts(
+                    navController = navController,
+                    homesViewModel = homesViewModel,
+                    filter = filter
+                )
             }
             composable(
                 route = Screens.OtherScreenProfile.route,
@@ -1077,13 +1164,18 @@ fun NavigationBar(
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
     // Scaffold already owns layout slots. Disable NavigationBar's default
     // windowInsets and apply navigationBarsPadding once so insets aren't nested.
+    val navItemColors = NavigationBarItemDefaults.colors(
+        indicatorColor = GrozzSystemBar,
+        selectedIconColor = GrozzYellow,
+        unselectedIconColor = GrozzMuted
+    )
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .background(Color(0xFF121417))
+            .background(GrozzSystemBar)
             .height(64.dp),
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
 
@@ -1091,21 +1183,6 @@ fun NavigationBar(
         var flag2 = flag2
         var flag3 = flag3
         var flag4 = flag4
-
-
-        var color = if (flag) {
-            Color(0xFFF1C40F)
-        } else Color(0xFFB5B5B5)
-
-        var color2 = if (flag2) {
-            Color(0xFFF1C40F)
-        } else Color(0xFFB5B5B5)
-        var color3 = if (flag3) {
-            Color(0xFFF1C40F)
-        } else Color(0xFFB5B5B5)
-        var color4 = if (flag4) {
-            Color(0xFFF1C40F)
-        } else Color(0xFFB5B5B5)
 
         items.forEachIndexed { index, item ->
             if (index == 0) {
@@ -1136,19 +1213,14 @@ fun NavigationBar(
                         }
                     },
                     icon = {
-                        Icon(
-                            painterResource(id = R.drawable.home),
-                            contentDescription = null,
-                            Modifier
-                                .size(30.dp)
+                        GrozzBottomNavIcon(
+                            selected = flag,
+                            outlinedRes = R.drawable.home,
+                            filledRes = R.drawable.home_filled,
+                            contentDescription = "Home"
                         )
                     },
-                    Modifier.background(Color(0xFF121417)),
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF121417),
-                        unselectedIconColor = color,
-                        selectedIconColor = color
-                    ),
+                    colors = navItemColors,
                 )
             } else if (index == 1) {
                 NavigationBarItem(
@@ -1177,19 +1249,14 @@ fun NavigationBar(
                         }
                     },
                     icon = {
-                        Icon(
-                            painterResource(id = R.drawable.dumbbellicon128),
-                            contentDescription = null,
-                            Modifier
-                                .size(30.dp)
+                        GrozzBottomNavIcon(
+                            selected = flag2,
+                            outlinedRes = R.drawable.fitness_outline,
+                            filledRes = R.drawable.fitness_filled,
+                            contentDescription = "Activity"
                         )
                     },
-                    Modifier.background(Color(0xFF121417)),
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF121417),
-                        unselectedIconColor = color2,
-                        selectedIconColor = color2
-                    ),
+                    colors = navItemColors,
                 )
             } else if (index == 2) {
                 NavigationBarItem(
@@ -1218,19 +1285,14 @@ fun NavigationBar(
                         }
                     },
                     icon = {
-                        Icon(
-                            painterResource(id = R.drawable.leaderboard),
-                            contentDescription = null,
-                            Modifier
-                                .size(30.dp)
+                        GrozzBottomNavIcon(
+                            selected = flag3,
+                            outlinedRes = R.drawable.leaderboard,
+                            filledRes = R.drawable.leaderboard_filled,
+                            contentDescription = "LeaderBoard"
                         )
                     },
-                    Modifier.background(Color(0xFF121417)),
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF121417),
-                        unselectedIconColor = color3,
-                        selectedIconColor = color3
-                    ),
+                    colors = navItemColors,
                 )
             } else if (index == 3) {
                 NavigationBarItem(
@@ -1259,19 +1321,14 @@ fun NavigationBar(
                         }
                     },
                     icon = {
-                        Icon(
-                            painterResource(id = R.drawable.meal),
-                            contentDescription = null,
-                            Modifier
-                                .size(30.dp)
+                        GrozzBottomNavIcon(
+                            selected = flag4,
+                            outlinedRes = R.drawable.meal,
+                            filledRes = R.drawable.meal_filled,
+                            contentDescription = "Meal"
                         )
                     },
-                    Modifier.background(Color(0xFF121417)),
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Color(0xFF121417),
-                        unselectedIconColor = color4,
-                        selectedIconColor = color4
-                    ),
+                    colors = navItemColors,
                 )
             }
 
@@ -1296,100 +1353,151 @@ fun NavigationBarLeaderboard(
     ) {
         if (rankInfo != null) {
             val (rank, userEntry) = rankInfo
+            val rankColor = when (rank) {
+                1 -> GrozzYellow
+                2 -> Color(0xFFC0C0C0)
+                3 -> Color(0xFF88540B)
+                else -> GrozzMuted
+            }
+            val statusTint = when (userEntry.verificationStatus) {
+                "verified" -> Color(0xFF5B9BD5)
+                "pendent" -> GrozzYellow
+                else -> GrozzOnBackground
+            }
+            val photoModel = userEntry.userPhotoUri.takeIf { it?.isNotBlank() == true } ?: R.drawable.grozzlogo
 
-            Row(modifier = Modifier.padding(horizontal = 20.dp)) {
-                Box(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GrozzSystemBar)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp)
-                        .background(Color(0xFFF1C40F).copy(alpha = 0.8f), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 10.dp),
-                    contentAlignment = Alignment.Center
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(GrozzSurface.copy(alpha = 0.95f))
+                        .border(1.dp, GrozzYellow.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "$rank.",
-                            color = Color.Black,
-                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                            fontSize = 16.sp
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        AsyncImage(
-                            model = if (userEntry.userPhotoUri != "") userEntry.userPhotoUri else R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(35.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Column() {
+                    Text(
+                        text = rank.toString(),
+                        color = rankColor,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = Lexend,
+                        modifier = Modifier.width(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    AsyncImage(
+                        model = photoModel,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = userEntry.userName,
-                                color = Color.Black,
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
+                                color = GrozzOnBackground,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontFamily = Lexend,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
-                            Text(
-                                text = userEntry.exerciseName,
-                                color = Color.Black,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                fontSize = 10.sp
-                            )
+                            if (userEntry.hasPro) {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(GrozzYellow)
+                                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                                ) {
+                                    Text(
+                                        text = "PRO",
+                                        color = GrozzOnPrimary,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
-                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = userEntry.exerciseName,
+                            color = GrozzTextSecondary,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = Lexend,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "${userEntry.weight.toInt()} KG",
-                            color = Color.Black,
-                            fontFamily = FontFamily(Font(R.font.lexendbold))
+                            color = GrozzOnBackground,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontFamily = Lexend
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        if (userEntry.verificationStatus == "verified") {
+                        Text(
+                            text = "1RM",
+                            color = GrozzYellow,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontFamily = Lexend,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    when (userEntry.verificationStatus) {
+                        "verified", "pendent", "notVerified" -> {
                             Icon(
                                 painter = painterResource(R.drawable.checkcircleicon128),
-                                contentDescription = null,
-                                tint = Color.Blue,
-                                modifier = Modifier.size(25.dp)
+                                contentDescription = "Verification status",
+                                tint = statusTint,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clickable(onClick = { infoDialog(true) })
                             )
-                        } else if (userEntry.verificationStatus == "pendent") {
-                            Icon(
-                                painter = painterResource(R.drawable.checkcircleicon128),
-                                contentDescription = null,
-                                tint = Color.Yellow,
-                                modifier = Modifier.size(25.dp).clickable(
-                                    onClick = { infoDialog(true) }
-                                )
-                            )
-                        } else if (userEntry.verificationStatus == "notVerified") {
-                            if (!isUploadProofClicked.value)
-                                ProofUploadSectionLeaderboard(
-                                    onUriSelected = { uri ->
-                                        val uid = FirebaseAuth.getInstance().currentUser?.uid
-                                        if (!uid.isNullOrBlank()) {
-                                            leaderboardViewModel.uploadPrProof(
-                                                uri,
-                                                uid,
-                                                userEntry.exerciseName,
-                                                0.0,
-                                                userEntry.userName
-                                            )
-                                        }
-                                    },
-                                    isUploadedClick = {}
-                                )
                         }
+                    }
+                    if (userEntry.verificationStatus == "notVerified" && !isUploadProofClicked.value) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        ProofUploadSectionLeaderboard(
+                            onUriSelected = { uri ->
+                                val uid = FirebaseAuth.getInstance().currentUser?.uid
+                                if (!uid.isNullOrBlank()) {
+                                    leaderboardViewModel.uploadPrProof(
+                                        uri,
+                                        uid,
+                                        userEntry.exerciseName,
+                                        userEntry.weight,
+                                        userEntry.userName
+                                    )
+                                }
+                            },
+                            isUploadedClick = { isUploadProofClicked.value = true }
+                        )
                     }
                 }
             }
         }
+        val navItemColors = NavigationBarItemDefaults.colors(
+            indicatorColor = GrozzSystemBar,
+            selectedIconColor = GrozzYellow,
+            unselectedIconColor = GrozzMuted
+        )
         NavigationBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .background(Color(0xFF121417))
+                .background(GrozzSystemBar)
                 .height(64.dp),
-            containerColor = Color(0xFF121417),
+            containerColor = GrozzSystemBar,
             windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
 
@@ -1397,21 +1505,6 @@ fun NavigationBarLeaderboard(
             var flag2 = flag2
             var flag3 = flag3
             var flag4 = flag4
-
-
-            var color = if (flag) {
-                Color(0xFFF1C40F)
-            } else Color(0xFFB5B5B5)
-
-            var color2 = if (flag2) {
-                Color(0xFFF1C40F)
-            } else Color(0xFFB5B5B5)
-            var color3 = if (flag3) {
-                Color(0xFFF1C40F)
-            } else Color(0xFFB5B5B5)
-            var color4 = if (flag4) {
-                Color(0xFFF1C40F)
-            } else Color(0xFFB5B5B5)
 
             items.forEachIndexed { index, item ->
                 if (index == 0) {
@@ -1442,19 +1535,14 @@ fun NavigationBarLeaderboard(
                             }
                         },
                         icon = {
-                            Icon(
-                                painterResource(id = R.drawable.home),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
+                            GrozzBottomNavIcon(
+                                selected = flag,
+                                outlinedRes = R.drawable.home,
+                                filledRes = R.drawable.home_filled,
+                                contentDescription = "Home"
                             )
                         },
-                        Modifier.background(Color(0xFF121417)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF121417),
-                            unselectedIconColor = color,
-                            selectedIconColor = color
-                        ),
+                        colors = navItemColors,
                     )
                 } else if (index == 1) {
                     NavigationBarItem(
@@ -1483,19 +1571,14 @@ fun NavigationBarLeaderboard(
                             }
                         },
                         icon = {
-                            Icon(
-                                painterResource(id = R.drawable.dumbbellicon128),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
+                            GrozzBottomNavIcon(
+                                selected = flag2,
+                                outlinedRes = R.drawable.fitness_outline,
+                                filledRes = R.drawable.fitness_filled,
+                                contentDescription = "Activity"
                             )
                         },
-                        Modifier.background(Color(0xFF121417)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF121417),
-                            unselectedIconColor = color2,
-                            selectedIconColor = color2
-                        ),
+                        colors = navItemColors,
                     )
                 } else if (index == 2) {
                     NavigationBarItem(
@@ -1524,19 +1607,14 @@ fun NavigationBarLeaderboard(
                             }
                         },
                         icon = {
-                            Icon(
-                                painterResource(id = R.drawable.leaderboard),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
+                            GrozzBottomNavIcon(
+                                selected = flag3,
+                                outlinedRes = R.drawable.leaderboard,
+                                filledRes = R.drawable.leaderboard_filled,
+                                contentDescription = "LeaderBoard"
                             )
                         },
-                        Modifier.background(Color(0xFF121417)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF121417),
-                            unselectedIconColor = color3,
-                            selectedIconColor = color3
-                        ),
+                        colors = navItemColors,
                     )
                 } else if (index == 3) {
                     NavigationBarItem(
@@ -1565,24 +1643,33 @@ fun NavigationBarLeaderboard(
                             }
                         },
                         icon = {
-                            Icon(
-                                painterResource(id = R.drawable.meal),
-                                contentDescription = null,
-                                Modifier
-                                    .size(30.dp)
+                            GrozzBottomNavIcon(
+                                selected = flag4,
+                                outlinedRes = R.drawable.meal,
+                                filledRes = R.drawable.meal_filled,
+                                contentDescription = "Meal"
                             )
                         },
-                        Modifier.background(Color(0xFF121417)),
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color(0xFF121417),
-                            unselectedIconColor = color4,
-                            selectedIconColor = color4
-                        ),
+                        colors = navItemColors,
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun GrozzBottomNavIcon(
+    selected: Boolean,
+    outlinedRes: Int,
+    filledRes: Int,
+    contentDescription: String
+) {
+    Icon(
+        painter = painterResource(id = if (selected) filledRes else outlinedRes),
+        contentDescription = contentDescription,
+        modifier = Modifier.size(28.dp)
+    )
 }
 
 @Composable
@@ -1610,8 +1697,8 @@ fun ProofUploadSectionLeaderboard(onUriSelected: (android.net.Uri) -> Unit, isUp
             Icon(
                 painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
                 contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp).clickable {
+                tint = GrozzYellow,
+                modifier = Modifier.size(20.dp).clickable {
                     launcher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
                 }

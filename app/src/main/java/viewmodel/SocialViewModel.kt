@@ -72,38 +72,39 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
     }
 
     fun markAllAsRead(nickname: String) {
-        if (nickname.isEmpty()) return
+        if (nickname.isBlank()) return
 
-        viewModelScope.launch {
-            val db = FirebaseFirestore.getInstance()
-            db.collection("googlecloudusers")
-                .whereEqualTo("nickname", nickname)
-                .get()
-                .addOnSuccessListener { snapshots ->
-                    val userId = snapshots?.documents?.firstOrNull()?.id
-                    if (userId != null) {
-                        val notificationsRef = db.collection("googlecloudusers")
-                            .document(userId)
-                            .collection("notifications")
+        val db = FirebaseFirestore.getInstance()
+        db.collection("googlecloudusers")
+            .whereEqualTo("nickname", nickname)
+            .get()
+            .addOnSuccessListener { snapshots ->
+                val userId = snapshots.documents.firstOrNull()?.id ?: return@addOnSuccessListener
+                val notificationsRef = db.collection("googlecloudusers")
+                    .document(userId)
+                    .collection("notifications")
 
-                        // Tüm bildirimleri çek ve kod içinde filtrele
-                        notificationsRef.get().addOnSuccessListener { allDocs ->
-                            for (doc in allDocs) {
-                                val isRead = doc.getBoolean("isRead") ?: false
-                                if (!isRead) { // Eğer false ise true yap
-                                    doc.reference.update("isRead", true)
-                                        .addOnSuccessListener {
-                                            Log.d(
-                                                "Fix",
-                                                "Okundu yapıldı: ${doc.id}"
-                                            )
-                                        }
-                                }
-                            }
+                notificationsRef
+                    .whereEqualTo("isRead", false)
+                    .get()
+                    .addOnSuccessListener { unreadDocs ->
+                        if (unreadDocs.isEmpty) return@addOnSuccessListener
+                        val batch = db.batch()
+                        unreadDocs.documents.forEach { doc ->
+                            batch.update(doc.reference, "isRead", true)
                         }
+                        batch.commit()
+                            .addOnSuccessListener {
+                                Log.d("Notifications", "Marked ${unreadDocs.size()} as read")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("Notifications", "Failed to mark as read", e)
+                            }
                     }
-                }
-        }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Notifications", "Failed to resolve user for markAllAsRead", e)
+            }
     }
 
     fun getFollowers(nickname: String): Flow<List<String>> {
@@ -163,7 +164,15 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
                             return@addSnapshotListener
                         }
                         val list = notificationSnapshots?.documents?.mapNotNull { doc ->
-                            doc.toObject(NotificationModel::class.java)?.copy(id = doc.id)
+                            // Read isRead from the document explicitly — Kotlin Boolean
+                            // "isRead" often fails to map via toObject alone.
+                            NotificationModel(
+                                id = doc.id,
+                                title = doc.getString("title").orEmpty(),
+                                message = doc.getString("message").orEmpty(),
+                                isRead = doc.getBoolean("isRead") ?: false,
+                                time = doc.getLong("time") ?: 0L
+                            )
                         } ?: emptyList()
                         trySend(list)
                     }

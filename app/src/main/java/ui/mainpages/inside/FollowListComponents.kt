@@ -51,6 +51,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.grozzbear.R
 import data.remote.User
+import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 
 private val FollowAccent = Color(0xFFF1C40F)
@@ -344,7 +345,15 @@ fun openUserProfile(
     authViewModel: AuthViewModel,
     nickname: String
 ) {
+    if (nickname.isBlank()) return
     authViewModel._totalWorkoutNumber.value = 0
     authViewModel._totalLiftedWeight.value = 0F
-    navController.navigate("otherscreenprofile/$nickname")
+    // Replace any existing other-profile (and screens above it) so
+    // Profile A → … → Profile B doesn't leave a deep back-stack chain.
+    navController.navigate(Screens.OtherScreenProfile.createRoute(nickname)) {
+        popUpTo(Screens.OtherScreenProfile.route) {
+            inclusive = true
+        }
+        launchSingleTop = true
+    }
 }

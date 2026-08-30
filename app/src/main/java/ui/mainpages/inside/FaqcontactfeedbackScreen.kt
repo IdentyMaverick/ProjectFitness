@@ -3,7 +3,6 @@ package ui.mainpages.inside
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -24,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -36,7 +34,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,11 +50,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzSystemBar
 import data.local.viewmodel.FaqcontactfeedbackScreenViewModel
 
 private val SupportAccent = Color(0xFFF1C40F)
@@ -79,7 +76,6 @@ fun FaqcontactfeedbackScreen(
     faqcontactfeedbackScreenViewModel: FaqcontactfeedbackScreenViewModel
 ) {
     val context = LocalContext.current
-    val topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
     var selectedMood by remember { mutableStateOf("Neutral") }
     var feedbackSent by remember { mutableStateOf(false) }
     var expandedFaqIndex by remember { mutableStateOf<Int?>(null) }
@@ -122,12 +118,12 @@ fun FaqcontactfeedbackScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            SupportTopBar(
-                navController = navController,
-                topPadding = topPadding
+            SettingsFlowTopBar(
+                title = "SUPPORT",
+                onBack = { navController.popBackStack() }
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
@@ -142,14 +138,14 @@ fun FaqcontactfeedbackScreen(
             Text(
                 text = "Help &",
                 color = Color.White,
-                fontSize = 28.sp,
+                fontSize = 22.sp,
                 modifier = Modifier.padding(horizontal = 24.dp),
                 fontFamily = FontFamily(Font(R.font.lexendbold))
             )
             Text(
                 text = "Feedback Hub",
                 color = SupportAccent,
-                fontSize = 28.sp,
+                fontSize = 22.sp,
                 modifier = Modifier.padding(horizontal = 24.dp),
                 fontFamily = FontFamily(Font(R.font.lexendbold))
             )
@@ -221,7 +217,7 @@ fun FaqcontactfeedbackScreen(
                     Text(
                         text = "Tell us what you think",
                         color = Color.White,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontFamily = FontFamily(Font(R.font.lexendbold)),
                         textAlign = TextAlign.Center
                     )
@@ -255,7 +251,7 @@ fun FaqcontactfeedbackScreen(
                                     painter = painterResource(mood.iconRes),
                                     contentDescription = mood.label,
                                     tint = if (selected) SupportAccent else Color.White.copy(alpha = 0.25f),
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -317,7 +313,7 @@ private fun SectionTitle(text: String) {
     Text(
         text = text,
         color = Color.White,
-        fontSize = 18.sp,
+        fontSize = 16.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp),
         fontFamily = FontFamily(Font(R.font.lexendbold))
     )
@@ -356,7 +352,7 @@ private fun SupportContactCard(
                     painter = painterResource(iconRes),
                     contentDescription = null,
                     tint = if (enabled) Color.Black else Color.White.copy(alpha = 0.7f),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -371,7 +367,7 @@ private fun SupportContactCard(
             Text(
                 text = subtitle,
                 color = Color.White.copy(alpha = 0.4f),
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontFamily = FontFamily(Font(R.font.lexendregular)),
                 textAlign = TextAlign.Center
             )
@@ -409,7 +405,7 @@ private fun FaqAccordionItem(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
                 tint = SupportAccent,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
 
@@ -427,42 +423,6 @@ private fun FaqAccordionItem(
                 modifier = Modifier.padding(top = 10.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun SupportTopBar(
-    navController: NavController,
-    topPadding: Dp
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                painter = painterResource(R.drawable.left),
-                contentDescription = "Back",
-                modifier = Modifier.size(30.dp),
-                tint = Color.White
-            )
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        Text(
-            text = "SUPPORT",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
-        )
-
-        Spacer(Modifier.weight(1f))
-        Spacer(Modifier.size(48.dp))
     }
 }
 

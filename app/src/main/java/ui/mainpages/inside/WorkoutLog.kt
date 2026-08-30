@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
@@ -13,7 +12,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -44,19 +43,17 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SwipeToDismissBox
@@ -89,22 +86,29 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.grozzbear.R
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.GrozzTopBarLogo
+import com.grozzbear.ui.theme.GrozzBorder
+import com.grozzbear.ui.theme.GrozzError
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
 import data.local.viewmodel.WorkoutLogViewModel
 import data.remote.FirebaseStorageHelper
@@ -156,15 +160,21 @@ fun WorkoutLog(
 
         BackHandler { showBottomSheet = true }
 
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF121417))
+                .background(GrozzSystemBar)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
                 ) { focusManager.clearFocus() }
         ) {
+            HomeTopBarWorkoutLog(
+                onBackClick = { showBottomSheet = true },
+                formattedTime = formattedTime
+            )
+
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
@@ -189,25 +199,63 @@ fun WorkoutLog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item {
-                            ExerciseImageHeader(
-                            exercise.exercise.exerciseName,
-                            exercise.exercise.exerciseImage
+                        ExerciseImageHeader(
+                            exerciseName = exercise.exercise.exerciseName,
+                            exerciseImage = exercise.exercise.exerciseImage,
+                            pageLabel = "${pagerState.currentPage + 1} of ${workout.exercises.size}"
                         )
                     }
 
                     item {
                         Box(
-                            modifier = Modifier.height(70.dp).fillMaxWidth().padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.1f), shape = RoundedCornerShape(10.dp)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(GrozzSurface)
+                                .padding(horizontal = 20.dp, vertical = 14.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                                    FinalWorkoutTimer()
-                            }
+                            FinalWorkoutTimer()
                         }
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 28.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "SET",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.width(30.dp)
+                            )
+                            Text(
+                                "KG",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                "REPS",
+                                color = GrozzMuted,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontFamily = Lexend,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.width(25.dp))
+                            Spacer(modifier = Modifier.size(28.dp))
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
 
                     itemsIndexed(
@@ -215,21 +263,29 @@ fun WorkoutLog(
                         key = { _, item -> item.setId }
                     ) { index, item ->
                         val isDone = item.isClicked
-                        var rowWeight by remember(item.setId) { mutableStateOf(if (item.weight > 0) item.weight.toString() else "0") }
-                        var rowReps by remember(item.setId) { mutableStateOf(if (item.reps > 0) item.reps.toString() else "0") }
+                        var rowWeight by remember(item.setId) {
+                            mutableStateOf(if (item.weight > 0) item.weight.toString() else "0")
+                        }
+                        var rowReps by remember(item.setId) {
+                            mutableStateOf(if (item.reps > 0) item.reps.toString() else "0")
+                        }
                         var isDeleting by remember { mutableStateOf(false) }
 
                         val dismissBoxState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { dismissValue ->
-                                if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                    isDeleting = true
-                                    false
-                                } else if (dismissValue == SwipeToDismissBoxValue.StartToEnd) {
-                                    showBottomSheetLog = true
-                                    flag.value = 1
-                                    setIndex.intValue = index
-                                    false
-                                } else false
+                                when (dismissValue) {
+                                    SwipeToDismissBoxValue.EndToStart -> {
+                                        isDeleting = true
+                                        false
+                                    }
+                                    SwipeToDismissBoxValue.StartToEnd -> {
+                                        showBottomSheetLog = true
+                                        flag.value = 1
+                                        setIndex.intValue = index
+                                        false
+                                    }
+                                    else -> false
+                                }
                             }
                         )
 
@@ -251,56 +307,73 @@ fun WorkoutLog(
                                 backgroundContent = {
                                     val color by animateColorAsState(
                                         when (dismissBoxState.targetValue) {
-                                            SwipeToDismissBoxValue.EndToStart -> Color(0xFFE53935)
+                                            SwipeToDismissBoxValue.EndToStart -> GrozzError
                                             SwipeToDismissBoxValue.StartToEnd -> Color(0xFF4CAF50)
                                             else -> Color.Transparent
-                                        }, label = ""
+                                        },
+                                        label = "dismissColor"
                                     )
                                     Box(
                                         Modifier
                                             .fillMaxSize()
-                                            .padding(horizontal = 25.dp, vertical = 4.dp)
-                                            .background(color, RoundedCornerShape(14.dp))
+                                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(color)
                                     )
                                 },
                                 content = {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(Color.Transparent)
-                                            .padding(horizontal = 25.dp, vertical = 8.dp),
+                                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(GrozzSurface.copy(alpha = 0.9f))
+                                            .padding(horizontal = 12.dp, vertical = 6.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            "${index + 1}",
+                                            text = "${index + 1}",
                                             modifier = Modifier.width(30.dp),
-                                            color = Color.White,
-                                            fontSize = 15.sp
+                                            color = if (isDone) GrozzYellow else GrozzOnBackground,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontFamily = Lexend
                                         )
                                         Box(modifier = Modifier.weight(1f)) {
-                                            SetLogItemWeight(rowWeight, {
-                                                rowWeight = it; scope.launch {
-                                                workoutLogViewModel.toggleSetDone(
-                                                    exercise.exercise.exerciseName,
-                                                    index,
-                                                    false
-                                                )
-                                            }
-                                            }, Modifier.fillMaxWidth(), isDone)
+                                            SetLogItemWeight(
+                                                rowWeight,
+                                                {
+                                                    rowWeight = it
+                                                    scope.launch {
+                                                        workoutLogViewModel.toggleSetDone(
+                                                            exercise.exercise.exerciseName,
+                                                            index,
+                                                            false
+                                                        )
+                                                    }
+                                                },
+                                                Modifier.fillMaxWidth(),
+                                                isDone
+                                            )
                                         }
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Box(modifier = Modifier.weight(1f)) {
-                                            SetLogItemReps(rowReps, {
-                                                rowReps = it; scope.launch {
-                                                workoutLogViewModel.toggleSetDone(
-                                                    exercise.exercise.exerciseName,
-                                                    index,
-                                                    false
-                                                )
-                                            }
-                                            }, Modifier.fillMaxWidth(), isDone)
+                                            SetLogItemReps(
+                                                rowReps,
+                                                {
+                                                    rowReps = it
+                                                    scope.launch {
+                                                        workoutLogViewModel.toggleSetDone(
+                                                            exercise.exercise.exerciseName,
+                                                            index,
+                                                            false
+                                                        )
+                                                    }
+                                                },
+                                                Modifier.fillMaxWidth(),
+                                                isDone
+                                            )
                                         }
-                                        Spacer(modifier = Modifier.width(25.dp))
+                                        Spacer(modifier = Modifier.width(12.dp))
                                         IconButton(
                                             onClick = {
                                                 scope.launch {
@@ -320,16 +393,16 @@ fun WorkoutLog(
                                                 }
                                             },
                                             modifier = Modifier
-                                                .size(18.dp)
-                                                .clip(RoundedCornerShape(25))
-                                                .background(if (isDone) Color(0xFFF1C40F) else Color.Transparent)
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    if (isDone) GrozzYellow else GrozzBorder
+                                                )
                                         ) {
                                             Icon(
                                                 Icons.Default.Check,
-                                                null,
-                                                tint = if (isDone) Color.Black else Color.Gray.copy(
-                                                    0.5f
-                                                ),
+                                                contentDescription = if (isDone) "Completed" else "Mark complete",
+                                                tint = if (isDone) GrozzOnPrimary else GrozzMuted,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
@@ -340,7 +413,7 @@ fun WorkoutLog(
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = {
                                 scope.launch {
@@ -353,36 +426,57 @@ fun WorkoutLog(
                                     )
                                 }
                             },
-                            modifier = Modifier.padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.3f), shape = RoundedCornerShape(12.dp)).fillMaxWidth().height(50.dp),
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .fillMaxWidth()
+                                .height(44.dp)
+                                .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
+                            shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                                Text("+", color = Color(0xFFF1C40F), fontSize = 24.sp)
-                                Spacer(Modifier.width(10.dp))
-                                Text("ADD SET", color = Color.Gray, fontFamily = FontFamily(Font(R.font.lexendextrabold)))
-                            }
+                            Text(
+                                text = "+  Add set",
+                                color = GrozzYellow,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontFamily = Lexend
+                            )
                         }
                     }
-                    item { Spacer(Modifier.height(100.dp)) }
+                    item {
+                        Spacer(
+                            modifier = Modifier.height(
+                                if (!pagerState.canScrollForward) 120.dp else 80.dp
+                            )
+                        )
+                    }
                 }
             }
 
-            HomeTopBarWorkoutLog(
-                pagerState = pagerState,
-                totalSegments = workout.exercises.size,
-                workoutLogViewModel = workoutLogViewModel,
-                onBackClick = { showBottomSheet = true },
-                formattedTime = formattedTime,
-                showTimerSheet = showTimerSheet,
-                setShowTimerSheet = { showTimerSheet = it }
-            )
+            if (!pagerState.canScrollForward) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding()
+                        .padding(bottom = 16.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    GrozzPrimaryButton(
+                        text = "Finish workout",
+                        onClick = { showBottomSheetFinish = true },
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+            } // content Box under top bar
 
             if (showBottomSheet) {
                 ModalBottomSheet(
                     onDismissRequest = { showBottomSheet = false },
                     sheetState = sheetState,
-                    containerColor = Color(0xFF1C2126),
-                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+                    containerColor = GrozzSurface,
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = GrozzMuted) }
                 ) {
                     WorkoutExitDialog(
                         onConfirm = {
@@ -401,15 +495,15 @@ fun WorkoutLog(
                 }
             } else if (showBottomSheetLog) {
                 ModalBottomSheet(
-                    onDismissRequest = { showBottomSheetLog = false; },
+                    onDismissRequest = { showBottomSheetLog = false },
                     sheetState = sheetStateLog,
-                    containerColor = Color(0xFF1C2126),
-                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFF1C40F)) }
+                    containerColor = GrozzSurface,
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = GrozzYellow) }
                 ) {
                     if (flag.value == 0) {
                         WorkoutLogDialog(
                             onConfirm = {
-                                showBottomSheetLog = false;
+                                showBottomSheetLog = false
                                 workoutLogViewModel.updateExerciseNote(it)
                             },
                             onDismiss = {
@@ -417,7 +511,6 @@ fun WorkoutLog(
                                     if (!sheetStateLog.isVisible) showBottomSheetLog = false
                                 }
                             },
-                            setLog = { },
                             flag = 0
                         )
                     } else if (flag.value == 1) {
@@ -431,7 +524,6 @@ fun WorkoutLog(
                                     if (!sheetStateLog.isVisible) showBottomSheetLog = false
                                 }
                             },
-                            setLog = { },
                             flag = 1
                         )
                     }
@@ -440,8 +532,8 @@ fun WorkoutLog(
                 ModalBottomSheet(
                     onDismissRequest = { showBottomSheetFinish = false },
                     sheetState = sheetStateFinish,
-                    containerColor = Color(0xFF1C2126),
-                    dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray) }
+                    containerColor = GrozzSurface,
+                    dragHandle = { BottomSheetDefaults.DragHandle(color = GrozzMuted) }
                 ) {
                     WorkoutExitDialog(
                         onConfirm = {
@@ -460,55 +552,29 @@ fun WorkoutLog(
                             })
                         },
                         onDismiss = {
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                if (!sheetState.isVisible) showBottomSheetFinish = false
+                            scope.launch { sheetStateFinish.hide() }.invokeOnCompletion {
+                                if (!sheetStateFinish.isVisible) showBottomSheetFinish = false
                             }
                         },
                         flag = 1
                     )
                 }
             }
-            if (!pagerState.canScrollForward) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 30.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Button(
-                        onClick = {
-                            showBottomSheetFinish = true
-                        },
-                        modifier = Modifier.padding(horizontal = 20.dp).background(Color.Gray.copy(alpha = 0.3f), shape = RoundedCornerShape(12.dp)).fillMaxWidth().height(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF1C40F),
-                            contentColor = Color.Black
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = ButtonDefaults.buttonElevation(8.dp)
-                    ) {
-                        Text(
-                            text = "FINISH WORKOUT",
-                            style = TextStyle(
-                                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-                }
-            }
+
         }
-        if (showTimerSheet == true) {
+
+        if (showTimerSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showTimerSheet = false },
                 sheetState = showTimerSheetModalBottom,
-                containerColor = Color(0xFF1C2126)
+                containerColor = GrozzSurface
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 40.dp)
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                        .padding(bottom = 24.dp)
                 ) {
                     FinalWorkoutTimer()
                 }
@@ -518,11 +584,14 @@ fun WorkoutLog(
 }
 
 @Composable
-fun ExerciseImageHeader(exerciseName: String, exerciseImage: String? = null) {
-    // String parçalama hatasını önlemek için kontrol (tek kelimelik isimlerde crash olmasın)
+fun ExerciseImageHeader(
+    exerciseName: String,
+    exerciseImage: String? = null,
+    pageLabel: String? = null
+) {
     val wordList = exerciseName.split(" ", limit = 2)
-    val firstWord = wordList.getOrNull(0) ?: ""
-    val secondWord = wordList.getOrNull(1) ?: ""
+    val firstWord = wordList.getOrNull(0).orEmpty()
+    val secondWord = wordList.getOrNull(1).orEmpty()
 
     val fullUrl = remember(exerciseImage) {
         FirebaseStorageHelper.getImageUrl(exerciseImage ?: "")
@@ -531,200 +600,134 @@ fun ExerciseImageHeader(exerciseName: String, exerciseImage: String? = null) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp) // Toplam yükseklik
+            .height(240.dp)
     ) {
-        // 1. En Altta: Görsel
         AsyncImage(
             model = fullUrl,
             contentDescription = exerciseName,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(), // Padding'i kaldırdım ki Box'ı tam doldursun
+            modifier = Modifier.fillMaxSize(),
             placeholder = painterResource(id = R.drawable.grozzlogo),
             error = painterResource(id = R.drawable.grozzlogo)
         )
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-                .align(Alignment.TopCenter)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
-                    )
-                )
-        )
-
-        // Alt Gradient (Yazının okunması için daha koyu)
-        Box(
-            modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color.Transparent, Color(0xFF121417).copy(alpha = 0.9f))
+                        listOf(
+                            Color.Black.copy(alpha = 0.25f),
+                            Color.Transparent,
+                            GrozzSystemBar.copy(alpha = 0.95f)
+                        )
                     )
                 )
         )
 
-        // 3. Yazı Katmanı (Şimdi Box içinde olduğu için resmin üstünde!)
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart) // Yazıyı sol alta hizalar
-                .padding(horizontal = 25.dp, vertical = 20.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = firstWord.uppercase(),
-                color = Color.White,
-                fontSize = 30.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
-                lineHeight = 30.sp
-            )
-            Text(
-                text = secondWord.uppercase(),
-                color = Color(0xFFF1C40F),
-                fontSize = 30.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold)),
-                lineHeight = 30.sp,
-                modifier = Modifier.graphicsLayer(translationY = -10f) // Aradaki boşluğu daraltmak için
-            )
-        }
-    }
-}
-
-@Composable
-fun LogPlace(
-    onLogClick: (Boolean) -> Unit,
-    flag: (Int) -> Unit
-) {
-    Column(Modifier.fillMaxSize()) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 25.dp)
-        ) {
-            IconButton(onClick = {}, modifier = Modifier.size(20.dp)) {
-                Icon(
-                    painter = painterResource(R.drawable.historyicon128),
-                    contentDescription = null,
-                    tint = Color.Transparent
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                "Log your Progress",
-                color = Color(0xFFF1C40F),
-                fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { onLogClick(true); flag(0) }, modifier = Modifier.size(30.dp)) {
-                Icon(
-                    painter = painterResource(R.drawable.editnote),
-                    contentDescription = null,
-                    tint = Color.Transparent
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun HomeTopBarWorkoutLog(
-    pagerState: PagerState,
-    totalSegments: Int,
-    workoutLogViewModel: WorkoutLogViewModel,
-    onBackClick: () -> Unit,
-    formattedTime: String,
-    showTimerSheet: Boolean,
-    setShowTimerSheet: (Boolean) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF121417))
-            .statusBarsPadding()
-            .padding(vertical = 12.dp, horizontal = 16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        // 1. SOL: Geri Butonu
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowLeft,
-            contentDescription = null,
-            tint = Color(0xFFF1C40F),
-            modifier = Modifier
-                .size(24.dp)
-                .align(Alignment.CenterStart)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    onBackClick()
-                }
-        )
-
-        // 2. ORTA: Logo ve Sayaç (Dikey Hizalama)
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            // Bu kısım önemli: Spacer yerine Arrangement kullanıyoruz
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.grozzlogo),
-                contentDescription = null,
-                modifier = Modifier
-                    .height(55.dp) // Genişlik yerine yükseklik sabitlemek daha dengeli durur
-                    .fillMaxWidth(0.4f), // Logonun ekranın %30'undan fazla yer kaplamasını engeller
-                contentScale = ContentScale.Fit
-            )
-
-            // Sayaç Barı (1 of 3)
+        if (!pageLabel.isNullOrBlank()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .background(
-                        color = Color.Transparent, // Timer ile aynı arka plan rengi
-                        shape = RoundedCornerShape(20.dp)
-                    )
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(GrozzSystemBar.copy(alpha = 0.85f))
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .size(5.dp)
-                        .background(Color(0xFFF1C40F), androidx.compose.foundation.shape.CircleShape)
+                        .background(GrozzYellow, CircleShape)
                 )
-
                 Spacer(modifier = Modifier.width(6.dp))
-
                 Text(
-                    text = "${pagerState.currentPage + 1} of $totalSegments",
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
+                    text = pageLabel,
+                    color = GrozzOnBackground,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = Lexend,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
 
-        // 3. SAĞ: Zamanlayıcı
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(horizontal = 24.dp, vertical = 18.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = firstWord.uppercase(),
+                color = GrozzOnBackground,
+                style = MaterialTheme.typography.headlineMedium,
+                fontFamily = Oswald,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (secondWord.isNotBlank()) {
+                Text(
+                    text = secondWord.uppercase(),
+                    color = GrozzYellow,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontFamily = Oswald,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeTopBarWorkoutLog(
+    onBackClick: () -> Unit,
+    formattedTime: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(GrozzSystemBar)
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .height(56.dp)
+    ) {
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowLeft,
+                contentDescription = "Back",
+                tint = GrozzYellow,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
+        GrozzTopBarLogo(
+            modifier = Modifier.align(Alignment.Center)
+        )
+
         Row(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .background(Color(0xFF1C2126), RoundedCornerShape(15.dp))
-                .padding(horizontal = 10.dp, vertical = 6.dp)
-//                .clickable { onTimerClick() }
-            ,
+                .clip(RoundedCornerShape(16.dp))
+                .background(GrozzSurface)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.size(4.dp).background(Color(0xFFF1C40F), androidx.compose.foundation.shape.CircleShape))
+            Box(
+                modifier = Modifier
+                    .size(4.dp)
+                    .background(GrozzYellow, CircleShape)
+            )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = formattedTime,
-                color = Color(0xFFF1C40F),
-                fontSize = 11.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+                color = GrozzYellow,
+                style = MaterialTheme.typography.labelMedium,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -732,127 +735,59 @@ private fun HomeTopBarWorkoutLog(
 
 @Composable
 fun WorkoutExitDialog(onConfirm: () -> Unit, onDismiss: () -> Unit, flag: Int) {
-    if (flag == 0) {
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(bottom = 36.dp, start = 24.dp, end = 24.dp, top = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 48.dp, start = 24.dp, end = 24.dp, top = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(GrozzYellow),
+            contentAlignment = Alignment.Center
         ) {
-            IconButton(
-                onClick = { onDismiss() },
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .background(color = Color(0xFFF1C40F), shape = CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "End Workout?",
-                color = Color.White,
-                fontSize = 24.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+            Icon(
+                imageVector = if (flag == 0) Icons.Default.Close else Icons.Default.Done,
+                contentDescription = null,
+                tint = GrozzOnPrimary,
+                modifier = Modifier.size(28.dp)
             )
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "You will lose all progress for this session. This action cannot be undone.",
-                color = Color.White.copy(alpha = 0.3f),
-                fontSize = 18.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            Spacer(Modifier.height(32.dp))
-            Button(
-                onClick = { onConfirm() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF1C40F),
-                    contentColor = Color.Black
-                ),
-                modifier = Modifier.fillMaxWidth() ) {
-                Text(
-                    "End",
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                )
-            }
-
-            Button(
-                onClick = { onDismiss() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
-                )
-            ) {
-                Text(
-                    "Cancel",
-                    color = Color.Red.copy(alpha = 0.6f),
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                )
-            }
         }
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 48.dp, start = 24.dp, end = 24.dp, top = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            IconButton(
-                onClick = { onDismiss() },
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .background(color = Color(0xFFF1C40F), shape = CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Done,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
-            Spacer(Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(18.dp))
+        Text(
+            text = if (flag == 0) "End workout?" else "Complete workout?",
+            color = GrozzOnBackground,
+            style = MaterialTheme.typography.headlineMedium,
+            fontFamily = Lexend
+        )
+        if (flag == 0) {
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                "Complete Workout?",
-                color = Color.White,
-                fontSize = 24.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                text = "You will lose all progress for this session. This cannot be undone.",
+                color = GrozzTextSecondary,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = Lexend,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
-            Spacer(Modifier.height(32.dp))
-            Button(
-                onClick = { onConfirm() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF1C40F),
-                    contentColor = Color.Black
-                ),
-                modifier = Modifier.fillMaxWidth() ) {
-                Text(
-                    "Complete",
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                )
-            }
-            Button(
-                onClick = { onDismiss() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
-                )
-            ) {
-                Text(
-                    "Go Back",
-                    color = Color.Red.copy(alpha = 0.6f),
-                    fontSize = 18.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendbold))
-                )
-            }
+        }
+        Spacer(modifier = Modifier.height(28.dp))
+        GrozzPrimaryButton(
+            text = if (flag == 0) "End" else "Complete",
+            onClick = onConfirm,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextButton(onClick = onDismiss) {
+            Text(
+                text = if (flag == 0) "Cancel" else "Go back",
+                color = GrozzError.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.labelLarge,
+                fontFamily = Lexend
+            )
         }
     }
 }
@@ -861,76 +796,66 @@ fun WorkoutExitDialog(onConfirm: () -> Unit, onDismiss: () -> Unit, flag: Int) {
 fun WorkoutLogDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
-    setLog: (String) -> Unit,
     flag: Int
 ) {
-    val flag = remember { mutableIntStateOf(flag) }
-    val initialText = "" // Eğer varsa eski notu buraya ViewModel'den çekebilirsin
-    val logValue = remember { mutableStateOf(initialText) }
+    val logValue = remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = if (flag.value == 0) {
-                "Log about Exercise"
-            } else {
-                "Log about Set"
-            },
-            color = Color.White,
-            fontSize = 18.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular))
+            text = if (flag == 0) "Log about exercise" else "Log about set",
+            color = GrozzOnBackground,
+            style = MaterialTheme.typography.titleLarge,
+            fontFamily = Lexend
         )
-        Spacer(Modifier.height(32.dp))
-        Text(
-            text = logValue.value,
-            color = Color.White,
-            fontSize = 18.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular))
-        )
-        Spacer(Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
             value = logValue.value,
             onValueChange = { logValue.value = it },
-            modifier = Modifier.height(300.dp),
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.White.copy(alpha = 0.2f),
-                focusedIndicatorColor = Color(0xFFF1C40F),
-                cursorColor = Color(0xFFF1C40F),
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = GrozzSystemBar,
+                focusedContainerColor = GrozzSystemBar,
+                unfocusedBorderColor = GrozzBorder,
+                focusedBorderColor = GrozzYellow,
+                cursorColor = GrozzYellow,
+                focusedTextColor = GrozzOnBackground,
+                unfocusedTextColor = GrozzOnBackground
             ),
             textStyle = TextStyle(
                 textAlign = TextAlign.Start,
-                fontWeight = FontWeight.Bold,
+                fontFamily = Lexend,
                 fontSize = 16.sp
             ),
             placeholder = {
-                Text("Write here")
+                Text(
+                    "Write here",
+                    color = GrozzMuted,
+                    fontFamily = Lexend
+                )
             }
         )
-        Spacer(Modifier.height(50.dp))
-        Button(
+        Spacer(modifier = Modifier.height(20.dp))
+        GrozzPrimaryButton(
+            text = "Save",
             onClick = { onConfirm(logValue.value) },
-            colors = ButtonColors(
-                containerColor = Color(0xFFF1C40F),
-                contentColor = Color(0xFFF1C40F),
-                disabledContainerColor = Color(0xFFF1C40F),
-                disabledContentColor = Color(0xFFF1C40F)
-            )
-        ) {
+            modifier = Modifier.fillMaxWidth()
+        )
+        TextButton(onClick = onDismiss) {
             Text(
-                "Save",
-                color = Color(0xFF121417),
-                fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+                "Cancel",
+                color = GrozzMuted,
+                style = MaterialTheme.typography.labelLarge
             )
         }
-        Spacer(Modifier.height(50.dp))
     }
 }
 
@@ -946,7 +871,7 @@ fun SegmentedProgressIndicator(totalSegments: Int, currentSegment: Int) {
             val isCompleted = i < currentSegment
 
             val animatedColor by animateColorAsState(
-                targetValue = if (isCompleted) Color(0xFFF1C40F) else Color.White.copy(alpha = 0.15f),
+                targetValue = if (isCompleted) GrozzYellow else GrozzOnBackground.copy(alpha = 0.15f),
                 animationSpec = tween(durationMillis = 600),
                 label = "colorAnim"
             )
@@ -969,12 +894,12 @@ fun SegmentedProgressIndicator(totalSegments: Int, currentSegment: Int) {
                     .shadow(
                         elevation = if (isCompleted) 10.dp else 0.dp,
                         shape = RoundedCornerShape(8.dp),
-                        spotColor = Color(0xFFF1C40F).copy(alpha = glowAlpha),
-                        ambientColor = Color(0xFFF1C40F).copy(alpha = glowAlpha)
+                        spotColor = GrozzYellow.copy(alpha = glowAlpha),
+                        ambientColor = GrozzYellow.copy(alpha = glowAlpha)
                     )
                     .border(
                         width = 0.5.dp,
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = GrozzOnBackground.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(8.dp)
                     )
             )
@@ -994,8 +919,8 @@ fun SetLogItemWeight(
         onValueChange = { input ->
             val filteredInput = input.filter { it.isDigit() || it == '.' }.replace(" ", "")
             val isValid = filteredInput.length <= 5 &&
-                    (filteredInput.isEmpty() || (filteredInput.isNotEmpty() && filteredInput.first() != '.')) &&
-                    filteredInput.count { it == '.' } <= 1
+                (filteredInput.isEmpty() || filteredInput.first() != '.') &&
+                filteredInput.count { it == '.' } <= 1
 
             if (isValid) {
                 setWeight(filteredInput)
@@ -1004,27 +929,27 @@ fun SetLogItemWeight(
         placeholder = {
             Text(
                 "KG",
-                color = Color.Gray,
+                color = GrozzMuted,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
         },
-        modifier = modifier
-            .width(50.dp),
+        modifier = modifier.width(50.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
-            cursorColor = Color(0xFFF1C40F),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedIndicatorColor = Color(0xFFF1C40F),
-            unfocusedIndicatorColor = if (isDone) Color(0xFFF1C40F) else Color.DarkGray,
+            cursorColor = GrozzYellow,
+            focusedTextColor = GrozzOnBackground,
+            unfocusedTextColor = GrozzOnBackground,
+            focusedIndicatorColor = GrozzYellow,
+            unfocusedIndicatorColor = if (isDone) GrozzYellow else GrozzBorder
         ),
         textStyle = TextStyle(
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
+            fontFamily = Lexend,
             fontSize = 18.sp
         ),
         singleLine = true,
@@ -1043,10 +968,9 @@ fun SetLogItemReps(
         value = reps,
         onValueChange = { input ->
             val filteredInput = input.filter { it.isDigit() || it == '.' }.replace(" ", "")
-
             val isValid = filteredInput.length <= 5 &&
-                    (filteredInput.isEmpty() || (filteredInput.isNotEmpty() && filteredInput.first() != '.')) &&
-                    filteredInput.count { it == '.' } <= 1
+                (filteredInput.isEmpty() || filteredInput.first() != '.') &&
+                filteredInput.count { it == '.' } <= 1
 
             if (isValid) {
                 setReps(filteredInput)
@@ -1055,27 +979,27 @@ fun SetLogItemReps(
         placeholder = {
             Text(
                 "0",
-                color = Color.Gray,
+                color = GrozzMuted,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
         },
-        modifier = modifier
-            .width(50.dp),
+        modifier = modifier.width(50.dp),
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
-            cursorColor = Color(0xFFF1C40F),
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedIndicatorColor = Color(0xFFF1C40F),
-            unfocusedIndicatorColor = if (isDone) Color(0xFFF1C40F) else Color.White.copy(alpha = 0.3f),
+            cursorColor = GrozzYellow,
+            focusedTextColor = GrozzOnBackground,
+            unfocusedTextColor = GrozzOnBackground,
+            focusedIndicatorColor = GrozzYellow,
+            unfocusedIndicatorColor = if (isDone) GrozzYellow else GrozzBorder
         ),
         textStyle = TextStyle(
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
+            fontFamily = Lexend,
             fontSize = 18.sp
         ),
         singleLine = true,
@@ -1087,7 +1011,6 @@ fun SetLogItemReps(
 fun FinalWorkoutTimer() {
     val context = LocalContext.current
 
-    // Durum Yönetimi
     var selectedSeconds by remember { mutableLongStateOf(60L) }
     var timeLeft by remember { mutableLongStateOf(60L) }
     var isRunning by remember { mutableStateOf(false) }
@@ -1105,27 +1028,23 @@ fun FinalWorkoutTimer() {
             }
         }
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column (
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(horizontalAlignment = Alignment.Start) {
             Text(
                 text = "REST TIMER",
-                color = Color.Gray,
-                fontSize = 12.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+                color = GrozzMuted,
+                style = MaterialTheme.typography.labelMedium,
+                fontFamily = Lexend
             )
-
             Text(
                 text = String.format("%02d:%02d", timeLeft / 60, timeLeft % 60),
                 modifier = Modifier.clickable {
                     if (!isRunning) showEditDialog = true
                 },
-                color = Color(0xFFF1C40F),
-                fontSize = 30.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                color = GrozzYellow,
+                style = MaterialTheme.typography.headlineMedium,
+                fontFamily = Lexend
             )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -1136,115 +1055,105 @@ fun FinalWorkoutTimer() {
                 }
                 isRunning = !isRunning
             },
-            modifier = Modifier,
-            colors = IconButtonColors(containerColor = if (isRunning) Color(0xFFE53935) else Color(0xFFF1C40F), contentColor = Color.White, disabledContainerColor = Color.Red, disabledContentColor = Color.White)
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = if (isRunning) GrozzError else GrozzYellow,
+                contentColor = GrozzOnPrimary
+            )
         ) {
             Icon(
-                painter = painterResource(if (isRunning) R.drawable.pauseicon128 else R.drawable.playicon128),
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier
+                painter = painterResource(
+                    if (isRunning) R.drawable.pauseicon128 else R.drawable.playicon128
+                ),
+                contentDescription = if (isRunning) "Pause" else "Start",
+                tint = GrozzOnPrimary,
+                modifier = Modifier.size(32.dp)
             )
         }
-        Spacer(Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         IconButton(
             onClick = {
                 timeLeft = selectedSeconds
                 isRunning = false
             },
-            modifier = Modifier.size(24.dp),
-            colors = IconButtonColors(containerColor = Color.Gray.copy(alpha = 0.3f), contentColor = Color.White, disabledContainerColor = Color.Red, disabledContentColor = Color.White)
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = GrozzBorder,
+                contentColor = GrozzOnBackground
+            )
         ) {
             Icon(
                 imageVector = Icons.Default.Refresh,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
+                contentDescription = "Reset",
+                tint = GrozzOnBackground
             )
         }
-//        Button(
-//            onClick = {
-//                if (timeLeft == 0L) {
-//                    timeLeft = selectedSeconds
-//                }
-//                isRunning = !isRunning
-//            },
-//            modifier = Modifier
-//                .fillMaxWidth(0.85f)
-//                .height(56.dp),
-//            shape = RoundedCornerShape(14.dp),
-//            colors = ButtonDefaults.buttonColors(
-//                containerColor = if (isRunning) Color(0xFFE53935) else Color(0xFFF1C40F)
-//            )
-//        ) {
-//            Text(
-//                text = if (isRunning) "STOP WORKOUT" else "START TIMER",
-//                color = Color.Black,
-//                fontWeight = FontWeight.Bold,
-//                fontFamily = FontFamily(Font(R.font.lexendbold))
-//            )
-//        }
     }
-
 
     if (showEditDialog) {
         var tempMinutes by remember { mutableStateOf((selectedSeconds / 60).toString()) }
         var tempSeconds by remember { mutableStateOf((selectedSeconds % 60).toString()) }
 
-
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            containerColor = Color(0xFF1C2126),
-            title = { Text("Set Timer", color = Color.White) },
+            containerColor = GrozzSurface,
+            title = {
+                Text(
+                    "Set timer",
+                    color = GrozzOnBackground,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = Lexend
+                )
+            },
             text = {
-                Column() {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
                         value = tempMinutes,
                         onValueChange = { if (it.isDigitsOnly()) tempMinutes = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        textStyle = TextStyle(color = Color.White),
-                        label = { Text("Minutes", color = Color(0xFFF1C40F)) },
+                        textStyle = TextStyle(color = GrozzOnBackground, fontFamily = Lexend),
+                        label = { Text("Minutes", color = GrozzYellow) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF1C40F),
-                            unfocusedBorderColor = Color.Gray
+                            focusedBorderColor = GrozzYellow,
+                            unfocusedBorderColor = GrozzBorder,
+                            cursorColor = GrozzYellow
                         )
                     )
                     OutlinedTextField(
                         value = tempSeconds,
                         onValueChange = { if (it.isDigitsOnly()) tempSeconds = it },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        textStyle = TextStyle(color = Color.White),
-                        label = { Text("Seconds", color = Color(0xFFF1C40F)) },
+                        textStyle = TextStyle(color = GrozzOnBackground, fontFamily = Lexend),
+                        label = { Text("Seconds", color = GrozzYellow) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF1C40F),
-                            unfocusedBorderColor = Color.Gray
+                            focusedBorderColor = GrozzYellow,
+                            unfocusedBorderColor = GrozzBorder,
+                            cursorColor = GrozzYellow
                         )
                     )
                 }
-
             },
             confirmButton = {
-                TextButton(onClick = {
-                    val mins = tempMinutes.toLongOrNull() ?: 0L
-                    val seconds = tempSeconds.toLongOrNull() ?: 0L
-                    if (mins != 0L && seconds == 0L) {
-                        selectedSeconds = mins * 60
-                    } else if (mins == 0L && seconds != 0L) {
-                        selectedSeconds = seconds
-                    } else if (mins != 0L && seconds != 0L) {
-                        selectedSeconds = (mins * 60) + seconds
+                TextButton(
+                    onClick = {
+                        val mins = tempMinutes.toLongOrNull() ?: 0L
+                        val secs = tempSeconds.toLongOrNull() ?: 0L
+                        selectedSeconds = when {
+                            mins != 0L && secs == 0L -> mins * 60
+                            mins == 0L && secs != 0L -> secs
+                            mins != 0L && secs != 0L -> (mins * 60) + secs
+                            else -> selectedSeconds
+                        }
+                        timeLeft = selectedSeconds
+                        showEditDialog = false
                     }
-                    timeLeft = selectedSeconds
-                    showEditDialog = false
-                }) {
-                    Text("SET", color = Color(0xFFF1C40F))
+                ) {
+                    Text("Set", color = GrozzYellow, fontFamily = Lexend)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("CANCEL", color = Color.Gray)
+                    Text("Cancel", color = GrozzMuted, fontFamily = Lexend)
                 }
             }
         )

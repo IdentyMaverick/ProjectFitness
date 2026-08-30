@@ -292,7 +292,9 @@ fun Profile(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         StatItem(label = "FOLLOWERS", count = numberOfFollowers) {
-                            navController.navigate("projectfollowersscreen")
+                            navController.navigate(
+                                Screens.ProjectFollowersScreen.createRoute(profile.nickname)
+                            )
                         }
                         Box(
                             modifier = Modifier
@@ -301,7 +303,9 @@ fun Profile(
                                 .background(Color.DarkGray)
                         )
                         StatItem(label = "FOLLOWING", count = numberOfFollows) {
-                            navController.navigate("projectfollowscreen")
+                            navController.navigate(
+                                Screens.ProjectFollowScreen.createRoute(profile.nickname)
+                            )
                         }
                     }
 
@@ -677,40 +681,58 @@ private fun formatStatNumber(value: Number): String {
 fun HomeTopBarProfile(
     navController: NavController
 ) {
+    // Equal-width side slots keep the title visually centered even with 2 icons on the right.
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .height(56.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                painter = painterResource(R.drawable.left),
-                contentDescription = null,
-                modifier = Modifier.size(30.dp),
-                tint = Color.White
-            )
+        Box(
+            modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    painter = painterResource(R.drawable.left),
+                    contentDescription = "Back",
+                    modifier = Modifier.size(24.dp),
+                    tint = Color.White
+                )
+            }
         }
 
-        Spacer(Modifier.weight(1f))
-
         Text(
-            "PROFILE",
+            text = "PROFILE",
             color = Color.White,
             fontFamily = FontFamily(Font(R.font.oswaldbold)),
             fontSize = 20.sp
         )
 
-        Spacer(Modifier.weight(1f))
-
-        IconButton(onClick = { navController.navigate(Screens.HomesSettings.route) }) {
-            Icon(
-                painter = painterResource(R.drawable.settings),
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-                tint = Color.White
-            )
+        Box(
+            modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { navController.navigate(Screens.FindUsersScreen.route) }) {
+                    Icon(
+                        painter = painterResource(R.drawable.personadd),
+                        contentDescription = "Find people",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.White
+                    )
+                }
+                IconButton(onClick = { navController.navigate(Screens.HomesSettings.route) }) {
+                    Icon(
+                        painter = painterResource(R.drawable.settings),
+                        contentDescription = "Settings",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.White
+                    )
+                }
+            }
         }
     }
 }

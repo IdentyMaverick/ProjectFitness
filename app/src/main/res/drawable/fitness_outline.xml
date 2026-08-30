@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Outline dumbbell (evenOdd punches hollow plates / bar) -->
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M100,300h140v360H100V300zM170,370h40v220h-40V370zM280,380h90v200H280V380zM330,440h40v80h-40v-80zM400,430h160v100H400V430zM450,465h60v30h-60v-30zM590,380h90v200H590V380zM640,440h40v80h-40v-80zM720,300h140v360H720V300zM790,370h40v220h-40V370z" />
+</vector>

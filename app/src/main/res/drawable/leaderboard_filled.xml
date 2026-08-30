@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols leaderboard filled -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M120,840V360h200v480H120ZM380,840V120h200v720H380ZM640,840V520h200v320H640Z" />
+</vector>

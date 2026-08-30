@@ -21,46 +21,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import ui.mainpages.navigation.Screens
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import viewmodel.AuthViewModel
 import viewmodel.SocialViewModel
 
 @Composable
-fun ProjectFollowersScreen(
+fun FindUsersScreen(
     navController: NavController,
     socialViewModel: SocialViewModel,
-    authViewModel: AuthViewModel,
-    listOwnerNickname: String
+    authViewModel: AuthViewModel
 ) {
+    val currentUserId = Firebase.auth.currentUser?.uid
     val myNickname by socialViewModel.nickname.collectAsState()
-    val ownerNickname = listOwnerNickname.ifBlank { myNickname }
 
     val allUsers by remember { socialViewModel.getAllUsers() }
         .collectAsState(initial = emptyList())
-    val followers by remember(ownerNickname) {
-        socialViewModel.getFollowers(ownerNickname)
-    }.collectAsState(initial = emptyList())
-    val following by remember(myNickname) {
+    val myFollowing by remember(myNickname) {
         socialViewModel.getFollowing(myNickname)
     }.collectAsState(initial = emptyList())
 
     var searchQuery by remember { mutableStateOf("") }
 
-    val followersList = remember(allUsers, followers, searchQuery) {
+    val discoverList = remember(allUsers, myNickname, currentUserId, searchQuery) {
         allUsers
-            .filter { followers.contains(it.nickname) }
+            .filter {
+                it.nickname.isNotBlank() &&
+                    it.id != currentUserId &&
+                    it.nickname != myNickname
+            }
             .filter {
                 searchQuery.isBlank() ||
                     it.nickname.contains(searchQuery, ignoreCase = true) ||
                     it.first.contains(searchQuery, ignoreCase = true)
             }
+            .sortedBy { it.nickname.lowercase() }
     }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             FollowListTopBar(
-                title = "FOLLOWERS",
+                title = "FIND PEOPLE",
                 navController = navController
             )
         },
@@ -68,7 +70,7 @@ fun ProjectFollowersScreen(
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {
-            ownerNickname.isBlank() -> {
+            myNickname.isBlank() -> {
                 FollowListLoadingState(
                     modifier = Modifier
                         .fillMaxSize()
@@ -88,16 +90,16 @@ fun ProjectFollowersScreen(
                     FollowSearchField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = "Search followers..."
+                        placeholder = "Search people..."
                     )
 
                     Spacer(Modifier.height(8.dp))
 
-                    if (followersList.isEmpty()) {
+                    if (discoverList.isEmpty()) {
                         FollowEmptyState(
-                            title = if (searchQuery.isBlank()) "No followers yet" else "No results found",
+                            title = if (searchQuery.isBlank()) "No people to show" else "No results found",
                             subtitle = if (searchQuery.isBlank()) {
-                                "When people follow this account, they'll appear here."
+                                "Check back later to find new athletes to follow."
                             } else {
                                 "Try a different name or username."
                             },
@@ -108,37 +110,31 @@ fun ProjectFollowersScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
                         ) {
-                            item(key = "followers_header") {
+                            item(key = "discover_header") {
                                 FollowSectionHeader(
-                                    title = "Followers",
-                                    count = followersList.size
+                                    title = if (searchQuery.isBlank()) "Suggested for you" else "Results",
+                                    count = discoverList.size,
+                                    accent = searchQuery.isBlank()
                                 )
                             }
 
                             items(
-                                items = followersList,
+                                items = discoverList,
                                 key = { it.id.ifBlank { it.nickname } }
                             ) { user ->
-                                val isFollowingThem = following.contains(user.nickname)
-                                val isSelf = user.nickname == myNickname
+                                val isFollowingThem = myFollowing.contains(user.nickname)
                                 FollowUserRow(
                                     user = user,
-                                    buttonStyle = when {
-                                        isSelf -> FollowButtonStyle.Following
-                                        isFollowingThem -> FollowButtonStyle.Following
-                                        else -> FollowButtonStyle.FollowBack
+                                    buttonStyle = if (isFollowingThem) {
+                                        FollowButtonStyle.Following
+                                    } else {
+                                        FollowButtonStyle.Follow
                                     },
                                     onProfileClick = {
-                                        if (isSelf) {
-                                            navController.navigate(Screens.Home.Profile.route) {
-                                                launchSingleTop = true
-                                            }
-                                        } else {
-                                            openUserProfile(navController, authViewModel, user.nickname)
-                                        }
+                                        openUserProfile(navController, authViewModel, user.nickname)
                                     },
                                     onFollowClick = {
-                                        if (isSelf || myNickname.isBlank()) return@FollowUserRow
+                                        if (myNickname.isBlank()) return@FollowUserRow
                                         if (isFollowingThem) {
                                             socialViewModel.unfollowUser(myNickname, user.nickname)
                                         } else {

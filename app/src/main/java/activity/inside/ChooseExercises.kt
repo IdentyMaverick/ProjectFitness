@@ -60,7 +60,9 @@ import com.grozzbear.R
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
 import data.local.viewmodel.ActivityInsideViewModel
+import kotlinx.coroutines.flow.flowOf
 import data.local.viewmodel.CreateWorkoutViewModel
 import ui.mainpages.navigation.Screens
 import viewmodel.ViewModelSave
@@ -72,8 +74,10 @@ fun ChooseExercises(
     navController: NavController,
     viewModelSave: ViewModelSave,
     workoutinViewModel: WorkoutinViewModel,
-    createWorkoutViewModel: CreateWorkoutViewModel,
-    activityInsideViewModel: ActivityInsideViewModel
+    createWorkoutViewModel: CreateWorkoutViewModel?,
+    workoutSettingViewModel: WorkoutSettingViewModel?,
+    activityInsideViewModel: ActivityInsideViewModel,
+    targetWorkoutId: String?
 ) {
     val searchText = rememberSaveable { mutableStateOf("") }
     var selectedMuscleGroup by rememberSaveable { mutableStateOf("All") }
@@ -102,9 +106,31 @@ fun ChooseExercises(
     val equipment =
         remember { listOf("All", "Cable", "Barbell", "Bodyweight", "Dumbbell", "Machine", "Plate") }
 
-    val catalogExercisesList =
-        createWorkoutViewModel.catalogWorkoutList.collectAsState(initial = emptyList()).value
-    val selectedIdsByViewModel by createWorkoutViewModel.selectedExerciseIds.collectAsState()
+    val isEdit = Screens.ChooseExercises.isEditMode(targetWorkoutId)
+
+    val catalogFromEdit by (workoutSettingViewModel?.catalogExercises ?: flowOf(emptyList()))
+        .collectAsState(initial = emptyList())
+    val catalogFromCreate by (createWorkoutViewModel?.catalogWorkoutList ?: flowOf(emptyList()))
+        .collectAsState(initial = emptyList())
+    val catalogExercisesList = if (isEdit) catalogFromEdit else catalogFromCreate
+
+    val selectedIdsByCreateVm by (createWorkoutViewModel?.selectedExerciseIds ?: flowOf(emptySet()))
+        .collectAsState(initial = emptySet())
+
+    var editSelectedIds by remember { mutableStateOf(setOf<String>()) }
+
+    val workoutFull by (workoutSettingViewModel?.workoutFlow ?: flowOf(null))
+        .collectAsState(initial = null)
+
+    val existingCatalogIds = remember(workoutFull) {
+        workoutFull?.exercises
+            ?.mapNotNull { it.exercise.catalogExerciseId }
+            ?.toSet()
+            ?: emptySet()
+    }
+
+    val selectedIds = if (isEdit) editSelectedIds else selectedIdsByCreateVm
+    val exerciseCounter = selectedIds.size
 
     val filteredExercises =
         remember(catalogExercisesList, selectedMuscleGroup, selectedEquipment, searchText.value) {
@@ -125,7 +151,6 @@ fun ChooseExercises(
                 muscleOk && equipmentOk && searchOk
             }
         }
-    val exerciseCounter = selectedIdsByViewModel.size
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -134,13 +159,18 @@ fun ChooseExercises(
         floatingActionButton = {
             ExtendedStartButtonCreateWorkout(
                 onConfirmClick = {
-                    createWorkoutViewModel.onConfirmSelection()
-                    val returnedToEditor = navController.popBackStack(
-                        route = Screens.CreateWorkout.route,
-                        inclusive = false
-                    )
-                    if (!returnedToEditor) {
-                        navController.navigate(Screens.CreateWorkout.route)
+                    if (isEdit) {
+                        workoutSettingViewModel?.addExercisesFromCatalog(selectedIds)
+                        navController.popBackStack()
+                    } else {
+                        createWorkoutViewModel?.onConfirmSelection()
+                        val returnedToEditor = navController.popBackStack(
+                            route = Screens.CreateWorkout.route,
+                            inclusive = false
+                        )
+                        if (!returnedToEditor) {
+                            navController.navigate(Screens.CreateWorkout.route)
+                        }
                     }
                 },
                 totalSelectedExercise = exerciseCounter.toString()
@@ -188,7 +218,8 @@ fun ChooseExercises(
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 itemsIndexed(filteredExercises) { index, item ->
-                    val clicked = selectedIdsByViewModel.contains(item.id)
+                    val alreadyInWorkout = isEdit && item.id in existingCatalogIds
+                    val clicked = item.id in selectedIds
 
                     Row(
                         modifier = Modifier
@@ -197,16 +228,32 @@ fun ChooseExercises(
                             .padding(horizontal = 20.dp, vertical = 8.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color(0xFF1C2126))
-                            .clickable {
-                                if (!clicked) {
-                                    createWorkoutViewModel.addExercise(item.id)
+                            .clickable(enabled = !alreadyInWorkout) {
+                                if (isEdit) {
+                                    editSelectedIds = if (!clicked) {
+                                        editSelectedIds + item.id
+                                    } else {
+                                        editSelectedIds - item.id
+                                    }
                                 } else {
-                                    createWorkoutViewModel.removeExercise(item.id)
+                                    if (!clicked) {
+                                        createWorkoutViewModel?.addExercise(item.id)
+                                    } else {
+                                        createWorkoutViewModel?.removeExercise(item.id)
+                                    }
                                 }
                             }
                             .border(
-                                width = if (clicked) 2.dp else 0.dp,
-                                color = if (clicked) Color(0xFFF1C40F) else Color.Transparent,
+                                width = when {
+                                    alreadyInWorkout -> 1.dp
+                                    clicked -> 2.dp
+                                    else -> 0.dp
+                                },
+                                color = when {
+                                    alreadyInWorkout -> Color.White.copy(alpha = 0.2f)
+                                    clicked -> Color(0xFFF1C40F)
+                                    else -> Color.Transparent
+                                },
                                 shape = RoundedCornerShape(12.dp)
                             ),
                         verticalAlignment = Alignment.CenterVertically

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.SocialViewModel
 
@@ -27,14 +28,20 @@ import viewmodel.SocialViewModel
 fun ProjectFollowScreen(
     navController: NavController,
     socialViewModel: SocialViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    listOwnerNickname: String
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val myNickname by socialViewModel.nickname.collectAsState()
+    val ownerNickname = listOwnerNickname.ifBlank { myNickname }
+    val isOwnList = ownerNickname.isNotBlank() && ownerNickname == myNickname
 
     val allUsers by remember { socialViewModel.getAllUsers() }
         .collectAsState(initial = emptyList())
-    val followingNicknames by remember(myNickname) {
+    val followingNicknames by remember(ownerNickname) {
+        socialViewModel.getFollowing(ownerNickname)
+    }.collectAsState(initial = emptyList())
+    val myFollowing by remember(myNickname) {
         socialViewModel.getFollowing(myNickname)
     }.collectAsState(initial = emptyList())
 
@@ -50,19 +57,20 @@ fun ProjectFollowScreen(
             }
     }
 
-    val recommendations = remember(allUsers, followingNicknames, myNickname, currentUserId) {
-        allUsers
+    val recommendations = remember(allUsers, myFollowing, myNickname, currentUserId, isOwnList) {
+        if (!isOwnList) emptyList()
+        else allUsers
             .filter {
                 it.nickname.isNotBlank() &&
                     it.id != currentUserId &&
                     it.nickname != myNickname &&
-                    !followingNicknames.contains(it.nickname)
+                    !myFollowing.contains(it.nickname)
             }
             .shuffled()
             .take(5)
     }
 
-    val showRecommendations = searchQuery.isBlank() && recommendations.isNotEmpty()
+    val showRecommendations = isOwnList && searchQuery.isBlank() && recommendations.isNotEmpty()
     val showEmptyState = followingList.isEmpty() && !showRecommendations
 
     Scaffold(
@@ -77,7 +85,7 @@ fun ProjectFollowScreen(
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {
-            myNickname.isBlank() -> {
+            ownerNickname.isBlank() -> {
                 FollowListLoadingState(
                     modifier = Modifier
                         .fillMaxSize()
@@ -96,7 +104,7 @@ fun ProjectFollowScreen(
                     FollowEmptyState(
                         title = if (searchQuery.isBlank()) "Not following anyone yet" else "No results found",
                         subtitle = if (searchQuery.isBlank()) {
-                            "Find athletes to follow and build your fitness circle."
+                            "Accounts this person follows will show up here."
                         } else {
                             "Try a different name or username."
                         },
@@ -133,14 +141,31 @@ fun ProjectFollowScreen(
                             items = followingList,
                             key = { it.id.ifBlank { it.nickname } }
                         ) { user ->
+                            val isSelf = user.nickname == myNickname
+                            val isFollowingThem = myFollowing.contains(user.nickname)
                             FollowUserRow(
                                 user = user,
-                                buttonStyle = FollowButtonStyle.Following,
+                                buttonStyle = when {
+                                    isSelf -> FollowButtonStyle.Following
+                                    isOwnList || isFollowingThem -> FollowButtonStyle.Following
+                                    else -> FollowButtonStyle.Follow
+                                },
                                 onProfileClick = {
-                                    openUserProfile(navController, authViewModel, user.nickname)
+                                    if (isSelf) {
+                                        navController.navigate(Screens.Home.Profile.route) {
+                                            launchSingleTop = true
+                                        }
+                                    } else {
+                                        openUserProfile(navController, authViewModel, user.nickname)
+                                    }
                                 },
                                 onFollowClick = {
-                                    socialViewModel.unfollowUser(myNickname, user.nickname)
+                                    if (isSelf || myNickname.isBlank()) return@FollowUserRow
+                                    if (isOwnList || isFollowingThem) {
+                                        socialViewModel.unfollowUser(myNickname, user.nickname)
+                                    } else {
+                                        socialViewModel.followUser(myNickname, user.nickname)
+                                    }
                                 }
                             )
                         }
@@ -199,13 +224,13 @@ private fun ColumnWithSearch(
     content: @Composable () -> Unit
 ) {
     androidx.compose.foundation.layout.Column(modifier = modifier) {
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier.height(16.dp))
         FollowSearchField(
             value = searchQuery,
             onValueChange = onSearchChange,
             placeholder = "Search following..."
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(modifier.height(8.dp))
         content()
     }
 }

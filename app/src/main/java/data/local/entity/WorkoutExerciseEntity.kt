@@ -32,5 +32,6 @@ data class WorkoutExerciseEntity(
     var catalogExerciseId: String? = null,
     var exerciseImage: String? = null,
     val bodyPart: String = "",
-    val secondaryMuscles: List<String> = emptyList()
+    val secondaryMuscles: List<String> = emptyList(),
+    val orderIndex: Int = 0
 )

@@ -58,40 +58,50 @@ class CreateWorkoutViewModel(
 
     fun onConfirmSelection() {
         viewModelScope.launch {
-            val allCatalog = catalogWorkoutList.first()
+            val allCatalog = catalogWorkoutList.first().associateBy { it.id }
             val selectedIds = _selectedExerciseIds.value
+            val currentDrafts = _draftExercises.value
 
-            val selected = allCatalog.filter { item ->
-                selectedIds.contains(item.id)
-            }
+            // Keep current order for exercises that remain selected.
+            val kept = currentDrafts.filter { it.catalogId in selectedIds }
+            val keptIds = kept.map { it.catalogId }.toSet()
 
-            Log.d("CreateWorkout", "Seçili ID sayısı: ${selectedIds.size}")
-            Log.d("CreateWorkout", "Eşleşen Katalog sayısı: ${selected.size}")
+            // Append newly selected exercises in selection iteration order.
+            val newlyAdded = selectedIds
+                .filter { it !in keptIds }
+                .mapNotNull { id ->
+                    val e = allCatalog[id] ?: return@mapNotNull null
+                    ExerciseDraft(
+                        catalogId = e.id,
+                        name = e.name,
+                        bodyPart = e.bodyPart,
+                        equipment = e.equipment,
+                        sets = listOf(SetDraft(), SetDraft(), SetDraft())
+                    )
+                }
 
-            if (selected.isEmpty() && selectedIds.isNotEmpty()) {
-                Log.e("CreateWorkout", "Hata: Seçili ID'ler katalogdaki ID'lerle eşleşmiyor!")
-                return@launch
-            }
-
-            val currentDrafts = _draftExercises.value.associateBy { it.catalogId }
-            val merged = selected.map { e ->
-                currentDrafts[e.id] ?: ExerciseDraft(
-                    catalogId = e.id,
-                    name = e.name,
-                    bodyPart = e.bodyPart,
-                    equipment = e.equipment,
-                    sets = listOf(SetDraft(), SetDraft(), SetDraft())
-                )
-            }
-
-            _draftExercises.value = merged
-            Log.d("CreateWorkout", "Taslaklar güncellendi: ${merged.size} egzersiz hazır.")
+            _draftExercises.value = kept + newlyAdded
+            Log.d(
+                "CreateWorkout",
+                "Taslaklar güncellendi: ${_draftExercises.value.size} egzersiz hazır."
+            )
         }
     }
 
     fun removeDraftExercise(catalogId: String) {
         _draftExercises.update { list -> list.filterNot { it.catalogId == catalogId } }
         _selectedExerciseIds.update { it - catalogId }
+    }
+
+    fun moveDraftExercise(fromIndex: Int, toIndex: Int) {
+        _draftExercises.update { list ->
+            if (fromIndex !in list.indices || toIndex !in list.indices || fromIndex == toIndex) {
+                return@update list
+            }
+            list.toMutableList().apply {
+                add(toIndex, removeAt(fromIndex))
+            }
+        }
     }
 
     fun addSetToExercise(catalogId: String) {

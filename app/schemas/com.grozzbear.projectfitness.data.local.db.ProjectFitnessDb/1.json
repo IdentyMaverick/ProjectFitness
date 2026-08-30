@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "de7b39a49c3c0abcb21595599497b06d",
+    "identityHash": "4679d377abce7126bd614a5dad49c5e4",
     "entities": [
       {
         "tableName": "workout",
@@ -62,7 +62,7 @@
       },
       {
         "tableName": "exercise",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`exerciseId` TEXT NOT NULL, `workoutOwnerId` TEXT NOT NULL, `exerciseName` TEXT NOT NULL, `catalogExerciseId` TEXT, `exerciseImage` TEXT, `bodyPart` TEXT NOT NULL, `secondaryMuscles` TEXT NOT NULL, PRIMARY KEY(`exerciseId`), FOREIGN KEY(`workoutOwnerId`) REFERENCES `workout`(`workoutId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`exerciseId` TEXT NOT NULL, `workoutOwnerId` TEXT NOT NULL, `exerciseName` TEXT NOT NULL, `catalogExerciseId` TEXT, `exerciseImage` TEXT, `bodyPart` TEXT NOT NULL, `secondaryMuscles` TEXT NOT NULL, `orderIndex` INTEGER NOT NULL, PRIMARY KEY(`exerciseId`), FOREIGN KEY(`workoutOwnerId`) REFERENCES `workout`(`workoutId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "exerciseId",
@@ -104,6 +104,12 @@
             "fieldPath": "secondaryMuscles",
             "columnName": "secondaryMuscles",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orderIndex",
+            "columnName": "orderIndex",
+            "affinity": "INTEGER",
             "notNull": true
           }
         ],
@@ -510,7 +516,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'de7b39a49c3c0abcb21595599497b06d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4679d377abce7126bd614a5dad49c5e4')"
     ]
   }
 }

@@ -84,6 +84,14 @@ class UserRepository(
                 }
         }
     }
+
+    fun updateUserExercise() {
+        val db = FirebaseFirestore.getInstance()
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser != null) {
+
+        }
+    }
 }
 
 @Keep

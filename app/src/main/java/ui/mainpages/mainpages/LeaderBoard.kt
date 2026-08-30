@@ -15,6 +15,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -83,6 +84,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -180,10 +182,9 @@ fun LeaderBoard(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopBarLeaderboard(
-                onProfileClick = { navController.navigate("profile") },
                 onMenuClick = { showMenuSheetLeaderBoard = true },
-                infoDialog = { infoDialog.value = it },
-                onPlusClick = { showMenuSheetPrAdd = true }
+                onPlusClick = { showMenuSheetPrAdd = true },
+                onInfoClick = { infoDialog.value = true }
             )
         },
         containerColor = GrozzSystemBar,
@@ -236,8 +237,8 @@ fun LeaderBoard(
                 items = exerciseList,
                 onItemSelected = { selectedExercise = it },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(0.85F)
+                    .padding(horizontal = 8.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
             SecondaryTabRow(
@@ -349,6 +350,15 @@ fun LeaderBoard(
 
                     MenuItemRow(
                         iconRes = R.drawable.accountcircle,
+                        text = "View Profile",
+                        onClick = {
+                            showMenuSheetLeaderBoard = false
+                            navController.navigate(Screens.Home.Profile.route)
+                        }
+                    )
+
+                    MenuItemRow(
+                        iconRes = R.drawable.addicon128,
                         text = "Add PR",
                         onClick = {
                             showMenuSheetLeaderBoard = false
@@ -359,7 +369,10 @@ fun LeaderBoard(
                     MenuItemRow(
                         iconRes = R.drawable.settings,
                         text = "Settings",
-                        onClick = { navController.navigate(Screens.HomesSettings.route) }
+                        onClick = {
+                            showMenuSheetLeaderBoard = false
+                            navController.navigate(Screens.HomesSettings.route)
+                        }
                     )
 
                     HorizontalDivider(
@@ -694,34 +707,42 @@ fun FilterDropdown(
     onItemSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier) {
+    BoxWithConstraints(modifier = modifier) {
+        val menuWidth = maxWidth
+
         Button(
             onClick = { onExpandChange(true) },
             modifier = Modifier
                 .border(1.dp, GrozzYellow, RoundedCornerShape(10.dp))
                 .fillMaxWidth()
-                .height(40.dp),
+                .height(44.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             shape = RoundedCornerShape(10.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp)
+            contentPadding = PaddingValues(horizontal = 14.dp)
         ) {
             Text(
-                text,
+                text = text,
                 color = GrozzYellow,
                 style = MaterialTheme.typography.labelLarge,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.ExtraBold,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
-            Icon(Icons.Filled.ArrowDropDown, null, tint = GrozzYellow)
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                tint = GrozzYellow
+            )
         }
 
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandChange(false) },
             modifier = Modifier
+                .width(menuWidth)
                 .background(GrozzSurface)
-                .fillMaxWidth(0.4f)
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
@@ -806,63 +827,48 @@ fun FilterDropdownModalBottomPr(
 }
 
 @Composable
-fun HomeTopBarLeaderboard(
-    onProfileClick: () -> Unit,
+private fun HomeTopBarLeaderboard(
     onMenuClick: () -> Unit,
-    infoDialog: (Boolean) -> Unit,
-    onPlusClick: () -> Unit
+    onPlusClick: () -> Unit,
+    onInfoClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp)
-            .height(56.dp),
-        contentAlignment = Alignment.Center
+            .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        Row(
-            modifier = Modifier.align(Alignment.CenterStart),
-            verticalAlignment = Alignment.CenterVertically
+        IconButton(
+            onClick = onMenuClick,
+            modifier = Modifier.align(Alignment.CenterStart)
         ) {
-            IconButton(onClick = onProfileClick) {
-                Icon(
-                    painter = painterResource(R.drawable.accountcircle),
-                    contentDescription = "Profile",
-                    modifier = Modifier.size(25.dp),
-                    tint = GrozzOnBackground
-                )
-            }
-            IconButton(onClick = onPlusClick) {
-                Icon(
-                    painter = painterResource(R.drawable.addicon128),
-                    contentDescription = "Add PR",
-                    modifier = Modifier.size(25.dp),
-                    tint = GrozzYellow
-                )
-            }
+            Icon(
+                painter = painterResource(R.drawable.accountcircle),
+                contentDescription = "Menu",
+                modifier = Modifier.size(26.dp),
+                tint = GrozzOnBackground
+            )
         }
 
-        GrozzTopBarLogo(
-            modifier = Modifier.align(Alignment.Center)
-        )
+        GrozzTopBarLogo(modifier = Modifier.align(Alignment.Center))
 
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { infoDialog(true) }) {
+            IconButton(onClick = onPlusClick) {
+                Icon(
+                    painter = painterResource(R.drawable.addicon128),
+                    contentDescription = "Add PR",
+                    modifier = Modifier.size(26.dp),
+                    tint = GrozzYellow
+                )
+            }
+            IconButton(onClick = onInfoClick) {
                 Icon(
                     imageVector = Icons.Default.Info,
                     contentDescription = "Info",
-                    tint = GrozzOnBackground
-                )
-            }
-
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    painter = painterResource(R.drawable.projectfitnesspointheavy),
-                    contentDescription = "Menu",
-                    modifier = Modifier.size(25.dp),
+                    modifier = Modifier.size(26.dp),
                     tint = GrozzOnBackground
                 )
             }
@@ -919,7 +925,14 @@ fun LazyColumnItem(index: Int, item: LeaderboardEntry, navController: NavControl
                                 Screens.Home.Profile.route
                             )
                         } else {
-                            navController.navigate("otherscreenprofile/${item.userId}")
+                            navController.navigate(
+                                Screens.OtherScreenProfile.createRoute(item.userName)
+                            ) {
+                                popUpTo(Screens.OtherScreenProfile.route) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         }
                     },
                 contentScale = ContentScale.Crop
@@ -1023,7 +1036,7 @@ fun VideoModalBottomSheet(isVideoModalBottomSheetVisible: (Boolean) -> Unit, vid
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = Color(0xFF121417),
     ) {
-        VideoPlayerSheet( videoUrl = videoUrl, onDismiss = {isVideoModalBottomSheetVisible(false)} )
+            VideoPlayerSheet( videoUrl = videoUrl, onDismiss = {isVideoModalBottomSheetVisible(false)} )
     }
 }
 

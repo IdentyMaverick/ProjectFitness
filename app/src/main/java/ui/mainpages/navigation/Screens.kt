@@ -1,5 +1,6 @@
 package ui.mainpages.navigation
 
+import android.net.Uri
 import androidx.navigation.NavController
 
 sealed class Screens(val route: String) {
@@ -17,7 +18,18 @@ sealed class Screens(val route: String) {
     }
 
     object Activity : Screens("activity")
-    object ChooseExercises : Screens(route = "chooseexercises")
+    object ChooseExercises : Screens(route = "chooseexercises/{workoutId}") {
+        const val ARG_WORKOUT_ID = "workoutId"
+        const val MODE_CREATE = "new"
+
+        fun createRoute(workoutId: String? = null): String {
+            val id = workoutId?.takeIf { it.isNotBlank() } ?: MODE_CREATE
+            return "chooseexercises/$id"
+        }
+
+        fun isEditMode(workoutId: String?): Boolean =
+            !workoutId.isNullOrBlank() && workoutId != MODE_CREATE
+    }
     object CreateWorkout : Screens(route = "createworkout")
     object LeaderBoard : Screens("leaderboard")
     object WorkoutSettingScreen : Screens(route = "workoutsettingscreen") {
@@ -30,11 +42,25 @@ sealed class Screens(val route: String) {
 
     object Meal : Screens(route = "meal")
     object WorkoutCompleteScreen : Screens(route = "workoutcompletescreen")
-    object ProjectFollowersScreen : Screens(route = "projectfollowersscreen")
-    object ProjectFollowScreen : Screens(route = "projectfollowscreen")
-    object OtherScreenProfile : Screens(route = "otherscreenprofile/{nickname}")
+    object ProjectFollowersScreen : Screens(route = "projectfollowersscreen/{nickname}") {
+        fun createRoute(nickname: String) = "projectfollowersscreen/${Uri.encode(nickname)}"
+    }
+    object ProjectFollowScreen : Screens(route = "projectfollowscreen/{nickname}") {
+        fun createRoute(nickname: String) = "projectfollowscreen/${Uri.encode(nickname)}"
+    }
+    object FindUsersScreen : Screens(route = "findusersscreen")
+    object OtherScreenProfile : Screens(route = "otherscreenprofile/{nickname}") {
+        fun createRoute(nickname: String) = "otherscreenprofile/${Uri.encode(nickname)}"
+    }
     object HomesSettings : Screens(route = "settings")
-    object AllWorkouts : Screens(route = "allworkouts")
+    object AllWorkouts : Screens(route = "allworkouts/{filter}") {
+        const val ARG_FILTER = "filter"
+        const val FILTER_ALL = "all"
+        const val FILTER_COACH = "coach"
+        const val FILTER_CHALLENGE = "challenge"
+
+        fun createRoute(filter: String = FILTER_ALL) = "allworkouts/$filter"
+    }
     object FaqcontactfeedbackScreen : Screens(route = "faqcontactfeedbackscreen")
     object PersonalInformationsScreen : Screens(route = "personalinformationsscreen")
     object OldWorkoutDetails : Screens(route = "oldworkoutdetails")

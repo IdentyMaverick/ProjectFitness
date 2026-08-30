@@ -144,4 +144,21 @@ interface WorkoutDao {
 
     @Delete
     suspend fun deleteSet(set: SetEntity)
+
+    @Query(
+        """
+    SELECT MAX(orderIndex) FROM exercise
+    WHERE workoutOwnerId = :workoutId
+    """
+    )
+    suspend fun getMaxOrderIndex(workoutId: String): Int?
+
+    @Query(
+        """
+    UPDATE exercise
+    SET orderIndex = :orderIndex
+    WHERE exerciseId = :exerciseId
+    """
+    )
+    suspend fun updateExerciseOrder(exerciseId: String, orderIndex: Int)
 }

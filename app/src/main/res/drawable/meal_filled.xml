@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols restaurant filled -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M280,880V560q-83,0 -141.5,-58.5T80,360V160h80v200h40V160h80v200h40V160h80v200q0,83 -58.5,141.5T360,560v320h-80ZM600,880V640H480V320q0,-66 47,-113t113,-47h160v680h-80V720h-80v160h-40Z" />
+</vector>

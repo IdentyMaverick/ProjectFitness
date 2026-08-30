@@ -24,10 +24,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -57,14 +59,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.chargemap.compose.numberpicker.NumberPicker
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.grozzbear.R
 import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.IntPickerColumn
+import com.grozzbear.ui.components.WeightFractionOptions
+import com.grozzbear.ui.components.WeightWholeKgRange
+import com.grozzbear.ui.components.combineWeightKg
+import com.grozzbear.ui.components.formatWeightKg
+import com.grozzbear.ui.components.splitWeightKg
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
@@ -99,13 +107,17 @@ fun CreateWorkout(
     var editingCatalogId by remember { mutableStateOf("") }
     var editingSetIndex by remember { mutableStateOf(0) }
     var tempReps by remember { mutableIntStateOf(0) }
-    var tempWeight by remember { mutableIntStateOf(0) }
+    // Whole kg + fraction index (not a raw float) — see WeightFractionOptions.
+    var tempWholeKg by remember { mutableIntStateOf(0) }
+    var tempFractionIndex by remember { mutableIntStateOf(0) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val currentUser = Firebase.auth.currentUser
     val canSave =
         currentUser != null && workoutNameInput.isNotBlank() && draft.isNotEmpty()
+
+
 
     fun saveWorkout() {
         val user = currentUser
@@ -264,7 +276,7 @@ fun CreateWorkout(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 TextButton(
-                    onClick = { navController.navigate(Screens.ChooseExercises.route) },
+                    onClick = { navController.navigate(Screens.ChooseExercises.createRoute()) },
                     modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     Icon(
@@ -286,23 +298,43 @@ fun CreateWorkout(
             if (draft.isEmpty()) {
                 item {
                     EmptyExercisesPlaceholder(
-                        onAddClick = { navController.navigate(Screens.ChooseExercises.route) }
+                        onAddClick = { navController.navigate(Screens.ChooseExercises.createRoute()) }
                     )
                 }
             } else {
-                items(draft, key = { it.catalogId }) { item ->
-                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
+                itemsIndexed(
+                    items = draft,
+                    key = { _, item -> item.catalogId }
+                ) { index, item ->
+                    Box(
+                        modifier = Modifier
+                            .animateItem()
+                            .padding(horizontal = 20.dp, vertical = 6.dp)
+                    ) {
                         ExerciseExpandableCardChooseExercises(
                             onEditClick = { setIndex, weight, reps ->
                                 editingCatalogId = item.catalogId
                                 editingSetIndex = setIndex
-                                tempWeight = weight.toInt()
+                                val (whole, fractionIndex) = splitWeightKg(weight)
+                                tempWholeKg = whole
+                                tempFractionIndex = fractionIndex
                                 tempReps = reps
                                 expandBottomSheet = true
                             },
                             exerciseDraft = item,
                             createWorkoutViewModel = createWorkoutViewModel,
-                            catalogId = item.catalogId
+                            catalogId = item.catalogId,
+                            canMoveUp = index > 0,
+                            canMoveDown = index < draft.lastIndex,
+                            onMoveUp = {
+                                createWorkoutViewModel.moveDraftExercise(index, index - 1)
+                            },
+                            onMoveDown = {
+                                createWorkoutViewModel.moveDraftExercise(index, index + 1)
+                            },
+                            onRemove = {
+                                createWorkoutViewModel.removeDraftExercise(item.catalogId)
+                            }
                         )
                     }
                 }
@@ -316,7 +348,11 @@ fun CreateWorkout(
                 containerColor = GrozzSurface
             ) {
                 var currentRepsPicker by remember(tempReps) { mutableIntStateOf(tempReps) }
-                var currentWeightPicker by remember(tempWeight) { mutableIntStateOf(tempWeight) }
+                var currentWholeKg by remember(tempWholeKg) { mutableIntStateOf(tempWholeKg) }
+                var currentFractionIndex by remember(tempFractionIndex) {
+                    mutableIntStateOf(tempFractionIndex)
+                }
+                val previewWeight = combineWeightKg(currentWholeKg, currentFractionIndex)
 
                 Column(
                     modifier = Modifier
@@ -330,14 +366,46 @@ fun CreateWorkout(
                         style = MaterialTheme.typography.titleLarge,
                         color = GrozzOnBackground
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${formatWeightKg(previewWeight)} KG",
+                        color = GrozzYellow,
+                        fontSize = 16.sp,
+                        fontFamily = Lexend,
+                        fontWeight = FontWeight.Bold
+                    )
                     Spacer(modifier = Modifier.height(20.dp))
                     Row(
                         horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        PickerComponent("REPS", currentRepsPicker) { currentRepsPicker = it }
-                        Spacer(modifier = Modifier.width(40.dp))
-                        PickerComponent("KG", currentWeightPicker) { currentWeightPicker = it }
+                        // Wheel 1: whole kilograms (Int)
+                        IntPickerColumn(
+                            label = "KG",
+                            value = currentWholeKg,
+                            range = WeightWholeKgRange,
+                            onValueChange = { currentWholeKg = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        // Wheel 2: fraction index → WeightFractionOptions[index]
+                        IntPickerColumn(
+                            label = "+",
+                            value = currentFractionIndex,
+                            range = WeightFractionOptions.indices,
+                            labelForValue = { index ->
+                                val f = WeightFractionOptions[index]
+                                if (f == 0f) "0" else f.toString()
+                            },
+                            onValueChange = { currentFractionIndex = it }
+                        )
+                        Spacer(modifier = Modifier.width(32.dp))
+                        IntPickerColumn(
+                            label = "REPS",
+                            value = currentRepsPicker,
+                            range = 0..100,
+                            onValueChange = { currentRepsPicker = it }
+                        )
                     }
                     Spacer(modifier = Modifier.height(28.dp))
                     GrozzPrimaryButton(
@@ -347,7 +415,7 @@ fun CreateWorkout(
                                 editingCatalogId,
                                 editingSetIndex,
                                 currentRepsPicker,
-                                currentWeightPicker.toFloat()
+                                combineWeightKg(currentWholeKg, currentFractionIndex)
                             )
                             expandBottomSheet = false
                         },
@@ -360,32 +428,16 @@ fun CreateWorkout(
 }
 
 @Composable
-fun PickerComponent(label: String, value: Int, onValueChange: (Int) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = label,
-            color = GrozzOnBackground,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = Lexend
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        NumberPicker(
-            value = value,
-            onValueChange = onValueChange,
-            range = 0..300,
-            dividersColor = GrozzYellow,
-            textStyle = TextStyle(color = GrozzOnBackground)
-        )
-    }
-}
-
-@Composable
 fun ExerciseExpandableCardChooseExercises(
     onEditClick: (Int, Float, Int) -> Unit,
     exerciseDraft: ExerciseDraft,
     createWorkoutViewModel: CreateWorkoutViewModel,
-    catalogId: String
+    catalogId: String,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRemove: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -412,14 +464,16 @@ fun ExerciseExpandableCardChooseExercises(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = exerciseDraft.name,
                     color = GrozzOnBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    fontFamily = Lexend
+                    fontFamily = Lexend,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = exerciseDraft.bodyPart.uppercase(),
@@ -427,9 +481,45 @@ fun ExerciseExpandableCardChooseExercises(
                     fontSize = 12.sp
                 )
             }
+
+            IconButton(
+                onClick = onMoveUp,
+                enabled = canMoveUp,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "Move up",
+                    tint = if (canMoveUp) GrozzYellow else GrozzMuted,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            IconButton(
+                onClick = onMoveDown,
+                enabled = canMoveDown,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Move down",
+                    tint = if (canMoveDown) GrozzYellow else GrozzMuted,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.terminate),
+                    contentDescription = "Remove exercise",
+                    tint = GrozzError,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             Icon(
                 painter = painterResource(R.drawable.down),
-                contentDescription = null,
+                contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = GrozzYellow,
                 modifier = Modifier.size(20.dp)
             )
@@ -481,7 +571,7 @@ fun ExerciseExpandableCardChooseExercises(
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            "${set.weight}",
+                            formatWeightKg(set.weight),
                             color = GrozzOnBackground,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f),

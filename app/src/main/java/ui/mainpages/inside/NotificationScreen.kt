@@ -1,6 +1,5 @@
 package ui.mainpages.inside
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,14 +39,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import ui.mainpages.navigation.Screens
 import viewmodel.NotificationModel
 import viewmodel.SocialViewModel
 import java.text.SimpleDateFormat
@@ -66,8 +64,11 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
         socialViewModel.getNotification(nickname)
     }.collectAsState(initial = emptyList())
 
-    LaunchedEffect(nickname) {
-        if (nickname.isNotBlank() && notifications.any { !it.isRead }) {
+    // Key on unread state too — nickname alone often fired before the list loaded,
+    // so markAllAsRead never ran and the Home badge stayed stuck.
+    val hasUnread = notifications.any { !it.isRead }
+    LaunchedEffect(nickname, hasUnread) {
+        if (nickname.isNotBlank() && hasUnread) {
             socialViewModel.markAllAsRead(nickname)
         }
     }
@@ -75,10 +76,7 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBarNotificationScreen(
-                navController = navController,
-                topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
-            )
+            HomeTopBarNotificationScreen(navController = navController)
         },
         containerColor = Color(0xFF121417),
         floatingActionButtonPosition = FabPosition.EndOverlay,
@@ -119,7 +117,11 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
                     if (unreadCount > 0) {
                         item(key = "unread_header") {
                             Text(
-                                text = if (unreadCount == 1) "1 new notification" else "$unreadCount new notifications",
+                                text = if (unreadCount == 1) {
+                                    "1 new notification"
+                                } else {
+                                    "$unreadCount new notifications"
+                                },
                                 color = NotificationAccent,
                                 fontFamily = FontFamily(Font(R.font.lexendbold)),
                                 fontSize = 13.sp,
@@ -136,7 +138,14 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
                             item = item,
                             onClick = {
                                 extractFollowerNickname(item.message)?.let { follower ->
-                                    navController.navigate("otherscreenprofile/$follower")
+                                    navController.navigate(
+                                        Screens.OtherScreenProfile.createRoute(follower)
+                                    ) {
+                                        popUpTo(Screens.OtherScreenProfile.route) {
+                                            inclusive = true
+                                        }
+                                        launchSingleTop = true
+                                    }
                                 }
                             }
                         )
@@ -272,14 +281,12 @@ private fun NotificationEmptyState(modifier: Modifier = Modifier) {
 
 @Composable
 fun HomeTopBarNotificationScreen(
-    navController: NavController,
-    topPadding: Dp = 0.dp
+    navController: NavController
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(top = topPadding)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

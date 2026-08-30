@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,6 +71,7 @@ import coil.compose.AsyncImage
 import com.grozzbear.R
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.remote.User
+import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
 import viewmodel.SocialViewModel
@@ -250,6 +252,7 @@ private fun OtherProfileContent(
             Spacer(Modifier.height(16.dp))
 
             if (myNickname.isNotBlank() && myNickname != currentUser.nickname) {
+                val followShape = RoundedCornerShape(20.dp)
                 Button(
                     onClick = {
                         if (isFollowing) {
@@ -260,35 +263,35 @@ private fun OtherProfileContent(
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isFollowing) {
-                            Color.White.copy(alpha = 0.1f)
+                            Color.Transparent
                         } else {
                             OtherProfileAccent
-                        }
+                        },
+                        contentColor = if (isFollowing) Color.White else Color.Black
                     ),
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier
-                        .width(140.dp)
-                        .height(40.dp)
-                        .then(
-                            if (isFollowing) {
-                                Modifier.border(
-                                    1.dp,
-                                    OtherProfileAccent.copy(alpha = 0.5f),
-                                    RoundedCornerShape(14.dp)
-                                )
-                            } else {
-                                Modifier
-                            }
-                        ),
-                    contentPadding = PaddingValues(0.dp)
+                    shape = followShape,
+                    border = if (isFollowing) {
+                        BorderStroke(
+                            1.dp,
+                            OtherProfileAccent.copy(alpha = 0.55f)
+                        )
+                    } else {
+                        null
+                    },
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp
+                    ),
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp)
                 ) {
                     Text(
-                        text = if (isFollowing) "FOLLOWING" else "FOLLOW",
+                        text = if (isFollowing) "Following" else "Follow",
                         style = TextStyle(
-                            fontFamily = FontFamily(Font(R.font.lexendbold)),
-                            fontSize = 12.sp
-                        ),
-                        color = if (isFollowing) Color.White else Color.Black
+                            fontFamily = FontFamily(Font(R.font.lexendsemibold)),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     )
                 }
             }
@@ -301,14 +304,22 @@ private fun OtherProfileContent(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                StatItem(label = "FOLLOWERS", count = followerCount) {}
+                StatItem(label = "FOLLOWERS", count = followerCount) {
+                    navController.navigate(
+                        Screens.ProjectFollowersScreen.createRoute(currentUser.nickname)
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .width(1.dp)
                         .height(40.dp)
                         .background(Color.DarkGray)
                 )
-                StatItem(label = "FOLLOWING", count = followingCount) {}
+                StatItem(label = "FOLLOWING", count = followingCount) {
+                    navController.navigate(
+                        Screens.ProjectFollowScreen.createRoute(currentUser.nickname)
+                    )
+                }
             }
 
             Box(

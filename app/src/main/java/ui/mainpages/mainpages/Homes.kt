@@ -85,6 +85,8 @@ import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
+import java.util.Calendar
+import kotlin.random.Random
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
 import com.grozzbear.ui.util.safeWorkoutPainter
@@ -131,10 +133,8 @@ fun Home(
     val unReadCount = notification.count { !it.isRead }
     socialViewModel.setNickname(nickname)
 
-    val featuredWorkout = remember(challengeWorkouts, coachWorkouts, workouts) {
-        challengeWorkouts.firstOrNull()
-            ?: coachWorkouts.firstOrNull()
-            ?: workouts.firstOrNull()
+    val featuredWorkout = remember(workouts) {
+        pickTodaysWorkout(workouts)
     }
     val challengePagerState = rememberPagerState(pageCount = { challengeWorkouts.size.coerceAtLeast(1) })
     val isLoading = workouts.isEmpty() || userName.isEmpty() || userName == "Yükleniyor..."
@@ -217,7 +217,11 @@ fun Home(
                         titleTop = "CHALLENGES",
                         titleBottom = "CATALOGUE",
                         actionLabel = "See all",
-                        onActionClick = { navController.navigate(Screens.AllWorkouts.route) }
+                        onActionClick = {
+                            navController.navigate(
+                                Screens.AllWorkouts.createRoute(Screens.AllWorkouts.FILTER_CHALLENGE)
+                            )
+                        }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -259,7 +263,11 @@ fun Home(
                     item {
                         CoachPicksTeaser(
                             count = coachWorkouts.size,
-                            onClick = { navController.navigate(Screens.AllWorkouts.route) }
+                            onClick = {
+                                navController.navigate(
+                                    Screens.AllWorkouts.createRoute(Screens.AllWorkouts.FILTER_COACH)
+                                )
+                            }
                         )
                     }
                 }
@@ -447,7 +455,7 @@ private fun HomeHeroCard(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "START TRAINING",
+                text = "Today's Pick",
                 style = MaterialTheme.typography.labelMedium,
                 color = GrozzYellow,
                 fontFamily = Lexend,
@@ -777,4 +785,25 @@ fun Modifier.shimmerEffect(): Modifier = composed {
     ).onGloballyPositioned {
         size = it.size
     }
+}
+
+/**
+ * Picks one catalogue workout for the local calendar day.
+ * Same day → same workout; next day → a new seeded random pick.
+ */
+private fun pickTodaysWorkout(
+    workouts: List<WorkoutWithExercises>
+): WorkoutWithExercises? {
+    if (workouts.isEmpty()) return null
+
+    val pool = workouts
+        .filterNot { it.workout.workoutType.equals("User", ignoreCase = true) }
+        .ifEmpty { workouts }
+        .sortedBy { it.workout.workoutId }
+
+    val calendar = Calendar.getInstance()
+    val daySeed = calendar.get(Calendar.YEAR) * 1_000L +
+        calendar.get(Calendar.DAY_OF_YEAR)
+
+    return pool[Random(daySeed).nextInt(pool.size)]
 }

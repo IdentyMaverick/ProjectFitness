@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols home filled -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M160,840V360L480,120 800,360v480H560V560H400v280H160Z" />
+</vector>

@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -103,6 +104,8 @@ class WorkoutRepository(
         bodyPart: String,
         secondaryMuscles: List<String> = emptyList()
     ) {
+        val nextOrderIndex = (dao.getMaxOrderIndex(workoutId) ?: -1) + 1
+
         dao.insertExercise(
             WorkoutExerciseEntity(
                 exerciseId = exerciseId,
@@ -110,9 +113,55 @@ class WorkoutRepository(
                 exerciseName = name,
                 catalogExerciseId = catalogExerciseId,
                 bodyPart = bodyPart,
-                secondaryMuscles = secondaryMuscles
+                secondaryMuscles = secondaryMuscles,
+                orderIndex = nextOrderIndex
             )
         )
+    }
+
+    suspend fun addExercisesFromCatalog(workoutId: String, catalogIds: List<String>) {
+        if (catalogIds.isEmpty()) return
+
+        val catalogById = catalogdao.observeAllActive().first().associateBy { it.id }
+        val batch = firestore.batch()
+        val workoutRef = templateRef(workoutId)
+
+        for (catalogId in catalogIds) {
+            val catalog = catalogById[catalogId] ?: continue
+            val exerciseId = UUID.randomUUID().toString()
+            val nextOrderIndex = (dao.getMaxOrderIndex(workoutId) ?: -1) + 1
+
+            val exercise = WorkoutExerciseEntity(
+                exerciseId = exerciseId,
+                workoutOwnerId = workoutId,
+                exerciseName = catalog.name,
+                catalogExerciseId = catalog.id,
+                bodyPart = catalog.bodyPart,
+                secondaryMuscles = catalog.secondaryMuscles,
+                orderIndex = nextOrderIndex
+            )
+            dao.insertExercise(exercise)
+
+            val defaultSets = List(3) {
+                SetEntity(
+                    setId = UUID.randomUUID().toString(),
+                    exerciseOwnerId = exerciseId,
+                    reps = 10,
+                    weight = 0f
+                )
+            }
+            defaultSets.forEach { dao.insertSet(it) }
+
+            val exerciseRef = workoutRef.collection(FirestorePaths.EXERCISES).document(exerciseId)
+            batch.set(exerciseRef, exercise)
+            for (set in defaultSets) {
+                val setRef = exerciseRef.collection(FirestorePaths.SETS).document(set.setId)
+                batch.set(setRef, set)
+            }
+        }
+
+        dao.touchWorkout(workoutId)
+        batch.commit().await()
     }
 
     suspend fun addSet(
@@ -190,11 +239,8 @@ class WorkoutRepository(
 
     suspend fun deleteSelectedExercise(exerciseId: String, workoutId: String) {
         dao.deleteSelectedExercise(exerciseId)
-
         dao.touchWorkout(workoutId)
-    }
 
-    suspend fun deleteSelectedExerciseFirebase(workoutId: String, exerciseId: String) {
         try {
             val exerciseDocRef = templateRef(workoutId)
                 .collection(FirestorePaths.EXERCISES)
@@ -203,13 +249,10 @@ class WorkoutRepository(
             deleteSetDocuments(exerciseDocRef, batch)
             batch.delete(exerciseDocRef)
             batch.commit().await()
-            dao.touchWorkout(workoutId)
-            Log.d("DeleteFirebase", "Egzersiz ve tüm alt verileri başarıyla silindi.")
         } catch (e: Exception) {
-            Log.e("DeleteFirebase", "Silme hatası: ${e.message}")
+            Log.e("DeleteSelectedExercise", "Silme hatası: ${e.message}")
         }
     }
-
 
     suspend fun workoutCount(): Int = dao.workoutCount()
 
@@ -235,7 +278,8 @@ class WorkoutRepository(
             "Dumbbell Bench Press",
             "9u9UAvGkJZPNuINgoaBR",
             "Chest",
-            listOf("Triceps", "Front delts")
+            listOf("Triceps", "Front delts"),
+
         )
 
         addSet(UUID.randomUUID().toString(), benchId, 12, 30f)
@@ -278,6 +322,7 @@ class WorkoutRepository(
         addSet(UUID.randomUUID().toString(), latId, 12, 30f)
         addSet(UUID.randomUUID().toString(), latId, 10, 32.5f)
         addSet(UUID.randomUUID().toString(), latId, 8, 35f)
+
     }
 
     fun getAllCatalogExercises() = catalogdao.observeAllActive()
@@ -744,6 +789,21 @@ class WorkoutRepository(
                     dao.insertHistoricalSet(setLog.copy(logOwnerId = newLogId))
                 }
             }
+        }
+    }
+
+    suspend fun updateExerciseOrder(exerciseId: String, workoutId: String, orderIndex: Int) {
+        dao.updateExerciseOrder(exerciseId, orderIndex)
+
+        try {
+            templateRef(workoutId)
+                .collection(FirestorePaths.EXERCISES)
+                .document(exerciseId)
+                .update("orderIndex", orderIndex)
+                .await()
+            Log.d("Done", "Process Completed.")
+        } catch(e: Exception) {
+            Log.e("Error", e.message.toString())
         }
     }
 }
