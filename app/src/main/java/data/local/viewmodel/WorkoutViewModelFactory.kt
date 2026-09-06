@@ -12,7 +12,9 @@ import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
 import data.local.viewmodel.ActivityInsideViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
 import data.local.viewmodel.FaqcontactfeedbackScreenViewModel
+import data.local.repository.MealStore
 import data.local.viewmodel.LeaderboardViewModel
+import data.local.viewmodel.MealViewModel
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.PersonalInformationsScreenViewModel
 import data.local.viewmodel.WorkoutCompleteAnalysisScreenViewModel
@@ -37,6 +39,7 @@ class WorkoutViewModelFactory(
     private val storageRepository: StorageRepository = StorageRepository(),
     private val workoutinRepository: WorkoutinRepository = WorkoutinRepository(),
     private val authRepository: AuthRepository = AuthRepository(),
+    private val mealStore: MealStore? = null,
 ) : ViewModelProvider.Factory {
     @RequiresApi(Build.VERSION_CODES.O)
     @Suppress("UNCHECKED_CAST")
@@ -98,6 +101,13 @@ class WorkoutViewModelFactory(
 
         modelClass.isAssignableFrom(WorkoutSettingViewModel::class.java) ->
             WorkoutSettingViewModel(repository, auth.uid.orEmpty()) as T
+
+        modelClass.isAssignableFrom(MealViewModel::class.java) ->
+            MealViewModel(
+                userRepository,
+                repository,
+                requireNotNull(mealStore) { "MealStore required for MealViewModel" },
+            ) as T
 
         else -> error("Unknown ViewModel: ${modelClass.name}")
     }

@@ -356,7 +356,7 @@ private fun PersonalInfoForm(
 }
 
 @Composable
-private fun ProfileFieldLabel(text: String, padded: Boolean = true) {
+internal fun ProfileFieldLabel(text: String, padded: Boolean = true) {
     Text(
         text = text,
         color = Color.White.copy(alpha = 0.7f),
@@ -371,7 +371,7 @@ private fun ProfileFieldLabel(text: String, padded: Boolean = true) {
 }
 
 @Composable
-private fun ProfileOutlinedField(
+internal fun ProfileOutlinedField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -432,7 +432,7 @@ private fun ProfileOutlinedField(
 }
 
 @Composable
-private fun GenderSelector(gender: Boolean, onGenderChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+internal fun GenderSelector(gender: Boolean, onGenderChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
     val options = listOf("Male", "Female")
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = if (gender) "Female" else "Male"
@@ -504,7 +504,7 @@ private fun GenderSelector(gender: Boolean, onGenderChange: (Boolean) -> Unit, m
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BirthDateSelector(birthDate: String, onBirthDateChange: (String) -> Unit, modifier: Modifier = Modifier) {
+internal fun BirthDateSelector(birthDate: String, onBirthDateChange: (String) -> Unit, modifier: Modifier = Modifier) {
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     val datePickerState =
         rememberDatePickerState(

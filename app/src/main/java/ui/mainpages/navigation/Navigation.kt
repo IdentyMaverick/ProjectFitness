@@ -88,11 +88,13 @@ import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
+import data.local.repository.MealStore
 import data.local.viewmodel.ActivityInsideViewModel
 import data.local.viewmodel.ChooseExercisesViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
 import data.local.viewmodel.FaqcontactfeedbackScreenViewModel
 import data.local.viewmodel.LeaderboardViewModel
+import data.local.viewmodel.MealViewModel
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.PersonalInformationsScreenViewModel
 import data.local.viewmodel.WorkoutCompleteAnalysisScreenViewModel
@@ -126,6 +128,7 @@ import ui.mainpages.mainpages.AllWorkouts
 import ui.mainpages.mainpages.Home
 import ui.mainpages.mainpages.LeaderBoard
 import ui.mainpages.mainpages.Meal
+import ui.mainpages.openscreen.CompleteAthleteScreen
 import ui.mainpages.openscreen.InfoHorizontalScreen
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
@@ -142,6 +145,9 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     val sharedPref = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     val isBoardingCompleted = sharedPref.getBoolean("is_boarding_completed", false)
     val isUserLoggedIn = FirebaseAuth.getInstance().currentUser != null
+    val loggedInUid = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+    val needsBodyStatsSetup =
+        isUserLoggedIn && !BodyStatsPrefs.isPrompted(context, loggedInUid)
     val navController = rememberNavController()
     val currentUser: FirebaseAuth = FirebaseAuth.getInstance()
     val infoDialog = remember { mutableStateOf(false) }
@@ -174,8 +180,9 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     val workoutinModel: WorkoutinViewModel = viewModel(factory = coreFactory)
     val activityInsideViewModel: ActivityInsideViewModel = viewModel(factory = coreFactory)
 
+    val mealStore = remember { MealStore(context.applicationContext) }
     val featureFactory =
-        remember(authViewModel, profileViewModel) {
+        remember(authViewModel, profileViewModel, mealStore) {
             WorkoutViewModelFactory(
                 repository = workoutRepository,
                 auth = currentUser,
@@ -186,6 +193,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 storageRepository = storageRepository,
                 workoutinRepository = workoutinRepository,
                 authRepository = authRepository,
+                mealStore = mealStore,
             )
         }
     val faqcontactfeedbackScreenViewModel: FaqcontactfeedbackScreenViewModel =
@@ -202,6 +210,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
         viewModel(factory = featureFactory)
     val leaderboardViewModel: LeaderboardViewModel = viewModel(factory = featureFactory)
     val workoutSettingViewModel: WorkoutSettingViewModel = viewModel(factory = featureFactory)
+    val mealViewModel: MealViewModel = viewModel(factory = featureFactory)
     Box(
         modifier =
             Modifier
@@ -214,6 +223,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 when {
                     !isBoardingCompleted -> Screens.InfoHorizontalScreen.route
                     !isUserLoggedIn -> Screens.LoginScreen.route
+                    needsBodyStatsSetup -> Screens.CompleteAthleteScreen.route
                     else -> Screens.Home.route
                 },
             enterTransition = {
@@ -343,6 +353,13 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             }
             composable(route = Screens.LoginScreen.RegisterScreen.route) {
                 RegisterScreen(navController = navController, authViewModel = authViewModel)
+            }
+            composable(route = Screens.CompleteAthleteScreen.route) {
+                CompleteAthleteScreen(
+                    navController = navController,
+                    personalInformationsScreenViewModel = personalInformationsScreenViewModel,
+                    mealViewModel = mealViewModel,
+                )
             }
             composable(
                 route = Screens.Home.route,
@@ -622,7 +639,11 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = { fadeIn(animationSpec = tween(400)) },
                 exitTransition = { fadeOut(animationSpec = tween(400)) },
             ) {
-                Meal(navController = navController, authViewModel = authViewModel)
+                Meal(
+                    navController = navController,
+                    authViewModel = authViewModel,
+                    mealViewModel = mealViewModel,
+                )
             }
             composable(
                 route = Screens.WorkoutCompleteScreen.route,

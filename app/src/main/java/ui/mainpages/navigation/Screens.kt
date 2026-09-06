@@ -81,6 +81,8 @@ sealed class Screens(val route: String) {
 
     object PersonalInformationsScreen : Screens(route = "personalinformationsscreen")
 
+    object CompleteAthleteScreen : Screens(route = "completeathletescreen")
+
     object OldWorkoutDetails : Screens(route = "oldworkoutdetails")
 
     object NotificationScreen : Screens(route = "notification")

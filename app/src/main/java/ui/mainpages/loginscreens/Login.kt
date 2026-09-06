@@ -66,6 +66,7 @@ import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Oswald
 import ui.mainpages.navigation.Screens
+import ui.mainpages.navigation.navigateAfterAuth
 import viewmodel.AuthViewModel
 import viewmodel.LoginUiState
 
@@ -84,10 +85,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     LaunchedEffect(loginState) {
         when (loginState) {
             is LoginUiState.Success -> {
-                navController.navigate(Screens.Home.route) {
-                    popUpTo(Screens.LoginScreen.route) { inclusive = true }
-                    launchSingleTop = true
-                }
+                navController.navigateAfterAuth(context)
                 authViewModel.resetLoginState()
             }
 

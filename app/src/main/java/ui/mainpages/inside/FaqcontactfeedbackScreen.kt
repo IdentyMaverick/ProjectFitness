@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzRadiusButton
 import com.grozzbear.ui.theme.GrozzRadiusChip
 import com.grozzbear.ui.theme.GrozzRadiusPanel
@@ -65,7 +66,7 @@ private val SupportCardBg = GrozzSurface
 
 private data class FaqItem(val question: String, val answer: String)
 
-private data class FeedbackMood(val label: String, val iconRes: Int)
+private data class FeedbackMood(val label: String, val iconRes: Int, val color: Color)
 
 @Composable
 fun FaqcontactfeedbackScreen(
@@ -80,11 +81,11 @@ fun FaqcontactfeedbackScreen(
     val moods =
         remember {
             listOf(
-                FeedbackMood("Poor", R.drawable.sentimentextremelydissatisfied),
-                FeedbackMood("Ok", R.drawable.sentimentsadicon128),
-                FeedbackMood("Neutral", R.drawable.sentimentneutralicon128),
-                FeedbackMood("Good", R.drawable.sentimentsatisfiedicon128),
-                FeedbackMood("Perfect", R.drawable.sentimentsatisfiedicon128),
+                FeedbackMood("Poor", R.drawable.sentimentextremelydissatisfied, GrozzError),
+                FeedbackMood("Ok", R.drawable.sentimentsadicon128, Color(0xFFFF8A3D)),
+                FeedbackMood("Neutral", R.drawable.sentimentneutralicon128, Color(0xFF8E9AAB)),
+                FeedbackMood("Good", R.drawable.sentimentsatisfiedicon128, GrozzYellow),
+                FeedbackMood("Perfect", R.drawable.sentimentsatisfiedicon128, Color(0xFF2ECC71)),
             )
         }
 
@@ -253,6 +254,7 @@ fun FaqcontactfeedbackScreen(
                     ) {
                         moods.forEach { mood ->
                             val selected = selectedMood == mood.label
+                            val moodColor = if (selected) mood.color else mood.color.copy(alpha = 0.35f)
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier =
@@ -265,13 +267,13 @@ fun FaqcontactfeedbackScreen(
                                 Icon(
                                     painter = painterResource(mood.iconRes),
                                     contentDescription = mood.label,
-                                    tint = if (selected) GrozzYellow else Color.White.copy(alpha = 0.25f),
+                                    tint = moodColor,
                                     modifier = Modifier.size(24.dp),
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = mood.label,
-                                    color = if (selected) GrozzYellow else Color.White.copy(alpha = 0.25f),
+                                    color = moodColor,
                                     fontSize = 10.sp,
                                     fontFamily = Lexend,
                                 )

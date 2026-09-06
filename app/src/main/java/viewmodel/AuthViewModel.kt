@@ -78,6 +78,12 @@ class AuthViewModel(
                     }
                     throw profileError
                 }
+                try {
+                    userRepository.setUserOnline(uid, true)
+                } catch (e: Exception) {
+                    Log.w("Auth", "Failed to set online status after register", e)
+                }
+                saveUserFcmToken(uid)
                 _registerState.value = RegisterUiState.Success
             } catch (e: Exception) {
                 _registerState.value = RegisterUiState.Error(e.message ?: "Register failed")

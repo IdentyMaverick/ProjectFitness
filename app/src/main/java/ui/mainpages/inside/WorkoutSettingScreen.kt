@@ -64,6 +64,7 @@ import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutExerciseEntity
+import com.grozzbear.projectfitness.data.local.entity.WorkoutFull
 import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
 import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.GrozzTopBarLogo
@@ -263,11 +264,13 @@ fun WorkoutSettingScreen(
                                                 exerciseId = item.exercise.exerciseId,
                                             )
                                         },
+                                        workout = workout
                                     )
                                 }
                             }
                             item {
                                 Spacer(modifier = Modifier.height(8.dp))
+                                if (workout.workout.workoutType == "coach") return@item
                                 GrozzPrimaryButton(
                                     text = "Add exercises",
                                     onClick = {
@@ -324,8 +327,10 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
+    workout: WorkoutFull?
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val canEdit = workout?.workout?.workoutType != "coach"
 
     Column(
         modifier =
@@ -380,40 +385,42 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                     )
                 }
             }
-            IconButton(
-                onClick = onMoveUp,
-                enabled = canMoveUp,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowUp,
-                    contentDescription = "Move up",
-                    tint = if (canMoveUp) GrozzYellow else GrozzMuted,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            IconButton(
-                onClick = onMoveDown,
-                enabled = canMoveDown,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "Move down",
-                    tint = if (canMoveDown) GrozzYellow else GrozzMuted,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.terminate),
-                    contentDescription = "Remove exercise",
-                    tint = GrozzError,
-                    modifier = Modifier.size(20.dp),
-                )
+            if (canEdit) {
+                IconButton(
+                    onClick = onMoveUp,
+                    enabled = canMoveUp,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Move up",
+                        tint = if (canMoveUp) GrozzYellow else GrozzMuted,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                IconButton(
+                    onClick = onMoveDown,
+                    enabled = canMoveDown,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Move down",
+                        tint = if (canMoveDown) GrozzYellow else GrozzMuted,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                IconButton(
+                    onClick = onRemove,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.terminate),
+                        contentDescription = "Remove exercise",
+                        tint = GrozzError,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
             Icon(
                 imageVector =
@@ -459,19 +466,21 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
                     )
-                    Text(
-                        "ACTION",
-                        color = GrozzMuted,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = Lexend,
-                        modifier = Modifier.weight(1.5f),
-                        textAlign = TextAlign.End,
-                    )
+                    if (canEdit) {
+                        Text(
+                            "ACTION",
+                            color = GrozzMuted,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontFamily = Lexend,
+                            modifier = Modifier.weight(1.5f),
+                            textAlign = TextAlign.End,
+                        )
+                    }
                 }
 
                 if (exerciseSet.isEmpty()) {
                     Text(
-                        text = "No sets yet. Add one below.",
+                        text = if (canEdit) "No sets yet. Add one below." else "No sets yet.",
                         color = GrozzTextSecondary,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(vertical = 8.dp),
@@ -508,51 +517,55 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                                 textAlign = TextAlign.Center,
                             )
 
-                            Row(
-                                modifier = Modifier.weight(1.5f),
-                                horizontalArrangement = Arrangement.End,
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.editnote),
-                                    contentDescription = "Edit",
-                                    tint = GrozzYellow,
-                                    modifier =
-                                        Modifier
-                                            .size(22.dp)
-                                            .clickable { onEditClick(set) },
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Icon(
-                                    painter = painterResource(R.drawable.closeicon128),
-                                    contentDescription = "Delete",
-                                    tint = GrozzError,
-                                    modifier =
-                                        Modifier
-                                            .size(22.dp)
-                                            .clickable { onDeleteSetClick(set) },
-                                )
+                            if (canEdit) {
+                                Row(
+                                    modifier = Modifier.weight(1.5f),
+                                    horizontalArrangement = Arrangement.End,
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.editnote),
+                                        contentDescription = "Edit",
+                                        tint = GrozzYellow,
+                                        modifier =
+                                            Modifier
+                                                .size(22.dp)
+                                                .clickable { onEditClick(set) },
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        painter = painterResource(R.drawable.closeicon128),
+                                        contentDescription = "Delete",
+                                        tint = GrozzError,
+                                        modifier =
+                                            Modifier
+                                                .size(22.dp)
+                                                .clickable { onDeleteSetClick(set) },
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-                Button(
-                    onClick = onAddSetClick,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .border(1.dp, GrozzYellow, RoundedCornerShape(GrozzRadiusChip)),
-                    shape = RoundedCornerShape(GrozzRadiusChip),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                ) {
-                    Text(
-                        "Add set",
-                        color = GrozzYellow,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontFamily = Lexend,
-                    )
+                if (canEdit) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = onAddSetClick,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .border(1.dp, GrozzYellow, RoundedCornerShape(GrozzRadiusChip)),
+                        shape = RoundedCornerShape(GrozzRadiusChip),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    ) {
+                        Text(
+                            "Add set",
+                            color = GrozzYellow,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontFamily = Lexend,
+                        )
+                    }
                 }
             }
         }
