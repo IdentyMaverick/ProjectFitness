@@ -51,6 +51,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,33 +85,32 @@ fun ChooseExercises(
     workoutSettingViewModel: WorkoutSettingViewModel?,
     oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel?,
     activityInsideViewModel: ActivityInsideViewModel,
-    targetWorkoutId: String?,
+    targetWorkoutId: String?
 ) {
     val searchText = rememberSaveable { mutableStateOf("") }
     var selectedMuscleGroup by rememberSaveable { mutableStateOf("All") }
     var selectedEquipment by rememberSaveable { mutableStateOf("All") }
     var expandableExercise by remember { mutableStateOf(false) }
     var expandableEquipment by remember { mutableStateOf(false) }
-    val muscleGroups =
-        remember {
-            listOf(
-                "All",
-                "Chest",
-                "Back",
-                "Quads",
-                "Biceps",
-                "Triceps",
-                "Shoulders",
-                "Abs",
-                "Calves",
-                "Abductors",
-                "Adductors",
-                "Forearms",
-                "Glutes",
-                "Hamstrings",
-                "Traps",
-            )
-        }
+    val muscleGroups = remember {
+        listOf(
+            "All",
+            "Chest",
+            "Back",
+            "Quads",
+            "Biceps",
+            "Triceps",
+            "Shoulders",
+            "Abs",
+            "Calves",
+            "Abductors",
+            "Adductors",
+            "Forearms",
+            "Glutes",
+            "Hamstrings",
+            "Traps"
+        )
+    }
     val equipment =
         remember { listOf("All", "Cable", "Barbell", "Bodyweight", "Dumbbell", "Machine", "Plate") }
 
@@ -123,12 +124,11 @@ fun ChooseExercises(
         .collectAsState(initial = emptyList())
     val catalogFromHistory by (oldWorkoutDetailsViewModel?.catalogExercises ?: flowOf(emptyList()))
         .collectAsState(initial = emptyList())
-    val catalogExercisesList =
-        when {
-            isHistory -> catalogFromHistory
-            isEdit -> catalogFromEdit
-            else -> catalogFromCreate
-        }
+    val catalogExercisesList = when {
+        isHistory -> catalogFromHistory
+        isEdit -> catalogFromEdit
+        else -> catalogFromCreate
+    }
 
     val selectedIdsByCreateVm by (createWorkoutViewModel?.selectedExerciseIds ?: flowOf(emptySet()))
         .collectAsState(initial = emptySet())
@@ -140,22 +140,18 @@ fun ChooseExercises(
     val historyDraft by (oldWorkoutDetailsViewModel?.draft ?: flowOf(null))
         .collectAsState(initial = null)
 
-    val existingCatalogIds =
-        remember(workoutFull) {
-            workoutFull
-                ?.exercises
-                ?.mapNotNull { it.exercise.catalogExerciseId }
-                ?.toSet()
-                ?: emptySet()
-        }
-    val existingHistoryNames =
-        remember(historyDraft) {
-            historyDraft
-                ?.exerciseWithSets
-                ?.map { it.exerciseLog.exerciseName.lowercase() }
-                ?.toSet()
-                ?: emptySet()
-        }
+    val existingCatalogIds = remember(workoutFull) {
+        workoutFull?.exercises
+            ?.mapNotNull { it.exercise.catalogExerciseId }
+            ?.toSet()
+            ?: emptySet()
+    }
+    val existingHistoryNames = remember(historyDraft) {
+        historyDraft?.exerciseWithSets
+            ?.map { it.exerciseLog.exerciseName.lowercase() }
+            ?.toSet()
+            ?: emptySet()
+    }
 
     val selectedIds = if (isAddingToExisting) editSelectedIds else selectedIdsByCreateVm
     val exerciseCounter = selectedIds.size
@@ -164,19 +160,15 @@ fun ChooseExercises(
         remember(catalogExercisesList, selectedMuscleGroup, selectedEquipment, searchText.value) {
             val query = searchText.value.trim()
             catalogExercisesList.filter { item ->
-                val muscleOk =
-                    selectedMuscleGroup == "All" ||
-                        item.bodyPart.equals(
-                            selectedMuscleGroup,
-                            ignoreCase = true,
-                        )
+                val muscleOk = selectedMuscleGroup == "All" || item.bodyPart.equals(
+                    selectedMuscleGroup,
+                    ignoreCase = true
+                )
 
-                val equipmentOk =
-                    selectedEquipment == "All" ||
-                        item.equipment.equals(
-                            selectedEquipment,
-                            ignoreCase = true,
-                        )
+                val equipmentOk = selectedEquipment == "All" || item.equipment.equals(
+                    selectedEquipment,
+                    ignoreCase = true
+                )
 
                 val searchOk = query.isBlank() || item.name.contains(query, ignoreCase = true)
 
@@ -200,38 +192,37 @@ fun ChooseExercises(
                         navController.popBackStack()
                     } else {
                         createWorkoutViewModel?.onConfirmSelection()
-                        val returnedToEditor =
-                            navController.popBackStack(
-                                route = Screens.CreateWorkout.route,
-                                inclusive = false,
-                            )
+                        val returnedToEditor = navController.popBackStack(
+                            route = Screens.CreateWorkout.route,
+                            inclusive = false
+                        )
                         if (!returnedToEditor) {
                             navController.navigate(Screens.CreateWorkout.route)
                         }
                     }
                 },
-                totalSelectedExercise = exerciseCounter.toString(),
+                totalSelectedExercise = exerciseCounter.toString()
             )
         },
         floatingActionButtonPosition = FabPosition.EndOverlay,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Spacer(Modifier.height(20.dp))
 
-            Row {
+            Row() {
                 FilterDropdownCreateWorkout(
                     text = selectedMuscleGroup,
                     expanded = expandableExercise,
                     onExpandChange = { expandableExercise = it },
                     items = muscleGroups,
-                    onItemSelected = { selectedMuscleGroup = it },
+                    onItemSelected = { selectedMuscleGroup = it }
                 )
                 Spacer(Modifier.width(10.dp))
                 FilterDropdownCreateWorkout(
@@ -239,7 +230,7 @@ fun ChooseExercises(
                     expanded = expandableEquipment,
                     onExpandChange = { expandableEquipment = it },
                     items = equipment,
-                    onItemSelected = { selectedEquipment = it },
+                    onItemSelected = { selectedEquipment = it }
                 )
             }
 
@@ -251,66 +242,62 @@ fun ChooseExercises(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 itemsIndexed(filteredExercises) { index, item ->
-                    val alreadyInWorkout =
-                        when {
-                            isEdit -> item.id in existingCatalogIds
-                            isHistory -> item.name.lowercase() in existingHistoryNames
-                            else -> false
-                        }
+                    val alreadyInWorkout = when {
+                        isEdit -> item.id in existingCatalogIds
+                        isHistory -> item.name.lowercase() in existingHistoryNames
+                        else -> false
+                    }
                     val clicked = item.id in selectedIds
 
                     Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .padding(horizontal = 20.dp, vertical = 8.dp)
-                                .clip(RoundedCornerShape(GrozzRadiusChip))
-                                .background(GrozzSurface)
-                                .clickable(enabled = !alreadyInWorkout) {
-                                    if (isAddingToExisting) {
-                                        editSelectedIds =
-                                            if (!clicked) {
-                                                editSelectedIds + item.id
-                                            } else {
-                                                editSelectedIds - item.id
-                                            }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .padding(horizontal = 20.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(GrozzRadiusChip))
+                            .background(GrozzSurface)
+                            .clickable(enabled = !alreadyInWorkout) {
+                                if (isAddingToExisting) {
+                                    editSelectedIds = if (!clicked) {
+                                        editSelectedIds + item.id
                                     } else {
-                                        if (!clicked) {
-                                            createWorkoutViewModel?.addExercise(item.id)
-                                        } else {
-                                            createWorkoutViewModel?.removeExercise(item.id)
-                                        }
+                                        editSelectedIds - item.id
                                     }
-                                }.border(
-                                    width =
-                                        when {
-                                            alreadyInWorkout -> 1.dp
-                                            clicked -> 2.dp
-                                            else -> 0.dp
-                                        },
-                                    color =
-                                        when {
-                                            alreadyInWorkout -> Color.White.copy(alpha = 0.2f)
-                                            clicked -> GrozzYellow
-                                            else -> Color.Transparent
-                                        },
-                                    shape = RoundedCornerShape(12.dp),
-                                ),
-                        verticalAlignment = Alignment.CenterVertically,
+                                } else {
+                                    if (!clicked) {
+                                        createWorkoutViewModel?.addExercise(item.id)
+                                    } else {
+                                        createWorkoutViewModel?.removeExercise(item.id)
+                                    }
+                                }
+                            }
+                            .border(
+                                width = when {
+                                    alreadyInWorkout -> 1.dp
+                                    clicked -> 2.dp
+                                    else -> 0.dp
+                                },
+                                color = when {
+                                    alreadyInWorkout -> Color.White.copy(alpha = 0.2f)
+                                    clicked -> GrozzYellow
+                                    else -> Color.Transparent
+                                },
+                                shape = RoundedCornerShape(12.dp)
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
                             modifier = Modifier.width(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = "${index + 1}",
                                 color = Color.White.copy(alpha = 0.6f),
                                 fontFamily = Lexend,
-                                fontSize = 12.sp,
+                                fontSize = 12.sp
                             )
                         }
 
@@ -322,29 +309,29 @@ fun ChooseExercises(
                                 color = Color.White,
                                 fontFamily = Lexend,
                                 fontSize = 16.sp,
-                                maxLines = 1,
+                                maxLines = 1
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = "${item.bodyPart} • ${item.equipment}",
                                 color = GrozzYellow,
                                 fontFamily = Lexend,
-                                fontSize = 12.sp,
+                                fontSize = 12.sp
                             )
                         }
 
                         IconButton(
                             onClick = {
-                                activityInsideViewModel.selectCatalog(item)
+                                activityInsideViewModel._selectedCatalog.value = item
                                 navController.navigate("activityinside")
                             },
-                            modifier = Modifier.padding(end = 8.dp),
+                            modifier = Modifier.padding(end = 8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = "Info",
                                 modifier = Modifier.size(25.dp),
-                                tint = Color.White,
+                                tint = Color.White
                             )
                         }
                     }
@@ -360,30 +347,29 @@ fun FilterDropdownCreateWorkout(
     expanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
     items: List<String>,
-    onItemSelected: (String) -> Unit,
+    onItemSelected: (String) -> Unit
 ) {
     Box {
         Button(
             onClick = { onExpandChange(true) },
-            modifier =
-                Modifier
-                    .border(1.dp, GrozzYellow, RoundedCornerShape(8.dp))
-                    .width(130.dp)
-                    .height(40.dp),
+            modifier = Modifier
+                .border(1.dp, GrozzYellow, RoundedCornerShape(8.dp))
+                .width(130.dp)
+                .height(40.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21282F)),
             shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = text,
                     color = Color.White,
                     fontSize = 14.sp,
-                    fontFamily = Lexend,
+                    fontFamily = Lexend
                 )
                 Icon(Icons.Filled.ArrowDropDown, null, tint = GrozzYellow)
             }
@@ -392,11 +378,10 @@ fun FilterDropdownCreateWorkout(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { onExpandChange(false) },
-            modifier =
-                Modifier
-                    .background(Color(0xFF21282F))
-                    .width(130.dp)
-                    .height(300.dp),
+            modifier = Modifier
+                .background(Color(0xFF21282F))
+                .width(130.dp)
+                .height(300.dp)
         ) {
             items.forEach { item ->
                 DropdownMenuItem(
@@ -404,7 +389,7 @@ fun FilterDropdownCreateWorkout(
                     onClick = {
                         onItemSelected(item)
                         onExpandChange(false)
-                    },
+                    }
                 )
             }
         }
@@ -416,23 +401,21 @@ fun SearchBox(text: MutableState<String>) {
     BasicTextField(
         value = text.value,
         onValueChange = { text.value = it },
-        modifier =
-            Modifier
-                .height(45.dp)
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .background(Color(0xFF21282F), shape = RoundedCornerShape(12.dp)),
-        textStyle =
-            TextStyle(
-                fontSize = 14.sp,
-                fontFamily = Lexend,
-                color = Color.White,
-            ),
+        modifier = Modifier
+            .height(45.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .background(Color(0xFF21282F), shape = RoundedCornerShape(12.dp)),
+        textStyle = TextStyle(
+            fontSize = 14.sp,
+            fontFamily = Lexend,
+            color = Color.White
+        ),
         singleLine = true,
         decorationBox = { innerTextField ->
             Row(
                 modifier = Modifier.padding(horizontal = 15.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFFD9D9D9))
                 Spacer(modifier = Modifier.width(10.dp))
@@ -441,26 +424,25 @@ fun SearchBox(text: MutableState<String>) {
                 }
                 innerTextField()
             }
-        },
+        }
     )
 }
 
 @Composable
 fun HomeTopBarCreateWorkout(navController: NavController) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -469,7 +451,7 @@ fun HomeTopBarCreateWorkout(navController: NavController) {
             color = GrozzOnBackground,
             fontSize = 20.sp,
             fontFamily = Oswald,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
@@ -477,7 +459,7 @@ fun HomeTopBarCreateWorkout(navController: NavController) {
             color = GrozzYellow,
             fontSize = 20.sp,
             fontFamily = Oswald,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.width(48.dp))
@@ -489,20 +471,20 @@ fun ExtendedStartButtonCreateWorkout(onConfirmClick: () -> Unit, totalSelectedEx
     FloatingActionButton(
         onClick = onConfirmClick,
         containerColor = GrozzYellow,
-        shape = RoundedCornerShape(GrozzRadiusPanel),
+        shape = RoundedCornerShape(GrozzRadiusPanel)
     ) {
         if (totalSelectedExercise.toInt() <= 0) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Confirm",
                 tint = Color.Black,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp)
             )
         } else {
             Text(
                 text = totalSelectedExercise,
                 color = Color.Black,
-                fontSize = 20.sp,
+                fontSize = 20.sp
             )
         }
     }

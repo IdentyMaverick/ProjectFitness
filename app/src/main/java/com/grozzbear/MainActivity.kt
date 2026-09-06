@@ -20,11 +20,12 @@ import ui.mainpages.navigation.Navigation
 import ui.mainpages.openscreen.SplashScreen
 
 class MainActivity : ComponentActivity() {
+
     private val db by lazy { DbProvider.get(applicationContext) }
     private val workoutRepository by lazy {
         WorkoutRepository(
             db.workoutDao(),
-            db.exerciseCatalogDao(),
+            db.exerciseCatalogDao()
         )
     }
 
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         actionBar?.hide()

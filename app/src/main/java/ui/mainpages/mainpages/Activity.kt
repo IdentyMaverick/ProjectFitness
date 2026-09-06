@@ -1,8 +1,10 @@
 package ui.mainpages.mainpages
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -77,7 +79,7 @@ fun Activity(
     navController: NavController,
     activityViewModel: ActivityViewModel,
     authViewModel: AuthViewModel,
-    @Suppress("UNUSED_PARAMETER") homesViewModel: HomesViewModel,
+    @Suppress("UNUSED_PARAMETER") homesViewModel: HomesViewModel
 ) {
     val currentUser = FirebaseAuth.getInstance().currentUser?.uid
     val myWorkouts by activityViewModel.myWorkoutsFlow.collectAsState(initial = emptyList())
@@ -97,7 +99,7 @@ fun Activity(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             ActivityTopBar(
-                onMenuClick = { showMenuSheet = true },
+                onMenuClick = { showMenuSheet = true }
             )
         },
         containerColor = GrozzSystemBar,
@@ -108,22 +110,21 @@ fun Activity(
                 flag = false,
                 flag2 = true,
                 flag3 = false,
-                flag4 = false,
+                flag4 = false
             )
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)
         ) {
             item {
                 ActivityHeader(
                     workoutCount = myWorkouts.size,
-                    onCreateClick = { navController.navigate(Screens.CreateWorkout.route) },
+                    onCreateClick = { navController.navigate(Screens.CreateWorkout.route) }
                 )
                 Spacer(modifier = Modifier.height(14.dp))
             }
@@ -131,7 +132,7 @@ fun Activity(
             if (myWorkouts.isEmpty()) {
                 item {
                     ActivityEmptyState(
-                        onCreateClick = { navController.navigate(Screens.CreateWorkout.route) },
+                        onCreateClick = { navController.navigate(Screens.CreateWorkout.route) }
                     )
                 }
             } else {
@@ -143,7 +144,7 @@ fun Activity(
                                 popUpTo(Screens.Activity.route)
                             }
                         },
-                        onLongClick = { selectedWorkoutId = workout.workoutId },
+                        onLongClick = { selectedWorkoutId = workout.workoutId }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -158,10 +159,11 @@ fun Activity(
             onDeleteClick = {
                 val id = selectedWorkoutId
                 if (id != null) {
+                    Log.d("Delete", "Silinecek ID: $id")
                     activityViewModel.deleteWorkouts(id)
                 }
                 selectedWorkoutId = null
-            },
+            }
         )
     }
 
@@ -169,19 +171,18 @@ fun Activity(
         ModalBottomSheet(
             onDismissRequest = { showMenuSheet = false },
             sheetState = menuSheetState,
-            containerColor = GrozzSurface,
+            containerColor = GrozzSurface
         ) {
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp, bottom = 40.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp, bottom = 40.dp)
             ) {
                 Text(
                     text = "Menu",
                     style = MaterialTheme.typography.titleLarge,
                     color = GrozzOnBackground,
-                    modifier = Modifier.padding(horizontal = 24.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 MenuItemRow(
@@ -190,7 +191,7 @@ fun Activity(
                     onClick = {
                         showMenuSheet = false
                         navController.navigate(Screens.Home.Profile.route)
-                    },
+                    }
                 )
                 MenuItemRow(
                     iconRes = R.drawable.settings,
@@ -198,12 +199,12 @@ fun Activity(
                     onClick = {
                         showMenuSheet = false
                         navController.navigate(Screens.HomesSettings.route)
-                    },
+                    }
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
                     thickness = 0.5.dp,
-                    color = GrozzTextSecondary.copy(alpha = 0.25f),
+                    color = GrozzTextSecondary.copy(alpha = 0.25f)
                 )
                 MenuItemRow(
                     iconRes = R.drawable.logouticon128,
@@ -213,7 +214,7 @@ fun Activity(
                         showMenuSheet = false
                         authViewModel.logout()
                         navController.navigateToLoginAfterLogout()
-                    },
+                    }
                 )
             }
         }
@@ -223,19 +224,18 @@ fun Activity(
 @Composable
 private fun ActivityTopBar(onMenuClick: () -> Unit) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onMenuClick) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
                 contentDescription = "Menu",
                 modifier = Modifier.size(26.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
 
@@ -251,12 +251,15 @@ private fun ActivityTopBar(onMenuClick: () -> Unit) {
 }
 
 @Composable
-private fun ActivityHeader(workoutCount: Int, onCreateClick: () -> Unit) {
+private fun ActivityHeader(
+    workoutCount: Int,
+    onCreateClick: () -> Unit
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HorizontalDivider(
             thickness = 2.dp,
             color = GrozzYellow,
-            modifier = Modifier.width(28.dp),
+            modifier = Modifier.width(28.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -265,7 +268,7 @@ private fun ActivityHeader(workoutCount: Int, onCreateClick: () -> Unit) {
                 fontFamily = Oswald,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = GrozzOnBackground,
+                color = GrozzOnBackground
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -273,26 +276,25 @@ private fun ActivityHeader(workoutCount: Int, onCreateClick: () -> Unit) {
                 fontFamily = Oswald,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = GrozzYellow,
+                color = GrozzYellow
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text =
-                if (workoutCount == 0) {
-                    "Build plans you can reuse anytime."
-                } else {
-                    "$workoutCount custom ${if (workoutCount == 1) "plan" else "plans"}"
-                },
+            text = if (workoutCount == 0) {
+                "Build plans you can reuse anytime."
+            } else {
+                "$workoutCount custom ${if (workoutCount == 1) "plan" else "plans"}"
+            },
             style = MaterialTheme.typography.bodySmall,
-            color = GrozzTextSecondary,
+            color = GrozzTextSecondary
         )
         if (workoutCount > 0) {
             Spacer(modifier = Modifier.height(12.dp))
             GrozzPrimaryButton(
                 text = "Create workout",
                 onClick = onCreateClick,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -301,23 +303,22 @@ private fun ActivityHeader(workoutCount: Int, onCreateClick: () -> Unit) {
 @Composable
 private fun ActivityEmptyState(onCreateClick: () -> Unit) {
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 32.dp, bottom = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 32.dp, bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             painter = painterResource(R.drawable.dumbbell),
             contentDescription = null,
             tint = GrozzMuted,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier.size(64.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "No workouts yet",
             style = MaterialTheme.typography.titleLarge,
-            color = GrozzOnBackground,
+            color = GrozzOnBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -325,44 +326,46 @@ private fun ActivityEmptyState(onCreateClick: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = GrozzTextSecondary,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 12.dp),
+            modifier = Modifier.padding(horizontal = 12.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
         GrozzPrimaryButton(
             text = "Create workout",
             onClick = onCreateClick,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun MyWorkoutCard(workout: WorkoutEntity, onClick: () -> Unit, onLongClick: () -> Unit) {
+private fun MyWorkoutCard(
+    workout: WorkoutEntity,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
     GrozzPhotoCard(
         painter = safeWorkoutPainter(workout.image),
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(88.dp)
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick,
-                ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(88.dp)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(14.dp),
-            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = workoutTypeLabel(workout.workoutType).uppercase(),
                 color = GrozzYellow,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
-                fontFamily = Lexend,
+                fontFamily = Lexend
             )
             Text(
                 text = workout.workoutName,
@@ -371,7 +374,7 @@ private fun MyWorkoutCard(workout: WorkoutEntity, onClick: () -> Unit, onLongCli
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -379,56 +382,57 @@ private fun MyWorkoutCard(workout: WorkoutEntity, onClick: () -> Unit, onLongCli
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LongClickModalBottom(sheetState: SheetState, onDismiss: () -> Unit, onDeleteClick: () -> Unit) {
+fun LongClickModalBottom(
+    sheetState: SheetState,
+    onDismiss: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = GrozzSurface,
+        containerColor = GrozzSurface
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-                    .padding(bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+                .padding(bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "Remove workout",
                 style = MaterialTheme.typography.titleLarge,
-                color = GrozzOnBackground,
+                color = GrozzOnBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "This deletes the plan from your library.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = GrozzTextSecondary,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = onDeleteClick,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = GrozzError,
-                        contentColor = GrozzOnBackground,
-                    ),
-                shape = RoundedCornerShape(GrozzRadiusButton),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GrozzError,
+                    contentColor = GrozzOnBackground
+                ),
+                shape = RoundedCornerShape(GrozzRadiusButton)
             ) {
                 Text(
                     text = "Delete",
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Long-press a workout anytime to remove it.",
                 style = MaterialTheme.typography.bodySmall,
-                color = GrozzTextSecondary.copy(alpha = 0.7f),
+                color = GrozzTextSecondary.copy(alpha = 0.7f)
             )
         }
     }

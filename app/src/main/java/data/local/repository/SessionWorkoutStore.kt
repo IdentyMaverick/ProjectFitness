@@ -31,18 +31,24 @@ import kotlinx.coroutines.withContext
 class SessionWorkoutStore internal constructor(
     private val dao: WorkoutDao,
     private val firestore: FirebaseFirestore,
-    private val fs: WorkoutFirestore,
+    private val fs: WorkoutFirestore
 ) {
     fun observeHistoricalWorkouts() = dao.observeWorkoutHistory()
 
-    fun observeHistoricalWorkoutExercise(sessionId: String) = dao.observeWorkoutHistoryExerciseList(sessionId)
+    fun observeHistoricalWorkoutExercise(sessionId: String) =
+        dao.observeWorkoutHistoryExerciseList(sessionId)
 
     fun observeWorkoutHistoryFull(sessionId: String) =
         dao.observeWorkoutHistoryFull(sessionId).map { it.sortedByExerciseOrder() }
 
-    fun observeWorkoutHistoryOther(uid: String): Flow<List<WorkoutHistoryFull>> = dao.observeWorkoutHistoryOther(uid)
+    fun observeWorkoutHistoryOther(uid: String): Flow<List<WorkoutHistoryFull>> {
+        return dao.observeWorkoutHistoryOther(uid)
+    }
 
-    suspend fun fetchOtherUserWorkoutDetails(userId: String, sessionId: String): WorkoutHistoryFull? {
+    suspend fun fetchOtherUserWorkoutDetails(
+        userId: String,
+        sessionId: String
+    ): WorkoutHistoryFull? {
         return withContext(Dispatchers.IO) {
             try {
                 val workoutRef = fs.historyRef(userId, sessionId)
@@ -52,17 +58,14 @@ class SessionWorkoutStore internal constructor(
                     historyDoc.toObject(WorkoutHistoryEntity::class.java) ?: return@withContext null
 
                 val exercisesSnap = workoutRef.collection(FirestorePaths.EXERCISES).get().await()
-                val exerciseList =
-                    exercisesSnap
-                        .map { exDoc ->
-                            val exLog = exDoc.toObject(ExerciseLogEntity::class.java)
-                            val setsSnap = fs.loadSetDocuments(exDoc.reference)
-                            val sets =
-                                setsSnap
-                                    .toObjects(SetLogEntity::class.java)
-                                    .sortedBy { it.setIndex }
-                            ExerciseLogWithSets(exLog, sets)
-                        }.sortedBy { it.exerciseLog.setOrder }
+                val exerciseList = exercisesSnap.map { exDoc ->
+                    val exLog = exDoc.toObject(ExerciseLogEntity::class.java)
+                    val setsSnap = fs.loadSetDocuments(exDoc.reference)
+                    val sets = setsSnap.toObjects(SetLogEntity::class.java)
+                        .sortedBy { it.setIndex }
+                    Log.d("whfullin", sets.toString())
+                    ExerciseLogWithSets(exLog, sets)
+                }.sortedBy { it.exerciseLog.setOrder }
 
                 WorkoutHistoryFull(history, exerciseList)
             } catch (e: Exception) {
@@ -72,7 +75,10 @@ class SessionWorkoutStore internal constructor(
         }
     }
 
-    suspend fun startHistoricalWorkout(workoutName: String, workoutId: String): String {
+    suspend fun startHistoricalWorkout(
+        workoutName: String,
+        workoutId: String
+    ): String {
         val newSessionId = UUID.randomUUID().toString()
         dao.insertHistoricalWorkout(
             WorkoutHistoryEntity(
@@ -82,8 +88,8 @@ class SessionWorkoutStore internal constructor(
                 dateTimestamp = System.currentTimeMillis(),
                 totalDuration = 0,
                 syncState = false,
-                isCompleted = false,
-            ),
+                isCompleted = false
+            )
         )
         return newSessionId
     }
@@ -97,20 +103,22 @@ class SessionWorkoutStore internal constructor(
         exerciseName: String,
         bodyPart: String,
         secondaryMuscles: List<String>,
-        setOrder: Int = 0,
-    ): Long = dao.insertHistoricalExercise(
-        ExerciseLogEntity(
-            sessionOwnerId = sessionId,
-            exerciseName = exerciseName,
-            weight = 0.0,
-            reps = 0,
-            setOrder = setOrder,
-            log = "",
-            imageUrl = "",
-            bodyPart = bodyPart,
-            secondaryMuscles = secondaryMuscles,
-        ),
-    )
+        setOrder: Int = 0
+    ): Long {
+        return dao.insertHistoricalExercise(
+            ExerciseLogEntity(
+                sessionOwnerId = sessionId,
+                exerciseName = exerciseName,
+                weight = 0.0,
+                reps = 0,
+                setOrder = setOrder,
+                log = "",
+                imageUrl = "",
+                bodyPart = bodyPart,
+                secondaryMuscles = secondaryMuscles
+            )
+        )
+    }
 
     suspend fun updateExerciseLogOrder(logId: Long, setOrder: Int) {
         dao.updateExerciseLogOrder(logId, setOrder)
@@ -122,26 +130,36 @@ class SessionWorkoutStore internal constructor(
         reps: Int,
         weight: Float,
         setIndex: Int,
-        clicked: Boolean = false,
-    ): Long = dao.insertHistoricalSet(
-        SetLogEntity(
-            logOwnerId = logOwnerId,
-            reps = reps,
-            weight = weight,
-            log = "",
-            setIndex = setIndex,
-            setId = setId,
-            clicked = clicked,
-        ),
-    )
+        clicked: Boolean = false
+    ): Long {
+        return dao.insertHistoricalSet(
+            SetLogEntity(
+                logOwnerId = logOwnerId,
+                reps = reps,
+                weight = weight,
+                log = "",
+                setIndex = setIndex,
+                setId = setId,
+                clicked = clicked
+            )
+        )
+    }
 
-    suspend fun deleteHistoricalSet(setLog: SetLogEntity): Int = dao.deleteHistoricalSet(setLog)
+    suspend fun deleteHistoricalSet(setLog: SetLogEntity): Int {
+        return dao.deleteHistoricalSet(setLog)
+    }
 
-    suspend fun finishWorkout(sessionId: String, dateTimestamp: Long, duration: Long, isCompleted: Boolean) {
+    suspend fun finishWorkout(
+        sessionId: String,
+        dateTimestamp: Long,
+        duration: Long,
+        isCompleted: Boolean
+    ) {
         dao.completeWorkout(sessionId, dateTimestamp, duration, false, isCompleted)
     }
 
-    suspend fun observeHistoricalExercise(exerciseId: String) = dao.observeHistoricalExercise(exerciseId)
+    suspend fun observeHistoricalExercise(exerciseId: String) =
+        dao.observeHistoricalExercise(exerciseId)
 
     suspend fun updateExerciseNote(logId: Long, log: String) {
         dao.updateExerciseNote(logId, log)
@@ -171,43 +189,39 @@ class SessionWorkoutStore internal constructor(
 
                 historyFull.exerciseWithSets.forEach { exerciseWith ->
                     val exerciseLog = exerciseWith.exerciseLog
-                    val exerciseRef =
-                        workoutRef
-                            .collection(FirestorePaths.EXERCISES)
-                            .document(exerciseLog.logId.toString())
+                    val exerciseRef = workoutRef.collection(FirestorePaths.EXERCISES)
+                        .document(exerciseLog.logId.toString())
 
                     batch.set(exerciseRef, exerciseLog)
 
                     exerciseWith.setLogs.sortedBy { it.setIndex }.forEach { setLog ->
-                        val setRef =
-                            exerciseRef
-                                .collection(FirestorePaths.SETS)
-                                .document(setLog.setId.toString())
+                        val setRef = exerciseRef.collection(FirestorePaths.SETS)
+                            .document(setLog.setId.toString())
                         batch.set(setRef, setLog)
                     }
                 }
 
+                Log.d("Firebase", "Gönderiliyor...")
                 batch.commit().await()
+                Log.d("Firebase Success", "Antrenman başarıyla Firebase'e kaydedildi!")
             } catch (e: Exception) {
-                Log.e("FirebaseError", "Hata: ${e.localizedMessage}")
+                Log.e("Firebase Errorer", "Hata: ${e.localizedMessage}")
             }
         }
     }
 
-    fun observeUserWorkoutHistory(nickname: String): Flow<List<WorkoutHistoryEntity>> = callbackFlow {
-        if (nickname.isBlank()) {
-            trySend(emptyList())
-            awaitClose { }
-            return@callbackFlow
-        }
-        var workoutsListener: ListenerRegistration? = null
-        val userQuery =
-            firestore
-                .collection(FirestorePaths.USERS)
+    fun observeUserWorkoutHistory(nickname: String): Flow<List<WorkoutHistoryEntity>> =
+        callbackFlow {
+            if (nickname.isBlank()) {
+                trySend(emptyList())
+                awaitClose { }
+                return@callbackFlow
+            }
+            var workoutsListener: ListenerRegistration? = null
+            val userQuery = firestore.collection(FirestorePaths.USERS)
                 .whereEqualTo("nickname", nickname)
 
-        val userListener =
-            userQuery.addSnapshotListener { userSnapshot, userError ->
+            val userListener = userQuery.addSnapshotListener { userSnapshot, userError ->
                 if (userError != null) {
                     Log.e("Firebase", "Kullanıcı sorgulama hatası: ${userError.message}")
                     close(userError)
@@ -219,37 +233,37 @@ class SessionWorkoutStore internal constructor(
 
                 val userId = userSnapshot?.documents?.firstOrNull()?.id
                 if (userId != null) {
-                    workoutsListener =
-                        fs
-                            .historyCol(userId)
-                            .orderBy("dateTimestamp", Query.Direction.DESCENDING)
-                            .addSnapshotListener { workoutSnapshot, workoutError ->
-                                if (workoutError != null) {
-                                    Log.e("Firebase", "Antrenman çekme hatası: ${workoutError.message}")
-                                    return@addSnapshotListener
-                                }
-                                val history =
-                                    workoutSnapshot?.toObjects(WorkoutHistoryEntity::class.java)
-                                        ?: emptyList()
-                                trySend(history)
+                    workoutsListener = fs.historyCol(userId)
+                        .orderBy("dateTimestamp", Query.Direction.DESCENDING)
+                        .addSnapshotListener { workoutSnapshot, workoutError ->
+                            if (workoutError != null) {
+                                Log.e("Firebase", "Antrenman çekme hatası: ${workoutError.message}")
+                                return@addSnapshotListener
                             }
+                            val history =
+                                workoutSnapshot?.toObjects(WorkoutHistoryEntity::class.java)
+                                    ?: emptyList()
+                            trySend(history)
+                        }
                 } else {
                     trySend(emptyList())
                 }
             }
 
-        awaitClose {
-            workoutsListener?.remove()
-            userListener.remove()
+            awaitClose {
+                workoutsListener?.remove()
+                userListener.remove()
+            }
         }
-    }
 
-    suspend fun getUserTotalWorkoutNumber(userId: String): Long = try {
-        val query = fs.historyCol(userId).count()
-        val snapshot = query.get(AggregateSource.SERVER).await()
-        snapshot.count
-    } catch (e: Exception) {
-        0L
+    suspend fun getUserTotalWorkoutNumber(userId: String): Long {
+        return try {
+            val query = fs.historyCol(userId).count()
+            val snapshot = query.get(AggregateSource.SERVER).await()
+            snapshot.count
+        } catch (e: Exception) {
+            0L
+        }
     }
 
     suspend fun getTotalLiftedWeight(userId: String): Long {
@@ -259,11 +273,10 @@ class SessionWorkoutStore internal constructor(
             val workoutsSnapshot = fs.historyCol(userId).get().await()
 
             for (workoutDoc in workoutsSnapshot.documents) {
-                val exercisesSnapshot =
-                    workoutDoc.reference
-                        .collection(FirestorePaths.EXERCISES)
-                        .get()
-                        .await()
+                val exercisesSnapshot = workoutDoc.reference
+                    .collection(FirestorePaths.EXERCISES)
+                    .get()
+                    .await()
 
                 for (exerciseDoc in exercisesSnapshot.documents) {
                     val setSnapshot = fs.loadSetDocuments(exerciseDoc.reference)
@@ -282,18 +295,22 @@ class SessionWorkoutStore internal constructor(
         return totalWeight.toLong()
     }
 
-    suspend fun getTotalSpentTime(userId: String): Long = try {
-        val querySnapshot = fs.historyCol(userId).get().await()
-        querySnapshot.documents.sumOf { document ->
-            val seconds = document.getLong("totalDuration") ?: 0L
-            seconds / 60
+    suspend fun getTotalSpentTime(userId: String): Long {
+        return try {
+            val querySnapshot = fs.historyCol(userId).get().await()
+            querySnapshot.documents.sumOf { document ->
+                val seconds = document.getLong("totalDuration") ?: 0L
+                seconds / 60
+            }
+        } catch (e: Exception) {
+            Log.e("FirebaseStats", "Dakika hesaplama hatası: ${e.message}")
+            0L
         }
-    } catch (e: Exception) {
-        Log.e("FirebaseStats", "Dakika hesaplama hatası: ${e.message}")
-        0L
     }
 
-    suspend fun checkWorkoutExists(sessionId: String): WorkoutHistoryEntity? = dao.getWorkoutByIdDirect(sessionId)
+    suspend fun checkWorkoutExists(sessionId: String): WorkoutHistoryEntity? {
+        return dao.getWorkoutByIdDirect(sessionId)
+    }
 
     suspend fun insertFullHistory(historyFull: WorkoutHistoryFull) {
         withContext(Dispatchers.IO) {
@@ -314,6 +331,6 @@ class SessionWorkoutStore internal constructor(
     }
 
     private fun WorkoutHistoryFull.sortedByExerciseOrder() = copy(
-        exerciseWithSets = exerciseWithSets.sortedBy { it.exerciseLog.setOrder },
+        exerciseWithSets = exerciseWithSets.sortedBy { it.exerciseLog.setOrder }
     )
 }

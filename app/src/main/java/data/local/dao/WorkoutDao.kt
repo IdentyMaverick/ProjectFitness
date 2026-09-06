@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutDao {
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkout(workout: WorkoutEntity)
 
@@ -52,15 +53,13 @@ interface WorkoutDao {
     @Delete
     suspend fun deleteHistoricalSet(set: SetLogEntity): Int
 
-    @Query(
-        "UPDATE workout_history SET dateTimestamp = :dateTimestamp, totalDuration = :duration, syncState = :isSynced, isCompleted = :isCompleted WHERE sessionId = :id",
-    )
+    @Query("UPDATE workout_history SET dateTimestamp = :dateTimestamp, totalDuration = :duration, syncState = :isSynced, isCompleted = :isCompleted WHERE sessionId = :id")
     suspend fun completeWorkout(
         id: String,
         dateTimestamp: Long,
         duration: Long,
         isSynced: Boolean = false,
-        isCompleted: Boolean,
+        isCompleted: Boolean
     )
 
     @Query("UPDATE exercise_logs SET log = :log WHERE logId = :logId")
@@ -149,7 +148,7 @@ interface WorkoutDao {
         """
         SELECT MAX(orderIndex) FROM exercise
         WHERE workoutOwnerId = :workoutId
-        """,
+        """
     )
     suspend fun getMaxOrderIndex(workoutId: String): Int?
 
@@ -158,7 +157,7 @@ interface WorkoutDao {
         UPDATE exercise
         SET orderIndex = :orderIndex
         WHERE exerciseId = :exerciseId
-        """,
+        """
     )
     suspend fun updateExerciseOrder(exerciseId: String, orderIndex: Int)
 
@@ -166,7 +165,7 @@ interface WorkoutDao {
         """
         SELECT MAX(setIndex) FROM exercise_set
         WHERE exerciseOwnerId = :exerciseId
-        """,
+        """
     )
     suspend fun getMaxOfExerciseSet(exerciseId: String): Int?
 
@@ -175,7 +174,7 @@ interface WorkoutDao {
         UPDATE workout_history
         SET totalDuration = :duration
         WHERE sessionID = :sessionId
-        """,
+        """
     )
     suspend fun updateSessionDuration(sessionId: String, duration: Long)
 

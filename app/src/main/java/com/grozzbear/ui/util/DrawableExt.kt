@@ -17,7 +17,7 @@ import com.grozzbear.R
 @DrawableRes
 fun Context.safeWorkoutImageRes(
     storedId: Int,
-    @DrawableRes fallback: Int = R.drawable.infohorizontalscreensecondphoto,
+    @DrawableRes fallback: Int = R.drawable.infohorizontalscreensecondphoto
 ): Int {
     if (storedId == 0) return fallback
     return try {
@@ -32,7 +32,7 @@ fun Context.safeWorkoutImageRes(
 @Composable
 fun rememberSafeWorkoutImageRes(
     storedId: Int,
-    @DrawableRes fallback: Int = R.drawable.infohorizontalscreensecondphoto,
+    @DrawableRes fallback: Int = R.drawable.infohorizontalscreensecondphoto
 ): Int {
     val context = LocalContext.current
     return remember(storedId, fallback) {
@@ -41,5 +41,7 @@ fun rememberSafeWorkoutImageRes(
 }
 
 @Composable
-fun safeWorkoutPainter(storedId: Int, @DrawableRes fallback: Int = R.drawable.infohorizontalscreensecondphoto) =
-    painterResource(id = rememberSafeWorkoutImageRes(storedId, fallback))
+fun safeWorkoutPainter(
+    storedId: Int,
+    @DrawableRes fallback: Int = R.drawable.infohorizontalscreensecondphoto
+) = painterResource(id = rememberSafeWorkoutImageRes(storedId, fallback))

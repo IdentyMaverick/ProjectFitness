@@ -68,8 +68,8 @@ import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
 import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.GrozzTopBarLogo
 import com.grozzbear.ui.components.IntPickerColumn
-import com.grozzbear.ui.components.WEIGHT_FRACTION_OPTIONS
-import com.grozzbear.ui.components.WEIGHT_WHOLE_KG_RANGE
+import com.grozzbear.ui.components.WeightFractionOptions
+import com.grozzbear.ui.components.WeightWholeKgRange
 import com.grozzbear.ui.components.combineWeightKg
 import com.grozzbear.ui.components.formatWeightKg
 import com.grozzbear.ui.components.splitWeightKg
@@ -97,7 +97,7 @@ import viewmodel.ViewModelSave
 fun WorkoutSettingScreen(
     navController: NavController,
     viewModelSave: ViewModelSave,
-    workoutSettingViewModel: WorkoutSettingViewModel,
+    workoutSettingViewModel: WorkoutSettingViewModel
 ) {
     val lazyListState = rememberLazyListState()
     val selectedWorkout by workoutSettingViewModel.workoutFlow.collectAsState(null)
@@ -112,7 +112,7 @@ fun WorkoutSettingScreen(
         topBar = {
             HomeTopBarWorkoutSettingScreen(
                 workoutImageRes = image,
-                navController = navController,
+                navController = navController
             )
         },
         containerColor = GrozzSystemBar,
@@ -123,19 +123,18 @@ fun WorkoutSettingScreen(
                 }
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             when (val workout = selectedWorkout) {
                 null -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = GrozzYellow)
                     }
@@ -143,10 +142,9 @@ fun WorkoutSettingScreen(
 
                 else -> {
                     Column(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 10.dp)
                     ) {
                         Text(
                             text = workout.workout.workoutName,
@@ -155,14 +153,14 @@ fun WorkoutSettingScreen(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp,
                             maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         WorkoutTag(
                             text = workoutTypeLabel(workout.workout.workoutType),
                             icon = R.drawable.dumbbellicon128,
                             textColor = GrozzYellow,
-                            iconColor = GrozzYellow,
+                            iconColor = GrozzYellow
                         )
                         Spacer(modifier = Modifier.height(14.dp))
                         Box(
@@ -170,69 +168,66 @@ fun WorkoutSettingScreen(
                                 .width(40.dp)
                                 .height(3.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(GrozzYellow),
+                                .background(GrozzYellow)
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = counted(workout.exercises.size, "exercise"),
                             color = GrozzTextSecondary,
                             style = MaterialTheme.typography.bodySmall,
-                            fontFamily = Lexend,
+                            fontFamily = Lexend
                         )
                     }
 
                     if (workout.exercises.isEmpty()) {
                         Column(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 32.dp, vertical = 40.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 32.dp, vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = "No exercises yet",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = GrozzOnBackground,
-                                fontFamily = Lexend,
+                                fontFamily = Lexend
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Add movements to this workout before you start.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = GrozzTextSecondary,
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             GrozzPrimaryButton(
                                 text = "Add exercises",
                                 onClick = {
                                     navController.navigate(
-                                        Screens.ChooseExercises.createRoute(workout.workout.workoutId),
+                                        Screens.ChooseExercises.createRoute(workout.workout.workoutId)
                                     )
                                 },
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     } else {
                         LazyColumn(
                             state = lazyListState,
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
                             contentPadding = PaddingValues(bottom = 24.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             val orderedWorkoutList = workout.exercises.sortedBy { it.exercise.orderIndex }
                             itemsIndexed(
                                 items = orderedWorkoutList,
-                                key = { _, item -> item.exercise.exerciseId },
+                                key = { _, item -> item.exercise.exerciseId }
                             ) { index, item ->
                                 Box(
-                                    modifier =
-                                        Modifier
-                                            .animateItem()
-                                            .padding(vertical = 2.dp),
+                                    modifier = Modifier
+                                        .animateItem()
+                                        .padding(vertical = 2.dp)
                                 ) {
                                     ExerciseExpandableCardWorkoutSettingScreen(
                                         exerciseDraft = item.exercise,
@@ -247,7 +242,7 @@ fun WorkoutSettingScreen(
                                         onAddSetClick = {
                                             workoutSettingViewModel.addSet(
                                                 UUID.randomUUID().toString(),
-                                                item.exercise.exerciseId,
+                                                item.exercise.exerciseId
                                             )
                                         },
                                         canMoveUp = index > 0,
@@ -260,9 +255,9 @@ fun WorkoutSettingScreen(
                                         },
                                         onRemove = {
                                             workoutSettingViewModel.removeExercise(
-                                                exerciseId = item.exercise.exerciseId,
+                                                exerciseId = item.exercise.exerciseId
                                             )
-                                        },
+                                        }
                                     )
                                 }
                             }
@@ -272,10 +267,10 @@ fun WorkoutSettingScreen(
                                     text = "Add exercises",
                                     onClick = {
                                         navController.navigate(
-                                            Screens.ChooseExercises.createRoute(workout.workout.workoutId),
+                                            Screens.ChooseExercises.createRoute(workout.workout.workoutId)
                                         )
                                     },
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
@@ -288,7 +283,7 @@ fun WorkoutSettingScreen(
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState,
-                containerColor = GrozzSurface,
+                containerColor = GrozzSurface
             ) {
                 EditSetBottomSheetContent(
                     set = editingSet!!,
@@ -297,14 +292,14 @@ fun WorkoutSettingScreen(
                             editingSet!!.setId,
                             editingSet!!.exerciseOwnerId,
                             updatedReps,
-                            updatedWeight,
+                            updatedWeight
                         )
                         showBottomSheet = false
                     },
                     onDelete = {
                         workoutSettingViewModel.deleteSet(editingSet!!)
                         showBottomSheet = false
-                    },
+                    }
                 )
             }
         }
@@ -323,34 +318,34 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
     canMoveDown: Boolean,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    onRemove: () -> Unit,
+    onRemove: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(GrozzRadiusChip))
-                .background(GrozzSurface)
-                .combinedClickable(
-                    onClick = { expanded = !expanded },
-                    onLongClick = { },
-                ).animateContentSize()
-                .padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(GrozzRadiusChip))
+            .background(GrozzSurface)
+            .combinedClickable(
+                onClick = { expanded = !expanded },
+                onLongClick = { }
+            )
+            .animateContentSize()
+            .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
                     .size(44.dp)
                     .background(GrozzYellow, RoundedCornerShape(10.dp)),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painterResource(R.drawable.dumbbellicon128),
                     contentDescription = null,
                     tint = GrozzOnPrimary,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp)
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
@@ -361,7 +356,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                     style = MaterialTheme.typography.titleMedium,
                     fontFamily = Lexend,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -369,62 +364,61 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                     color = GrozzYellow,
                     style = MaterialTheme.typography.labelMedium,
                     fontFamily = Lexend,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
                 if (!expanded && exerciseSet.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = counted(exerciseSet.size, "set"),
                         color = GrozzMuted,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
             }
             IconButton(
                 onClick = onMoveUp,
                 enabled = canMoveUp,
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowUp,
                     contentDescription = "Move up",
                     tint = if (canMoveUp) GrozzYellow else GrozzMuted,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp)
                 )
             }
             IconButton(
                 onClick = onMoveDown,
                 enabled = canMoveDown,
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Move down",
                     tint = if (canMoveDown) GrozzYellow else GrozzMuted,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp)
                 )
             }
             IconButton(
                 onClick = onRemove,
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.terminate),
                     contentDescription = "Remove exercise",
                     tint = GrozzError,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(20.dp)
                 )
             }
             Icon(
-                imageVector =
-                    if (expanded) {
-                        Icons.Default.KeyboardArrowUp
-                    } else {
-                        Icons.Default.KeyboardArrowDown
-                    },
+                imageVector = if (expanded) {
+                    Icons.Default.KeyboardArrowUp
+                } else {
+                    Icons.Default.KeyboardArrowDown
+                },
                 contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = GrozzYellow,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -434,14 +428,14 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .padding(bottom = 8.dp)
                 ) {
                     Text(
                         "SET",
                         color = GrozzMuted,
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = Lexend,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     Text(
                         "KG",
@@ -449,7 +443,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = Lexend,
                         modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Center
                     )
                     Text(
                         "REPS",
@@ -457,7 +451,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = Lexend,
                         modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Center
                     )
                     Text(
                         "ACTION",
@@ -465,7 +459,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = Lexend,
                         modifier = Modifier.weight(1.5f),
-                        textAlign = TextAlign.End,
+                        textAlign = TextAlign.End
                     )
                 }
 
@@ -474,7 +468,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                         text = "No sets yet. Add one below.",
                         color = GrozzTextSecondary,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 } else {
                     exerciseSet.forEachIndexed { index, set ->
@@ -482,14 +476,14 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                             Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 String.format("%02d", index + 1),
                                 color = GrozzOnBackground,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f)
                             )
                             Text(
                                 formatWeightKg(set.weight),
@@ -497,7 +491,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 "${set.reps}",
@@ -505,31 +499,29 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
 
                             Row(
                                 modifier = Modifier.weight(1.5f),
-                                horizontalArrangement = Arrangement.End,
+                                horizontalArrangement = Arrangement.End
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.editnote),
                                     contentDescription = "Edit",
                                     tint = GrozzYellow,
-                                    modifier =
-                                        Modifier
-                                            .size(22.dp)
-                                            .clickable { onEditClick(set) },
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clickable { onEditClick(set) }
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Icon(
                                     painter = painterResource(R.drawable.closeicon128),
                                     contentDescription = "Delete",
                                     tint = GrozzError,
-                                    modifier =
-                                        Modifier
-                                            .size(22.dp)
-                                            .clickable { onDeleteSetClick(set) },
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clickable { onDeleteSetClick(set) }
                                 )
                             }
                         }
@@ -539,19 +531,18 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     onClick = onAddSetClick,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .border(1.dp, GrozzYellow, RoundedCornerShape(GrozzRadiusChip)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .border(1.dp, GrozzYellow, RoundedCornerShape(GrozzRadiusChip)),
                     shape = RoundedCornerShape(GrozzRadiusChip),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
                     Text(
                         "Add set",
                         color = GrozzYellow,
                         style = MaterialTheme.typography.labelLarge,
-                        fontFamily = Lexend,
+                        fontFamily = Lexend
                     )
                 }
             }
@@ -560,30 +551,32 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
 }
 
 @Composable
-fun EditSetBottomSheetContent(set: SetEntity, onSave: (Int, Double) -> Unit, onDelete: () -> Unit) {
-    val (initialWhole, initialFraction) =
-        remember(set.setId, set.weight) {
-            splitWeightKg(set.weight)
-        }
+fun EditSetBottomSheetContent(
+    set: SetEntity,
+    onSave: (Int, Double) -> Unit,
+    onDelete: () -> Unit
+) {
+    val (initialWhole, initialFraction) = remember(set.setId, set.weight) {
+        splitWeightKg(set.weight)
+    }
     var reps by remember(set.setId, set.reps) { mutableIntStateOf(set.reps) }
     var wholeKg by remember(set.setId, set.weight) { mutableIntStateOf(initialWhole) }
     var fractionIndex by remember(set.setId, set.weight) { mutableIntStateOf(initialFraction) }
     val previewWeight = combineWeightKg(wholeKg, fractionIndex)
 
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 8.dp)
-                .padding(bottom = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(bottom = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Edit set",
             color = GrozzOnBackground,
             style = MaterialTheme.typography.titleLarge,
-            fontFamily = Lexend,
+            fontFamily = Lexend
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -591,38 +584,38 @@ fun EditSetBottomSheetContent(set: SetEntity, onSave: (Int, Double) -> Unit, onD
             color = GrozzYellow,
             fontSize = 16.sp,
             fontFamily = Lexend,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         ) {
             IntPickerColumn(
                 label = "KG",
                 value = wholeKg,
-                range = WEIGHT_WHOLE_KG_RANGE,
-                onValueChange = { wholeKg = it },
+                range = WeightWholeKgRange,
+                onValueChange = { wholeKg = it }
             )
             Spacer(modifier = Modifier.width(8.dp))
             IntPickerColumn(
                 label = "+",
                 value = fractionIndex,
-                range = WEIGHT_FRACTION_OPTIONS.indices,
+                range = WeightFractionOptions.indices,
                 labelForValue = { index ->
-                    val f = WEIGHT_FRACTION_OPTIONS[index]
+                    val f = WeightFractionOptions[index]
                     if (f == 0f) "0" else f.toString()
                 },
-                onValueChange = { fractionIndex = it },
+                onValueChange = { fractionIndex = it }
             )
             Spacer(modifier = Modifier.width(32.dp))
             IntPickerColumn(
                 label = "REPS",
                 value = reps,
                 range = 0..100,
-                onValueChange = { reps = it },
+                onValueChange = { reps = it }
             )
         }
 
@@ -631,7 +624,7 @@ fun EditSetBottomSheetContent(set: SetEntity, onSave: (Int, Double) -> Unit, onD
         GrozzPrimaryButton(
             text = "Save",
             onClick = { onSave(reps, combineWeightKg(wholeKg, fractionIndex).toDouble()) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
@@ -639,56 +632,54 @@ fun EditSetBottomSheetContent(set: SetEntity, onSave: (Int, Double) -> Unit, onD
             color = GrozzError,
             style = MaterialTheme.typography.labelLarge,
             fontFamily = Lexend,
-            modifier =
-                Modifier
-                    .clickable(onClick = onDelete)
-                    .padding(8.dp),
+            modifier = Modifier
+                .clickable(onClick = onDelete)
+                .padding(8.dp)
         )
     }
 }
 
 @Composable
-private fun HomeTopBarWorkoutSettingScreen(workoutImageRes: Int, navController: NavController) {
+private fun HomeTopBarWorkoutSettingScreen(
+    workoutImageRes: Int,
+    navController: NavController
+) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .height(72.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .height(72.dp)
     ) {
         Image(
             painter = safeWorkoutPainter(workoutImageRes),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.matchParentSize(),
+            modifier = Modifier.matchParentSize()
         )
         Box(
-            modifier =
-                Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    GrozzSystemBar.copy(alpha = 0.55f),
-                                    GrozzSystemBar.copy(alpha = 0.85f),
-                                ),
-                        ),
-                    ),
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            GrozzSystemBar.copy(alpha = 0.55f),
+                            GrozzSystemBar.copy(alpha = 0.85f)
+                        )
+                    )
+                )
         )
         Row(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     painter = painterResource(R.drawable.left),
                     contentDescription = "Back",
                     tint = GrozzOnBackground,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(24.dp)
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -702,17 +693,16 @@ private fun HomeTopBarWorkoutSettingScreen(workoutImageRes: Int, navController: 
 @Composable
 fun FixedStartButton(onClick: () -> Unit) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(GrozzSystemBar)
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(GrozzSystemBar)
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         GrozzPrimaryButton(
             text = "Start workout",
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

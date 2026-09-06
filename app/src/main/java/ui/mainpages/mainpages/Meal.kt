@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.grozzbear.R
@@ -44,6 +46,7 @@ import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
 import ui.mainpages.navigation.NavigationBar
 import ui.mainpages.navigation.Screens
 import ui.mainpages.navigation.navigateToLoginAfterLogout
@@ -68,51 +71,47 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
                 flag = false,
                 flag2 = false,
                 flag3 = false,
-                flag4 = true,
+                flag4 = true
             )
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             Image(
                 painter = painterResource(R.drawable.mealscreenbackgroundphoto),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize()
             )
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        GrozzSystemBar.copy(alpha = 0.55f),
-                                        GrozzSystemBar.copy(alpha = 0.88f),
-                                    ),
-                            ),
-                        ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                GrozzSystemBar.copy(alpha = 0.55f),
+                                GrozzSystemBar.copy(alpha = 0.88f)
+                            )
+                        )
+                    )
             )
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 24.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                verticalArrangement = Arrangement.Center
             ) {
                 GrozzComingSoonPanel(
                     title = "Nutrition",
                     accentTitle = "Module",
                     message = "Personalized meal plans and macro tracking powered by AI.",
                     eyebrow = "Phase 2 launch",
-                    footer = "Soon",
+                    footer = "Soon"
                 )
             }
         }
@@ -121,19 +120,18 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
             ModalBottomSheet(
                 onDismissRequest = { showMenuSheet = false },
                 sheetState = menuSheetState,
-                containerColor = GrozzSurface,
+                containerColor = GrozzSurface
             ) {
                 Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp, bottom = 40.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 40.dp)
                 ) {
                     Text(
                         text = "Menu",
                         style = MaterialTheme.typography.titleLarge,
                         color = GrozzOnBackground,
-                        modifier = Modifier.padding(horizontal = 24.dp),
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     MenuItemRow(
@@ -142,7 +140,7 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
                         onClick = {
                             showMenuSheet = false
                             navController.navigate(Screens.Home.Profile.route)
-                        },
+                        }
                     )
                     MenuItemRow(
                         iconRes = R.drawable.settings,
@@ -150,12 +148,12 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
                         onClick = {
                             showMenuSheet = false
                             navController.navigate(Screens.HomesSettings.route)
-                        },
+                        }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 8.dp),
                         thickness = 0.5.dp,
-                        color = GrozzBorder,
+                        color = GrozzBorder
                     )
                     MenuItemRow(
                         iconRes = R.drawable.logouticon128,
@@ -165,7 +163,7 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
                             showMenuSheet = false
                             authViewModel.logout()
                             navController.navigateToLoginAfterLogout()
-                        },
+                        }
                     )
                 }
             }
@@ -176,19 +174,18 @@ fun Meal(navController: NavController, authViewModel: AuthViewModel) {
 @Composable
 private fun MealTopBar(onMenuClick: () -> Unit) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onMenuClick) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
                 contentDescription = "Menu",
                 modifier = Modifier.size(26.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
         Spacer(modifier = Modifier.weight(1f))

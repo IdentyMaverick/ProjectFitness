@@ -5,15 +5,14 @@ import androidx.room.Room
 
 object DbProvider {
     @Volatile
-    private var instance: ProjectFitnessDb? = null
+    private var INSTANCE: ProjectFitnessDb? = null
 
-    fun get(context: Context): ProjectFitnessDb = instance ?: synchronized(this) {
-        instance ?: Room
-            .databaseBuilder(
+    fun get(context: Context): ProjectFitnessDb =
+        INSTANCE ?: synchronized(this) {
+            INSTANCE ?: Room.databaseBuilder(
                 context.applicationContext,
                 ProjectFitnessDb::class.java,
-                "project_fitness.db",
-            ).build()
-            .also { instance = it }
-    }
+                "project_fitness.db"
+            ).build().also { INSTANCE = it }
+        }
 }

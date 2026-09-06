@@ -5,9 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.grozzbear.projectfitness.data.local.entity.ExerciseCatalogEntity
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class ViewModelSave : ViewModel() {
+
     // -----------------------------
     // Create Workout
     // -----------------------------
@@ -104,10 +107,20 @@ class ViewModelSave : ViewModel() {
     // -----------------------------
     var alertDialogSpecificExerciseName = mutableStateOf("")
     var pastExerciseVolume = mutableStateOf("")
+    val _exerciseCatalogEntity = MutableStateFlow<ExerciseCatalogEntity>(ExerciseCatalogEntity())
 
     fun updateSelectedItemName(newName: String) {
         selectedItemName.value = newName
     }
+
+    /**
+     * ✅ Challenge details ekranında çağır:
+     * repo.getChallengeWithExercises(challengeId) Flow'unu collect eder ve
+     * selectedChallengeWithExercises state'ini günceller.
+     *
+     * Kullanım:
+     * viewModelSave.CollectSelectedChallenge(repo)
+     */
 
     @Composable
     fun RestTimer() {

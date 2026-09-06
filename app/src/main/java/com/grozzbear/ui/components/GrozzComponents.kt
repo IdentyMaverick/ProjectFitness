@@ -65,7 +65,7 @@ fun GrozzTopBarLogo(modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(R.drawable.grozzlogo),
         contentDescription = "Grozz",
-        modifier = modifier.size(GrozzTopBarLogoSize),
+        modifier = modifier.size(GrozzTopBarLogoSize)
     )
 }
 
@@ -74,58 +74,56 @@ fun GrozzPhotoCard(
     painter: Painter,
     modifier: Modifier = Modifier,
     hero: Boolean = false,
-    content: @Composable BoxScope.() -> Unit,
+    content: @Composable BoxScope.() -> Unit
 ) {
     Box(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(GrozzRadiusPhoto))
-                .background(GrozzSurface),
+        modifier = modifier
+            .clip(RoundedCornerShape(GrozzRadiusPhoto))
+            .background(GrozzSurface)
     ) {
         Image(
             painter = painter,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         )
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        if (hero) {
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        Color.Black.copy(alpha = 0.15f),
-                                        Color.Black.copy(alpha = 0.85f),
-                                    ),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    if (hero) {
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.15f),
+                                Color.Black.copy(alpha = 0.85f)
                             )
-                        } else {
-                            Brush.verticalGradient(
-                                colors =
-                                    listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.88f),
-                                    ),
-                                startY = 40f,
-                            )
-                        },
-                    ),
+                        )
+                    } else {
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.88f)
+                            ),
+                            startY = 40f
+                        )
+                    }
+                )
         )
         content()
     }
 }
 
 @Composable
-fun GrozzPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun GrozzPanel(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
     Column(
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(GrozzRadiusPanel))
-                .background(GrozzSurface)
-                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel)),
-        content = content,
+        modifier = modifier
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
+            .background(GrozzSurface)
+            .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel)),
+        content = content
     )
 }
 
@@ -135,32 +133,31 @@ fun GrozzPrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    loading: Boolean = false,
+    loading: Boolean = false
 ) {
     Button(
         onClick = onClick,
         enabled = enabled && !loading,
         modifier = modifier.height(48.dp),
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = GrozzYellow,
-                contentColor = GrozzOnPrimary,
-                disabledContainerColor = GrozzYellow.copy(alpha = 0.5f),
-                disabledContentColor = GrozzOnPrimary.copy(alpha = 0.7f),
-            ),
-        shape = RoundedCornerShape(GrozzRadiusButton),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = GrozzYellow,
+            contentColor = GrozzOnPrimary,
+            disabledContainerColor = GrozzYellow.copy(alpha = 0.5f),
+            disabledContentColor = GrozzOnPrimary.copy(alpha = 0.7f)
+        ),
+        shape = RoundedCornerShape(GrozzRadiusButton)
     ) {
         if (loading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(20.dp),
                 color = GrozzOnPrimary,
-                strokeWidth = 2.dp,
+                strokeWidth = 2.dp
             )
         } else {
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
-                color = GrozzOnPrimary,
+                color = GrozzOnPrimary
             )
         }
     }
@@ -179,45 +176,42 @@ fun GrozzTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     singleLine: Boolean = true,
     maxLength: Int = 35,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = { if (it.length <= maxLength) onValueChange(it) },
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         enabled = enabled,
         placeholder = {
             Text(
                 text = placeholder,
                 color = GrozzMuted,
-                fontFamily = Lexend,
+                fontFamily = Lexend
             )
         },
-        textStyle =
-            TextStyle(
-                color = GrozzOnBackground,
-                fontSize = 16.sp,
-                fontFamily = Lexend,
-            ),
+        textStyle = TextStyle(
+            color = GrozzOnBackground,
+            fontSize = 16.sp,
+            fontFamily = Lexend
+        ),
         singleLine = singleLine,
         shape = RoundedCornerShape(GrozzRadiusChip),
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
-        colors =
-            OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = GrozzSurface,
-                unfocusedContainerColor = GrozzSurface,
-                disabledContainerColor = GrozzSurface,
-                focusedBorderColor = GrozzMuted,
-                unfocusedBorderColor = GrozzBorder,
-                disabledBorderColor = GrozzBorder,
-                cursorColor = GrozzYellow,
-                focusedTextColor = GrozzOnBackground,
-                unfocusedTextColor = GrozzOnBackground,
-            ),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = GrozzSurface,
+            unfocusedContainerColor = GrozzSurface,
+            disabledContainerColor = GrozzSurface,
+            focusedBorderColor = GrozzMuted,
+            unfocusedBorderColor = GrozzBorder,
+            disabledBorderColor = GrozzBorder,
+            cursorColor = GrozzYellow,
+            focusedTextColor = GrozzOnBackground,
+            unfocusedTextColor = GrozzOnBackground
+        )
     )
 }
 
@@ -232,32 +226,30 @@ fun GrozzComingSoonPanel(
     modifier: Modifier = Modifier,
     eyebrow: String? = null,
     accentTitle: String? = null,
-    footer: String? = null,
+    footer: String? = null
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(GrozzRadiusPanel))
-                .background(GrozzSurface)
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
+            .background(GrozzSurface)
+            .padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         if (eyebrow != null) {
             Box(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(GrozzYellow.copy(alpha = 0.25f))
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(GrozzYellow.copy(alpha = 0.25f))
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = eyebrow.uppercase(),
                     style = MaterialTheme.typography.labelMedium,
                     color = GrozzYellow,
-                    fontFamily = Lexend,
+                    fontFamily = Lexend
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
@@ -269,7 +261,7 @@ fun GrozzComingSoonPanel(
             fontWeight = FontWeight.SemiBold,
             fontSize = 20.sp,
             color = GrozzOnBackground,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
         if (accentTitle != null) {
             Text(
@@ -278,7 +270,7 @@ fun GrozzComingSoonPanel(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
                 color = GrozzYellow,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
 
@@ -287,7 +279,7 @@ fun GrozzComingSoonPanel(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = GrozzTextSecondary,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
 
         if (footer != null) {
@@ -298,7 +290,7 @@ fun GrozzComingSoonPanel(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = GrozzYellow,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
     }

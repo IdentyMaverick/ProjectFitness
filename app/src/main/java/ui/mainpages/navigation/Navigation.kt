@@ -6,6 +6,7 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -129,6 +130,7 @@ import ui.mainpages.mainpages.Meal
 import ui.mainpages.openscreen.InfoHorizontalScreen
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
+import viewmodel.ProjectFitnessViewModel
 import viewmodel.SocialViewModel
 import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
@@ -153,41 +155,40 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     val authRepository = remember { AuthRepository() }
 
     val viewModel: ViewModelSave = viewModel()
+    val projectFitnessViewModel: ProjectFitnessViewModel = viewModel()
     val viewModelProfile: ViewModelProfile = viewModel()
     val chooseExercisesViewModel: ChooseExercisesViewModel = viewModel()
 
-    val coreFactory =
-        remember {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser,
-                userRepository = userRepository,
-                firestoreRepository = firestoreRepository,
-                storageRepository = storageRepository,
-                workoutinRepository = workoutinRepository,
-                authRepository = authRepository,
-            )
-        }
+    val coreFactory = remember {
+        WorkoutViewModelFactory(
+            repository = workoutRepository,
+            auth = currentUser,
+            userRepository = userRepository,
+            firestoreRepository = firestoreRepository,
+            storageRepository = storageRepository,
+            workoutinRepository = workoutinRepository,
+            authRepository = authRepository
+        )
+    }
     val authViewModel: AuthViewModel = viewModel(factory = coreFactory)
     val profileViewModel: ProfileViewModel = viewModel(factory = coreFactory)
     val socialViewModel: SocialViewModel = viewModel(factory = coreFactory)
     val workoutinModel: WorkoutinViewModel = viewModel(factory = coreFactory)
     val activityInsideViewModel: ActivityInsideViewModel = viewModel(factory = coreFactory)
 
-    val featureFactory =
-        remember(authViewModel, profileViewModel) {
-            WorkoutViewModelFactory(
-                repository = workoutRepository,
-                auth = currentUser,
-                userRepository = userRepository,
-                profileViewModel = profileViewModel,
-                authViewModel = authViewModel,
-                firestoreRepository = firestoreRepository,
-                storageRepository = storageRepository,
-                workoutinRepository = workoutinRepository,
-                authRepository = authRepository,
-            )
-        }
+    val featureFactory = remember(authViewModel, profileViewModel) {
+        WorkoutViewModelFactory(
+            repository = workoutRepository,
+            auth = currentUser,
+            userRepository = userRepository,
+            profileViewModel = profileViewModel,
+            authViewModel = authViewModel,
+            firestoreRepository = firestoreRepository,
+            storageRepository = storageRepository,
+            workoutinRepository = workoutinRepository,
+            authRepository = authRepository
+        )
+    }
     val faqcontactfeedbackScreenViewModel: FaqcontactfeedbackScreenViewModel =
         viewModel(factory = featureFactory)
     val personalInformationsScreenViewModel: PersonalInformationsScreenViewModel =
@@ -203,19 +204,18 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     val leaderboardViewModel: LeaderboardViewModel = viewModel(factory = featureFactory)
     val workoutSettingViewModel: WorkoutSettingViewModel = viewModel(factory = featureFactory)
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(GrozzSystemBar),
-    ) {
+        modifier = Modifier
+            .fillMaxSize()
+            .background(GrozzSystemBar)
+    )
+    {
         NavHost(
             navController = navController,
-            startDestination =
-                when {
-                    !isBoardingCompleted -> Screens.InfoHorizontalScreen.route
-                    !isUserLoggedIn -> Screens.LoginScreen.route
-                    else -> Screens.Home.route
-                },
+            startDestination = when {
+                !isBoardingCompleted -> Screens.InfoHorizontalScreen.route
+                !isUserLoggedIn -> Screens.LoginScreen.route
+                else -> Screens.Home.route
+            },
             enterTransition = {
                 slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn()
             },
@@ -224,81 +224,81 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             },
             popEnterTransition = {
                 slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn()
+
             },
             popExitTransition = {
                 slideOutHorizontally(targetOffsetX = { 1000 }) + fadeOut()
-            },
+            }
         ) {
+
             navigation(
                 route = "create_workout_graph",
-                startDestination = Screens.CreateWorkout.route,
+                startDestination = Screens.CreateWorkout.route
             ) {
+
                 composable(
                     Screens.CreateWorkout.route,
                     enterTransition = {
                         slideInHorizontally(
                             initialOffsetX = { 1000 },
-                            animationSpec =
-                                spring(
-                                    dampingRatio = Spring.DampingRatioLowBouncy,
-                                    stiffness = Spring.StiffnessLow,
-                                ),
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
                         ) + fadeIn() + scaleIn(initialScale = 0.95f)
                     },
                     exitTransition = {
                         slideOutHorizontally(
                             targetOffsetX = { 1000 },
-                            animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                         ) + fadeOut() + scaleOut(targetScale = 0.95f)
                     },
                     popEnterTransition = {
+
                         slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                     },
                     popExitTransition = {
+
                         slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                    },
+                    }
                 ) { backStackEntry ->
 
-                    val parentEntry =
-                        remember(backStackEntry) {
-                            navController.getBackStackEntry("create_workout_graph")
-                        }
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("create_workout_graph")
+                    }
 
-                    val createWorkoutViewModel: CreateWorkoutViewModel =
-                        viewModel(
-                            parentEntry,
-                            factory = featureFactory,
-                        )
+                    val createWorkoutViewModel: CreateWorkoutViewModel = viewModel(
+                        parentEntry,
+                        factory = featureFactory
+                    )
 
                     CreateWorkout(
                         navController = navController,
                         createWorkoutViewModel = createWorkoutViewModel,
-                        chooseExercisesViewModel = chooseExercisesViewModel,
+                        chooseExercisesViewModel = chooseExercisesViewModel
                     )
                 }
 
                 composable(
                     Screens.LeaderBoard.route,
                     enterTransition = { fadeIn(animationSpec = tween(400)) },
-                    exitTransition = { fadeOut(animationSpec = tween(400)) },
+                    exitTransition = { fadeOut(animationSpec = tween(400)) }
                 ) { backStackEntry ->
 
-                    val parentEntry =
-                        remember(backStackEntry) {
-                            navController.getBackStackEntry("create_workout_graph")
-                        }
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("create_workout_graph")
+                    }
 
-                    val leaderboardViewModel: LeaderboardViewModel =
-                        viewModel(
-                            parentEntry,
-                            factory = featureFactory,
-                        )
+                    val leaderboardViewModel: LeaderboardViewModel = viewModel(
+                        parentEntry,
+                        factory = featureFactory
+                    )
 
                     LeaderBoard(
                         navController = navController,
                         authViewModel = authViewModel,
                         leaderboardViewModel = leaderboardViewModel,
-                        profileViewModel = profileViewModel,
+                        profileViewModel = profileViewModel
                     )
                 }
             }
@@ -307,29 +307,33 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 HomesSettings(
                     navController = navController,
-                    authViewModel = authViewModel,
+                    viewModel,
+                    projectFitnessViewModel,
+                    viewModelProfile,
+                    authViewModel
                 )
             }
             composable(route = Screens.InfoHorizontalScreen.route) {
@@ -347,27 +351,30 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             composable(
                 route = Screens.Home.route,
                 enterTransition = { fadeIn(animationSpec = tween(400)) },
-                exitTransition = { fadeOut(animationSpec = tween(400)) },
+                exitTransition = { fadeOut(animationSpec = tween(400)) }
+
             ) {
                 Home(
                     navController = navController,
+                    viewModel,
+                    projectFitnessViewModel,
                     viewModelProfile = viewModelProfile,
                     authViewModel = authViewModel,
                     homesViewModel = homesViewModel,
                     socialViewModel = socialViewModel,
-                    workoutSettingViewModel = workoutSettingViewModel,
+                    workoutSettingViewModel = workoutSettingViewModel
                 )
             }
             composable(
                 route = Screens.Activity.route,
                 enterTransition = { fadeIn(animationSpec = tween(400)) },
-                exitTransition = { fadeOut(animationSpec = tween(400)) },
+                exitTransition = { fadeOut(animationSpec = tween(400)) }
             ) {
                 Activity(
                     navController = navController,
                     activityViewModel = activityViewModel,
                     authViewModel = authViewModel,
-                    homesViewModel = homesViewModel,
+                    homesViewModel = homesViewModel
                 )
             }
             composable(
@@ -375,25 +382,26 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 Profile(
                     navController = navController,
@@ -402,80 +410,78 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     authViewModel = authViewModel,
                     profileViewModel = profileViewModel,
                     workoutScreenCompleteScreenViewModel = workoutCompleteScreenViewModel,
-                    oldWorkoutDetailsViewModel = oldWorkoutDetailsViewModel,
+                    oldWorkoutDetailsViewModel = oldWorkoutDetailsViewModel
                 )
             }
             composable(
-                route = Screens.WorkoutSettingScreen.ROUTE_WITH_ARG,
+                route = Screens.WorkoutSettingScreen.routeWithArg,
                 arguments = listOf(navArgument("workoutId") { type = NavType.StringType }),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) { backStackEntry ->
                 val workoutId = backStackEntry.arguments?.getString("workoutId").toString()
 
-                val workoutSettingViewModel: WorkoutSettingViewModel =
-                    viewModel(
-                        key = "WorkoutSettingViewModel_$workoutId",
-                        factory =
-                            remember {
-                                object : androidx.lifecycle.ViewModelProvider.Factory {
-                                    @Suppress("UNCHECKED_CAST")
-                                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
-                                        WorkoutSettingViewModel(workoutRepository, workoutId) as T
-                                }
-                            },
-                    )
+                val workoutSettingViewModel: WorkoutSettingViewModel = viewModel(
+                    key = "WorkoutSettingViewModel_$workoutId",
+                    factory = remember {
+                        object : androidx.lifecycle.ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                                return WorkoutSettingViewModel(workoutRepository, workoutId) as T
+                            }
+                        }
+                    }
+                )
 
                 WorkoutSettingScreen(
                     navController = navController,
                     viewModelSave = viewModel,
-                    workoutSettingViewModel = workoutSettingViewModel,
+                    workoutSettingViewModel = workoutSettingViewModel
                 )
             }
 
             composable(
                 route = Screens.ChooseExercises.route,
-                arguments =
-                    listOf(
-                        navArgument(Screens.ChooseExercises.ARG_WORKOUT_ID) {
-                            type = NavType.StringType
-                            defaultValue = Screens.ChooseExercises.MODE_CREATE
-                        },
-                    ),
+                arguments = listOf(
+                    navArgument(Screens.ChooseExercises.ARG_WORKOUT_ID) {
+                        type = NavType.StringType
+                        defaultValue = Screens.ChooseExercises.MODE_CREATE
+                    }
+                ),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
@@ -483,41 +489,38 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 },
                 popExitTransition = {
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) { backStackEntry ->
-                val workoutIdArg =
-                    backStackEntry.arguments
-                        ?.getString(Screens.ChooseExercises.ARG_WORKOUT_ID)
+                val workoutIdArg = backStackEntry.arguments
+                    ?.getString(Screens.ChooseExercises.ARG_WORKOUT_ID)
                 val isEdit = Screens.ChooseExercises.isEditMode(workoutIdArg)
                 val isHistory = Screens.ChooseExercises.isHistoryMode(workoutIdArg)
 
-                val createWorkoutViewModel: CreateWorkoutViewModel? =
-                    if (!isEdit && !isHistory) {
-                        val parentEntry =
-                            remember(backStackEntry) {
-                                runCatching { navController.getBackStackEntry("create_workout_graph") }
-                                    .getOrNull()
-                            }
-                        viewModel(
-                            parentEntry ?: backStackEntry,
-                            factory = featureFactory,
-                        )
-                    } else {
-                        null
+                val createWorkoutViewModel: CreateWorkoutViewModel? = if (!isEdit && !isHistory) {
+                    val parentEntry = remember(backStackEntry) {
+                        runCatching { navController.getBackStackEntry("create_workout_graph") }
+                            .getOrNull()
                     }
+                    viewModel(
+                        parentEntry ?: backStackEntry,
+                        factory = featureFactory
+                    )
+                } else {
+                    null
+                }
 
                 val workoutSettingViewModel: WorkoutSettingViewModel? =
                     if (isEdit && !workoutIdArg.isNullOrBlank()) {
                         viewModel(
                             key = "WorkoutSettingViewModel_$workoutIdArg",
-                            factory =
-                                remember(workoutIdArg) {
-                                    object : androidx.lifecycle.ViewModelProvider.Factory {
-                                        @Suppress("UNCHECKED_CAST")
-                                        override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
-                                            WorkoutSettingViewModel(workoutRepository, workoutIdArg) as T
+                            factory = remember(workoutIdArg) {
+                                object : androidx.lifecycle.ViewModelProvider.Factory {
+                                    @Suppress("UNCHECKED_CAST")
+                                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                                        return WorkoutSettingViewModel(workoutRepository, workoutIdArg) as T
                                     }
-                                },
+                                }
+                            }
                         )
                     } else {
                         null
@@ -531,60 +534,61 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     workoutSettingViewModel = workoutSettingViewModel,
                     oldWorkoutDetailsViewModel = if (isHistory) oldWorkoutDetailsViewModel else null,
                     activityInsideViewModel = activityInsideViewModel,
-                    targetWorkoutId = workoutIdArg,
+                    targetWorkoutId = workoutIdArg
                 )
             }
 
             composable(
-                route = Screens.WorkoutLog.ROUTE_WITH_ARG,
+                route = Screens.WorkoutLog.routeWithArg,
                 arguments = listOf(navArgument("workoutId") { type = NavType.StringType }),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
-            ) { backStackEntry ->
+                }
+            )
+            { backStackEntry ->
                 val workoutId = backStackEntry.arguments?.getString("workoutId").toString()
 
-                val workoutLogViewModel: WorkoutLogViewModel =
-                    viewModel(
-                        key = "WorkoutLogViewModel_$workoutId",
-                        factory =
-                            remember {
-                                object : androidx.lifecycle.ViewModelProvider.Factory {
-                                    @Suppress("UNCHECKED_CAST")
-                                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T =
-                                        WorkoutLogViewModel(
-                                            workoutRepository,
-                                            workoutId,
-                                            workoutCompleteScreenViewModel,
-                                            workoutCompleteAnalysisScreenViewModel,
-                                        ) as T
-                                }
-                            },
-                    )
+                val workoutLogViewModel: WorkoutLogViewModel = viewModel(
+                    key = "WorkoutLogViewModel_$workoutId",
+                    factory = remember {
+                        object : androidx.lifecycle.ViewModelProvider.Factory {
+                            @Suppress("UNCHECKED_CAST")
+                            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                                return WorkoutLogViewModel(
+                                    workoutRepository,
+                                    workoutId,
+                                    workoutCompleteScreenViewModel,
+                                    workoutCompleteAnalysisScreenViewModel
+                                ) as T
+                            }
+                        }
+                    }
+                )
 
                 WorkoutLog(
                     navController = navController,
                     workoutLogViewModel = workoutLogViewModel,
-                    workoutCompleteScreenViewModel,
+                    workoutCompleteScreenViewModel
                 )
             }
             composable(
@@ -592,36 +596,38 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 PersonalInformationsScreen(
                     navController = navController,
-                    personalInformationsScreenViewModel = personalInformationsScreenViewModel,
+                    personalInformationsScreenViewModel = personalInformationsScreenViewModel
                 )
             }
             composable(
                 route = Screens.Meal.route,
                 enterTransition = { fadeIn(animationSpec = tween(400)) },
-                exitTransition = { fadeOut(animationSpec = tween(400)) },
-            ) {
+                exitTransition = { fadeOut(animationSpec = tween(400)) }
+            )
+            {
                 Meal(navController = navController, authViewModel = authViewModel)
             }
             composable(
@@ -629,31 +635,33 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
+
                 WorkoutCompleteScreen(
                     navController = navController,
                     workoutCompleteScreenViewModel = workoutCompleteScreenViewModel,
                     workoutCompleteAnalysisScreenViewModel,
-                    leaderboardViewModel,
+                    leaderboardViewModel
                 )
             }
             composable(
@@ -662,32 +670,34 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
-            ) {
+                }
+            )
+            {
                 val listOwnerNickname = it.arguments?.getString("nickname").orEmpty()
                 ProjectFollowersScreen(
                     navController = navController,
                     socialViewModel = socialViewModel,
                     authViewModel = authViewModel,
-                    listOwnerNickname = listOwnerNickname,
+                    listOwnerNickname = listOwnerNickname
                 )
             }
             composable(
@@ -696,32 +706,34 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
-            ) {
+                }
+            )
+            {
                 val listOwnerNickname = it.arguments?.getString("nickname").orEmpty()
                 ProjectFollowScreen(
                     navController = navController,
                     socialViewModel = socialViewModel,
                     authViewModel = authViewModel,
-                    listOwnerNickname = listOwnerNickname,
+                    listOwnerNickname = listOwnerNickname
                 )
             }
             composable(
@@ -729,17 +741,16 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
@@ -747,50 +758,50 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 },
                 popExitTransition = {
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 FindUsersScreen(
                     navController = navController,
                     socialViewModel = socialViewModel,
-                    authViewModel = authViewModel,
+                    authViewModel = authViewModel
                 )
             }
             composable(
                 route = Screens.AllWorkouts.route,
-                arguments =
-                    listOf(
-                        navArgument(Screens.AllWorkouts.ARG_FILTER) { type = NavType.StringType },
-                    ),
+                arguments = listOf(
+                    navArgument(Screens.AllWorkouts.ARG_FILTER) { type = NavType.StringType }
+                ),
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
-            ) {
-                val filter =
-                    it.arguments?.getString(Screens.AllWorkouts.ARG_FILTER)
-                        ?: Screens.AllWorkouts.FILTER_ALL
+                }
+            )
+            {
+                val filter = it.arguments?.getString(Screens.AllWorkouts.ARG_FILTER)
+                    ?: Screens.AllWorkouts.FILTER_ALL
                 AllWorkouts(
                     navController = navController,
                     homesViewModel = homesViewModel,
-                    filter = filter,
+                    filter = filter
                 )
             }
             composable(
@@ -799,36 +810,40 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 val nickname = it.arguments?.getString("nickname")
                 if (nickname != null) {
+                    Log.d("live?", nickname)
                     OtherScreenProfile(
                         navController = navController,
                         socialViewModel,
                         nickname,
                         profileViewModel,
                         oldWorkoutDetailsViewModel,
-                        authViewModel,
+                        authViewModel
                     )
+                } else {
+                    Log.d("seeees", "looool")
                 }
             }
             composable(
@@ -836,29 +851,30 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 WorkoutCompleteAnalysisScreen(
                     navController = navController,
-                    workoutCompleteAnalysisScreenViewModel,
+                    workoutCompleteAnalysisScreenViewModel
                 )
             }
             composable(
@@ -866,29 +882,30 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 FaqcontactfeedbackScreen(
                     navController = navController,
-                    faqcontactfeedbackScreenViewModel = faqcontactfeedbackScreenViewModel,
+                    faqcontactfeedbackScreenViewModel = faqcontactfeedbackScreenViewModel
                 )
             }
             composable(
@@ -896,30 +913,31 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 OldWorkoutDetails(
                     navController = navController,
                     oldWorkoutDetailsViewModel = oldWorkoutDetailsViewModel,
-                    workoutCompleteScreenViewModel = workoutCompleteScreenViewModel,
+                    workoutCompleteScreenViewModel = workoutCompleteScreenViewModel
                 )
             }
             composable(
@@ -927,25 +945,26 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 NotificationScreen(navController = navController, socialViewModel = socialViewModel)
             }
@@ -954,29 +973,30 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 enterTransition = {
                     slideInHorizontally(
                         initialOffsetX = { 1000 },
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessLow,
-                            ),
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
                     ) + fadeIn() + scaleIn(initialScale = 0.95f)
                 },
                 exitTransition = {
                     slideOutHorizontally(
                         targetOffsetX = { 1000 },
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy)
                     ) + fadeOut() + scaleOut(targetScale = 0.95f)
                 },
                 popEnterTransition = {
+
                     slideInHorizontally(initialOffsetX = { -1000 }) + scaleIn(initialScale = 0.9f) + fadeIn()
                 },
                 popExitTransition = {
+
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                },
+                }
             ) {
                 ActivityInside(
                     navController = navController,
-                    activityInsideViewModel = activityInsideViewModel,
+                    activityInsideViewModel = activityInsideViewModel
                 )
             }
         }
@@ -984,164 +1004,154 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     if (infoDialog.value) {
         Dialog(onDismissRequest = { infoDialog.value = false }) {
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(color = Color.Transparent, shape = RoundedCornerShape(20.dp))
-                        .clickable { infoDialog.value = false },
-                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Transparent, shape = RoundedCornerShape(20.dp))
+                    .clickable { infoDialog.value = false },
+                contentAlignment = Alignment.Center
             ) {
                 AnimatedVisibility(
                     visible = infoDialog.value,
                     enter = fadeIn() + scaleIn(initialScale = 0.8f),
-                    exit = fadeOut() + scaleOut(targetScale = 0.8f),
+                    exit = fadeOut() + scaleOut(targetScale = 0.8f)
                 ) {
                     Box(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .padding(vertical = 200.dp)
-                                .background(color = GrozzSystemBar, shape = RoundedCornerShape(20.dp))
-                                .clickable { infoDialog.value = false },
-                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize().padding(vertical = 200.dp)
+                            .background(color = GrozzSystemBar, shape = RoundedCornerShape(20.dp))
+                            .clickable { infoDialog.value = false },
+                        contentAlignment = Alignment.Center
                     ) {
                         Column(
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(vertical = 20.dp, horizontal = 20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                                .padding(vertical = 20.dp, horizontal = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Image(
                                 painter = painterResource(R.drawable.grozzlogo),
                                 contentDescription = null,
-                                modifier =
-                                    Modifier.size(150.dp).graphicsLayer(
-                                        translationY = -150f,
-                                    ),
+                                modifier = Modifier.size(150.dp).graphicsLayer(
+                                    translationY = -150f
+                                ),
                             )
                         }
                         Column(
-                            modifier =
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(vertical = 20.dp, horizontal = 20.dp)
-                                    .graphicsLayer(
-                                        translationY = 130f,
-                                    ),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                                .padding(vertical = 20.dp, horizontal = 20.dp).graphicsLayer(
+                                    translationY = 130f
+                                ),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
+                                horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
                                     text = "PR",
                                     color = Color.White,
                                     fontFamily = Lexend,
-                                    fontSize = 20.sp,
+                                    fontSize = 20.sp
                                 )
                                 Spacer(modifier = Modifier.width(1.dp))
                                 Text(
                                     text = "RANKINGS",
                                     color = GrozzYellow,
                                     fontFamily = Lexend,
-                                    fontSize = 20.sp,
+                                    fontSize = 20.sp
                                 )
                             }
                             Spacer(modifier = Modifier.height(20.dp))
                             Row(
                                 modifier = Modifier,
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.checkcircleicon128),
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = "Not Verified",
                                     color = Color.White,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Row(
                                 modifier = Modifier,
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.checkcircleicon128),
                                     contentDescription = null,
                                     tint = Color.Yellow,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = "Waiting for Verification Lifting",
                                     color = Color.White,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Row(
                                 modifier = Modifier,
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.checkcircleicon128),
                                     contentDescription = null,
                                     tint = Color.Blue,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = "Verified Lifting",
                                     color = Color.White,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             Spacer(modifier = Modifier.height(50.dp))
                             Row(
                                 modifier = Modifier,
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.arrowuploadprogress128icon),
                                     contentDescription = null,
                                     tint = Color.White,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = "Upload Your PR Lifting for Verification",
                                     color = Color.White,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Row(
                                 modifier = Modifier,
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.videocallfilledicon128),
                                     contentDescription = null,
                                     tint = GrozzYellow,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = "Verified Lifting Video",
                                     color = Color.White,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             Spacer(modifier = Modifier.height(20.dp))
@@ -1149,7 +1159,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 text = "* Verification controls updates every 6 hours.",
                                 color = Color.White,
                                 fontFamily = Lexend,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
@@ -1166,27 +1176,27 @@ fun NavigationBar(
     flag: Boolean,
     flag2: Boolean,
     flag3: Boolean,
-    flag4: Boolean,
+    flag4: Boolean
 ) {
+
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
     // Scaffold already owns layout slots. Disable NavigationBar's default
     // windowInsets and apply navigationBarsPadding once so insets aren't nested.
-    val navItemColors =
-        NavigationBarItemDefaults.colors(
-            indicatorColor = GrozzSystemBar,
-            selectedIconColor = GrozzYellow,
-            unselectedIconColor = GrozzMuted,
-        )
+    val navItemColors = NavigationBarItemDefaults.colors(
+        indicatorColor = GrozzSystemBar,
+        selectedIconColor = GrozzYellow,
+        unselectedIconColor = GrozzMuted
+    )
     NavigationBar(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .background(GrozzSystemBar)
-                .height(64.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .background(GrozzSystemBar)
+            .height(64.dp),
         containerColor = GrozzSystemBar,
-        windowInsets = WindowInsets(0, 0, 0, 0),
+        windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
+
         var flag = flag
         var flag2 = flag2
         var flag3 = flag3
@@ -1224,7 +1234,7 @@ fun NavigationBar(
                             selected = flag,
                             outlinedRes = R.drawable.home,
                             filledRes = R.drawable.home_filled,
-                            contentDescription = "Home",
+                            contentDescription = "Home"
                         )
                     },
                     colors = navItemColors,
@@ -1240,6 +1250,7 @@ fun NavigationBar(
                             flag4 = false
                             navController.navigate(Screens.Activity.route)
                         } else if (indexs == 1) {
+
                         } else if (indexs == 2) {
                             flag = false
                             flag2 = true
@@ -1259,7 +1270,7 @@ fun NavigationBar(
                             selected = flag2,
                             outlinedRes = R.drawable.fitness_outline,
                             filledRes = R.drawable.fitness_filled,
-                            contentDescription = "Activity",
+                            contentDescription = "Activity"
                         )
                     },
                     colors = navItemColors,
@@ -1281,6 +1292,7 @@ fun NavigationBar(
                             flag4 = false
                             navController.navigate(Screens.LeaderBoard.route)
                         } else if (indexs == 2) {
+
                         } else if (indexs == 3) {
                             flag = false
                             flag2 = false
@@ -1294,7 +1306,7 @@ fun NavigationBar(
                             selected = flag3,
                             outlinedRes = R.drawable.leaderboard,
                             filledRes = R.drawable.leaderboard_filled,
-                            contentDescription = "LeaderBoard",
+                            contentDescription = "LeaderBoard"
                         )
                     },
                     colors = navItemColors,
@@ -1322,6 +1334,7 @@ fun NavigationBar(
                             flag3 = false
                             flag4 = true
                         } else if (indexs == 3) {
+
                         }
                     },
                     icon = {
@@ -1329,12 +1342,13 @@ fun NavigationBar(
                             selected = flag4,
                             outlinedRes = R.drawable.meal,
                             filledRes = R.drawable.meal_filled,
-                            contentDescription = "Meal",
+                            contentDescription = "Meal"
                         )
                     },
                     colors = navItemColors,
                 )
             }
+
         }
     }
 }
@@ -1343,71 +1357,63 @@ fun NavigationBar(
 fun NavigationBarLeaderboard(
     navController: NavController,
     indexs: Int,
-    flag: Boolean,
-    flag2: Boolean,
-    flag3: Boolean,
-    flag4: Boolean,
+    flag: Boolean, flag2: Boolean, flag3: Boolean, flag4: Boolean,
     rankInfo: Pair<Int, LeaderboardEntry>? = null,
     leaderboardViewModel: LeaderboardViewModel,
-    infoDialog: (Boolean) -> Unit,
+    infoDialog: (Boolean) -> Unit
 ) {
     val items = listOf("Home", "Activity", "LeaderBoard", "Meal")
     val isUploadProofClicked = remember { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Bottom,
+        verticalArrangement = Arrangement.Bottom
     ) {
         if (rankInfo != null) {
             val (rank, userEntry) = rankInfo
-            val rankColor =
-                when (rank) {
-                    1 -> GrozzYellow
-                    2 -> Color(0xFFC0C0C0)
-                    3 -> Color(0xFF88540B)
-                    else -> GrozzMuted
-                }
-            val statusTint =
-                when (userEntry.verificationStatus) {
-                    "verified" -> Color(0xFF5B9BD5)
-                    "pendent" -> GrozzYellow
-                    else -> GrozzOnBackground
-                }
+            val rankColor = when (rank) {
+                1 -> GrozzYellow
+                2 -> Color(0xFFC0C0C0)
+                3 -> Color(0xFF88540B)
+                else -> GrozzMuted
+            }
+            val statusTint = when (userEntry.verificationStatus) {
+                "verified" -> Color(0xFF5B9BD5)
+                "pendent" -> GrozzYellow
+                else -> GrozzOnBackground
+            }
             val photoModel = userEntry.userPhotoUri.takeIf { it?.isNotBlank() == true } ?: R.drawable.grozzlogo
 
             Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(GrozzSystemBar)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GrozzSystemBar)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(GrozzSurface.copy(alpha = 0.95f))
-                            .border(1.dp, GrozzYellow.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
-                            .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(GrozzSurface.copy(alpha = 0.95f))
+                        .border(1.dp, GrozzYellow.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = rank.toString(),
                         color = rankColor,
                         style = MaterialTheme.typography.titleMedium,
                         fontFamily = Lexend,
-                        modifier = Modifier.width(28.dp),
+                        modifier = Modifier.width(28.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     AsyncImage(
                         model = photoModel,
                         contentDescription = null,
-                        modifier =
-                            Modifier
-                                .size(40.dp)
-                                .clip(CircleShape),
-                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -1419,22 +1425,21 @@ fun NavigationBarLeaderboard(
                                 fontFamily = Lexend,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
+                                modifier = Modifier.weight(1f, fill = false)
                             )
                             if (userEntry.hasPro) {
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Box(
-                                    modifier =
-                                        Modifier
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(GrozzYellow)
-                                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(GrozzYellow)
+                                        .padding(horizontal = 8.dp, vertical = 2.dp)
                                 ) {
                                     Text(
                                         text = "PRO",
                                         color = GrozzOnPrimary,
                                         style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
@@ -1445,7 +1450,7 @@ fun NavigationBarLeaderboard(
                             style = MaterialTheme.typography.bodySmall,
                             fontFamily = Lexend,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -1454,14 +1459,14 @@ fun NavigationBarLeaderboard(
                             text = "${userEntry.weight.toInt()} KG",
                             color = GrozzOnBackground,
                             style = MaterialTheme.typography.titleMedium,
-                            fontFamily = Lexend,
+                            fontFamily = Lexend
                         )
                         Text(
                             text = "1RM",
                             color = GrozzYellow,
                             style = MaterialTheme.typography.labelSmall,
                             fontFamily = Lexend,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                     Spacer(modifier = Modifier.width(10.dp))
@@ -1471,10 +1476,9 @@ fun NavigationBarLeaderboard(
                                 painter = painterResource(R.drawable.checkcircleicon128),
                                 contentDescription = "Verification status",
                                 tint = statusTint,
-                                modifier =
-                                    Modifier
-                                        .size(20.dp)
-                                        .clickable(onClick = { infoDialog(true) }),
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clickable(onClick = { infoDialog(true) })
                             )
                         }
                     }
@@ -1489,32 +1493,31 @@ fun NavigationBarLeaderboard(
                                         uid,
                                         userEntry.exerciseName,
                                         userEntry.weight,
-                                        userEntry.userName,
+                                        userEntry.userName
                                     )
                                 }
                             },
-                            isUploadedClick = { isUploadProofClicked.value = true },
+                            isUploadedClick = { isUploadProofClicked.value = true }
                         )
                     }
                 }
             }
         }
-        val navItemColors =
-            NavigationBarItemDefaults.colors(
-                indicatorColor = GrozzSystemBar,
-                selectedIconColor = GrozzYellow,
-                unselectedIconColor = GrozzMuted,
-            )
+        val navItemColors = NavigationBarItemDefaults.colors(
+            indicatorColor = GrozzSystemBar,
+            selectedIconColor = GrozzYellow,
+            unselectedIconColor = GrozzMuted
+        )
         NavigationBar(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .background(GrozzSystemBar)
-                    .height(64.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .background(GrozzSystemBar)
+                .height(64.dp),
             containerColor = GrozzSystemBar,
-            windowInsets = WindowInsets(0, 0, 0, 0),
+            windowInsets = WindowInsets(0, 0, 0, 0)
         ) {
+
             var flag = flag
             var flag2 = flag2
             var flag3 = flag3
@@ -1552,7 +1555,7 @@ fun NavigationBarLeaderboard(
                                 selected = flag,
                                 outlinedRes = R.drawable.home,
                                 filledRes = R.drawable.home_filled,
-                                contentDescription = "Home",
+                                contentDescription = "Home"
                             )
                         },
                         colors = navItemColors,
@@ -1568,6 +1571,7 @@ fun NavigationBarLeaderboard(
                                 flag4 = false
                                 navController.navigate(Screens.Activity.route)
                             } else if (indexs == 1) {
+
                             } else if (indexs == 2) {
                                 flag = false
                                 flag2 = true
@@ -1587,7 +1591,7 @@ fun NavigationBarLeaderboard(
                                 selected = flag2,
                                 outlinedRes = R.drawable.fitness_outline,
                                 filledRes = R.drawable.fitness_filled,
-                                contentDescription = "Activity",
+                                contentDescription = "Activity"
                             )
                         },
                         colors = navItemColors,
@@ -1609,6 +1613,7 @@ fun NavigationBarLeaderboard(
                                 flag4 = false
                                 navController.navigate(Screens.LeaderBoard.route)
                             } else if (indexs == 2) {
+
                             } else if (indexs == 3) {
                                 flag = false
                                 flag2 = false
@@ -1622,7 +1627,7 @@ fun NavigationBarLeaderboard(
                                 selected = flag3,
                                 outlinedRes = R.drawable.leaderboard,
                                 filledRes = R.drawable.leaderboard_filled,
-                                contentDescription = "LeaderBoard",
+                                contentDescription = "LeaderBoard"
                             )
                         },
                         colors = navItemColors,
@@ -1650,6 +1655,7 @@ fun NavigationBarLeaderboard(
                                 flag3 = false
                                 flag4 = true
                             } else if (indexs == 3) {
+
                             }
                         },
                         icon = {
@@ -1657,7 +1663,7 @@ fun NavigationBarLeaderboard(
                                 selected = flag4,
                                 outlinedRes = R.drawable.meal,
                                 filledRes = R.drawable.meal_filled,
-                                contentDescription = "Meal",
+                                contentDescription = "Meal"
                             )
                         },
                         colors = navItemColors,
@@ -1669,49 +1675,49 @@ fun NavigationBarLeaderboard(
 }
 
 @Composable
-private fun GrozzBottomNavIcon(selected: Boolean, outlinedRes: Int, filledRes: Int, contentDescription: String) {
+private fun GrozzBottomNavIcon(
+    selected: Boolean,
+    outlinedRes: Int,
+    filledRes: Int,
+    contentDescription: String
+) {
     Icon(
         painter = painterResource(id = if (selected) filledRes else outlinedRes),
         contentDescription = contentDescription,
-        modifier = Modifier.size(28.dp),
+        modifier = Modifier.size(28.dp)
     )
 }
 
 @Composable
 fun ProofUploadSectionLeaderboard(onUriSelected: (android.net.Uri) -> Unit, isUploadedClick: () -> Unit) {
     val context = LocalContext.current
-    val launcher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickVisualMedia(),
-        ) { video: Uri? ->
-            video?.let { video ->
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(context, video)
-                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                val durationInMs = time?.toLong() ?: 0
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { video: Uri? ->
+        video?.let { video ->
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(context, video)
+            val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val durationInMs = time?.toLong() ?: 0
 
-                if (durationInMs <= 15_000) {
-                    onUriSelected(video)
-                    isUploadedClick()
-                } else {
-                    Toast
-                        .makeText(
-                            context,
-                            "Video must be under 15 seconds.",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                }
-            }
+            if (durationInMs <= 15_000) {
+                onUriSelected(video)
+                isUploadedClick()
+            } else Toast.makeText(
+                context,
+                "Video must be under 15 seconds.",
+                Toast.LENGTH_SHORT
+            ).show()
         }
+    }
     Icon(
         painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
         contentDescription = null,
         tint = GrozzYellow,
-        modifier =
-            Modifier.size(20.dp).clickable {
-                launcher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly),
-                )
-            },
+        modifier = Modifier.size(20.dp).clickable {
+            launcher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+            )
+        }
     )
 }

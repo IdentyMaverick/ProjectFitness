@@ -61,6 +61,7 @@ import com.grozzbear.ui.theme.GrozzRadiusButton
 import com.grozzbear.ui.theme.GrozzRadiusPanel
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
@@ -74,14 +75,13 @@ import ui.mainpages.navigation.Screens
 @Composable
 fun WorkoutCompleteAnalysisScreen(
     navController: NavController,
-    workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel,
+    workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel
 ) {
     val exercises by workoutCompleteAnalysisScreenViewModel.exerciseList.collectAsState()
     val ratioDistribution by workoutCompleteAnalysisScreenViewModel.ratioDistribution.collectAsState()
-    val sortedMuscles =
-        remember(ratioDistribution) {
-            ratioDistribution.entries.sortedByDescending { it.value }
-        }
+    val sortedMuscles = remember(ratioDistribution) {
+        ratioDistribution.entries.sortedByDescending { it.value }
+    }
 
     fun goHome() {
         navController.navigate(Screens.Home.route) {
@@ -93,35 +93,33 @@ fun WorkoutCompleteAnalysisScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeTopBarWorkoutCompleteAnalysisScreen(
-                onBack = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
             )
         },
         containerColor = GrozzSystemBar,
         bottomBar = {
             Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(GrozzSystemBar)
-                        .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GrozzSystemBar)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 GrozzPrimaryButton(
                     text = "Done",
                     onClick = ::goHome,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (sortedMuscles.isNotEmpty()) {
                 item {
@@ -138,7 +136,7 @@ fun WorkoutCompleteAnalysisScreen(
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "EXERCISES PERFORMED",
@@ -146,7 +144,7 @@ fun WorkoutCompleteAnalysisScreen(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = Lexend,
-                        letterSpacing = 0.5.sp,
+                        letterSpacing = 0.5.sp
                     )
                     Spacer(Modifier.weight(1f))
                     Text(
@@ -154,7 +152,7 @@ fun WorkoutCompleteAnalysisScreen(
                         color = GrozzYellow,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = Lexend,
+                        fontFamily = Lexend
                     )
                 }
                 Spacer(Modifier.height(8.dp))
@@ -165,18 +163,17 @@ fun WorkoutCompleteAnalysisScreen(
             if (exercises.isEmpty()) {
                 item {
                     Column(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = "No exercises logged",
                             color = GrozzOnBackground,
                             fontSize = 16.sp,
                             fontFamily = Lexend,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Spacer(Modifier.height(6.dp))
                         Text(
@@ -184,7 +181,7 @@ fun WorkoutCompleteAnalysisScreen(
                             color = GrozzMuted,
                             fontSize = 13.sp,
                             fontFamily = Lexend,
-                            textAlign = TextAlign.Center,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -209,29 +206,28 @@ private fun SectionLabel(text: String) {
         fontFamily = Lexend,
         fontWeight = FontWeight.Bold,
         letterSpacing = 1.sp,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
 @Composable
 private fun HomeTopBarWorkoutCompleteAnalysisScreen(onBack: () -> Unit) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-                .height(56.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .height(56.dp)
     ) {
         IconButton(
             onClick = onBack,
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier.align(Alignment.CenterStart)
         ) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
 
@@ -241,14 +237,13 @@ private fun HomeTopBarWorkoutCompleteAnalysisScreen(onBack: () -> Unit) {
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = Oswald,
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(Alignment.Center)
         )
 
         Spacer(
-            modifier =
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp),
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(48.dp)
         )
     }
 }
@@ -259,28 +254,26 @@ private fun MuscleGroupChips(muscles: List<Map.Entry<String, Float>>) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         muscles.forEach { (muscle, ratio) ->
-            val label =
-                buildString {
-                    append(muscle)
-                    val pct = ratio.roundToInt()
-                    if (pct > 0) append(" · $pct%")
-                }
+            val label = buildString {
+                append(muscle)
+                val pct = ratio.roundToInt()
+                if (pct > 0) append(" · $pct%")
+            }
             Box(
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(GrozzRadiusButton))
-                        .background(GrozzYellow)
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(GrozzRadiusButton))
+                    .background(GrozzYellow)
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = label,
                     color = GrozzOnPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = Lexend,
+                    fontFamily = Lexend
                 )
             }
         }
@@ -290,37 +283,34 @@ private fun MuscleGroupChips(muscles: List<Map.Entry<String, Float>>) {
 @Composable
 private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
     var expanded by remember { mutableStateOf(false) }
-    val completedSets =
-        remember(exerciseData.setLogs) {
-            exerciseData.setLogs.filter { it.clicked }
-        }
+    val completedSets = remember(exerciseData.setLogs) {
+        exerciseData.setLogs.filter { it.clicked }
+    }
     val bodyPart = exerciseData.exerciseLog.bodyPart.trim()
 
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(GrozzRadiusPanel))
-                .background(GrozzSurface)
-                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel))
-                .clickable { expanded = !expanded }
-                .animateContentSize()
-                .padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
+            .background(GrozzSurface)
+            .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel))
+            .clickable { expanded = !expanded }
+            .animateContentSize()
+            .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier =
-                    Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(GrozzYellow),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(GrozzYellow),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(R.drawable.dumbbellicon128),
                     contentDescription = null,
                     tint = GrozzOnPrimary,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp)
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
@@ -333,7 +323,7 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                     fontSize = 16.sp,
                     fontFamily = Lexend,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (bodyPart.isNotBlank()) {
                     Spacer(Modifier.height(4.dp))
@@ -342,7 +332,7 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                         color = GrozzYellow,
                         fontSize = 12.sp,
                         fontFamily = Lexend,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 if (!expanded) {
@@ -351,21 +341,20 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                         text = counted(completedSets.size, "set"),
                         color = GrozzMuted,
                         fontSize = 12.sp,
-                        fontFamily = Lexend,
+                        fontFamily = Lexend
                     )
                 }
             }
 
             Icon(
-                imageVector =
-                    if (expanded) {
-                        Icons.Default.KeyboardArrowUp
-                    } else {
-                        Icons.Default.KeyboardArrowDown
-                    },
+                imageVector = if (expanded) {
+                    Icons.Default.KeyboardArrowUp
+                } else {
+                    Icons.Default.KeyboardArrowDown
+                },
                 contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = GrozzYellow,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -387,23 +376,22 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                         color = GrozzMuted,
                         fontSize = 13.sp,
                         fontFamily = Lexend,
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier.padding(vertical = 12.dp)
                     )
                 } else {
                     completedSets.forEach { set ->
                         Row(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "${set.setIndex + 1}",
                                 color = GrozzOnBackground,
                                 fontSize = 15.sp,
                                 fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f)
                             )
                             Text(
                                 text = formatWeight(set.weight),
@@ -412,7 +400,7 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 text = "${set.reps}",
@@ -421,7 +409,7 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -432,7 +420,11 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
 }
 
 @Composable
-private fun SetHeaderCell(text: String, modifier: Modifier = Modifier, align: TextAlign) {
+private fun SetHeaderCell(
+    text: String,
+    modifier: Modifier = Modifier,
+    align: TextAlign
+) {
     Text(
         text = text,
         color = GrozzMuted,
@@ -441,12 +433,14 @@ private fun SetHeaderCell(text: String, modifier: Modifier = Modifier, align: Te
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.5.sp,
         modifier = modifier,
-        textAlign = align,
+        textAlign = align
     )
 }
 
-private fun formatWeight(weight: Float): String = if (weight % 1f == 0f) {
-    weight.toInt().toString()
-} else {
-    "%.1f".format(weight)
+private fun formatWeight(weight: Float): String {
+    return if (weight % 1f == 0f) {
+        weight.toInt().toString()
+    } else {
+        "%.1f".format(weight)
+    }
 }

@@ -1,6 +1,7 @@
 package ui.mainpages.inside
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -90,9 +92,9 @@ import ui.mainpages.navigation.Screens
 fun OldWorkoutDetails(
     navController: NavController,
     oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel,
-    workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel,
+    workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel
 ) {
-    val canManage by oldWorkoutDetailsViewModel.canManage.collectAsState()
+    val canManage by oldWorkoutDetailsViewModel._flag.collectAsState()
     val workout by oldWorkoutDetailsViewModel.workoutDetails.collectAsState(initial = null)
     val formattedDate by workoutCompleteScreenViewModel.formattedDate.collectAsState()
     val elapsedTime by workoutCompleteScreenViewModel.elapsedTime.collectAsState()
@@ -111,7 +113,7 @@ fun OldWorkoutDetails(
         workout?.let {
             workoutCompleteScreenViewModel.setWorkoutData(
                 it.workoutHistory.dateTimestamp,
-                it.workoutHistory.totalDuration,
+                it.workoutHistory.totalDuration
             )
         }
     }
@@ -134,51 +136,47 @@ fun OldWorkoutDetails(
                     workout?.let { oldWorkoutDetailsViewModel.enterEditMode(it) }
                 },
                 onEditClick = { oldWorkoutDetailsViewModel.saveEdits() },
-                isEditModeEnabled = isEditModeEnabled,
+                isEditModeEnabled = isEditModeEnabled
             )
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         val details = displayed
         if (details == null) {
             Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
                     color = GrozzYellow,
-                    strokeWidth = 2.dp,
+                    strokeWidth = 2.dp
                 )
             }
         } else {
             LazyColumn(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                contentPadding =
-                    PaddingValues(
-                        start = 16.dp,
-                        end = 16.dp,
-                        top = 8.dp,
-                        bottom = 32.dp,
-                    ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 32.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
                     AnimatedVisibility(visible = isEditModeEnabled) {
                         EditModeBanner(
-                            modifier = Modifier.padding(bottom = 12.dp),
+                            modifier = Modifier.padding(bottom = 12.dp)
                         )
                     }
-                    val subtitle =
-                        listOf(formattedDate, elapsedTime)
-                            .filter { it.isNotBlank() }
-                            .joinToString(" · ")
+                    val subtitle = listOf(formattedDate, elapsedTime)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · ")
                     if (subtitle.isNotBlank()) {
                         Text(
                             text = subtitle,
@@ -186,23 +184,21 @@ fun OldWorkoutDetails(
                             fontSize = 13.sp,
                             fontFamily = Lexend,
                             fontWeight = FontWeight.Medium,
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp),
-                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
                     SummaryCardsRow(
                         details,
                         isEditModeEnabled,
                         durationOnClick = { durationAdjustFlag.value = true },
-                        durationText = formatDuration(details.workoutHistory.totalDuration),
+                        durationText = formatDuration(details.workoutHistory.totalDuration)
                     )
                     if (durationAdjustFlag.value) {
-                        val durationParts =
-                            formatDuration(details.workoutHistory.totalDuration)
-                                .split(':')
+                        val durationParts = formatDuration(details.workoutHistory.totalDuration)
+                            .split(':')
                         val hour = durationParts.getOrNull(0)?.toIntOrNull() ?: 0
                         val minute = durationParts.getOrNull(1)?.toIntOrNull() ?: 0
                         val second = durationParts.getOrNull(2)?.toIntOrNull() ?: 0
@@ -226,7 +222,7 @@ fun OldWorkoutDetails(
                             range3 = 0..59,
                             onValueChange3 = { second ->
                                 oldWorkoutDetailsViewModel.updateDraftDuration(hour * 3600L + minute * 60L + second)
-                            },
+                            }
                         )
                     }
                 }
@@ -235,7 +231,7 @@ fun OldWorkoutDetails(
                     Spacer(Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "EXERCISES",
@@ -243,7 +239,7 @@ fun OldWorkoutDetails(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = Lexend,
-                            letterSpacing = 0.5.sp,
+                            letterSpacing = 0.5.sp
                         )
                         if (isEditModeEnabled) {
                             Spacer(Modifier.width(8.dp))
@@ -253,7 +249,7 @@ fun OldWorkoutDetails(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = Lexend,
-                                letterSpacing = 0.6.sp,
+                                letterSpacing = 0.6.sp
                             )
                         }
                         Spacer(Modifier.weight(1f))
@@ -262,7 +258,7 @@ fun OldWorkoutDetails(
                             color = GrozzYellow,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = Lexend,
+                            fontFamily = Lexend
                         )
                     }
                     Spacer(Modifier.height(8.dp))
@@ -272,31 +268,29 @@ fun OldWorkoutDetails(
                 if (details.exerciseWithSets.isEmpty()) {
                     item {
                         Column(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 40.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = "No exercises logged",
                                 color = GrozzOnBackground,
                                 fontSize = 16.sp,
                                 fontFamily = Lexend,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.SemiBold
                             )
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                text =
-                                    if (isEditModeEnabled) {
-                                        "Add movements to this session."
-                                    } else {
-                                        "This session doesn’t include exercise details."
-                                    },
+                                text = if (isEditModeEnabled) {
+                                    "Add movements to this session."
+                                } else {
+                                    "This session doesn’t include exercise details."
+                                },
                                 color = GrozzMuted,
                                 fontSize = 13.sp,
                                 fontFamily = Lexend,
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                             if (isEditModeEnabled) {
                                 Spacer(Modifier.height(16.dp))
@@ -305,11 +299,11 @@ fun OldWorkoutDetails(
                                     onClick = {
                                         navController.navigate(
                                             Screens.ChooseExercises.createRoute(
-                                                Screens.ChooseExercises.MODE_HISTORY,
-                                            ),
+                                                Screens.ChooseExercises.MODE_HISTORY
+                                            )
                                         )
                                     },
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
@@ -317,7 +311,7 @@ fun OldWorkoutDetails(
                 } else {
                     itemsIndexed(
                         items = details.exerciseWithSets,
-                        key = { _, item -> item.exerciseLog.logId },
+                        key = { _, item -> item.exerciseLog.logId }
                     ) { index, exerciseData ->
                         Box(modifier = Modifier.animateItem()) {
                             ExerciseExpandableCard(
@@ -335,7 +329,7 @@ fun OldWorkoutDetails(
                                 canMoveDown = index < details.exerciseWithSets.lastIndex,
                                 onMoveUp = { oldWorkoutDetailsViewModel.moveDraftExercises(index, index - 1) },
                                 onMoveDown = { oldWorkoutDetailsViewModel.moveDraftExercises(index, index + 1) },
-                                onRemove = {},
+                                onRemove = {}
                             )
                         }
                     }
@@ -347,11 +341,11 @@ fun OldWorkoutDetails(
                             onClick = {
                                 navController.navigate(
                                     Screens.ChooseExercises.createRoute(
-                                        Screens.ChooseExercises.MODE_HISTORY,
-                                    ),
+                                        Screens.ChooseExercises.MODE_HISTORY
+                                    )
                                 )
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -368,21 +362,20 @@ fun OldWorkoutDetails(
                 },
                 sheetState = sheetState,
                 containerColor = GrozzSurface,
-                tonalElevation = 0.dp,
+                tonalElevation = 0.dp
             ) {
                 EditSetBottomSheetContent(
-                    set =
-                        SetEntity(
-                            setId = set.setId.toString(),
-                            exerciseOwnerId = set.logOwnerId.toString(),
-                            reps = set.reps,
-                            weight = set.weight,
-                        ),
+                    set = SetEntity(
+                        setId = set.setId.toString(),
+                        exerciseOwnerId = set.logOwnerId.toString(),
+                        reps = set.reps,
+                        weight = set.weight
+                    ),
                     onSave = { updatedReps, updatedWeight ->
                         oldWorkoutDetailsViewModel.updateDraftSet(
                             set.setId,
                             updatedReps,
-                            updatedWeight.toFloat(),
+                            updatedWeight.toFloat()
                         )
                         showBottomSheet = false
                         editingSet = null
@@ -391,7 +384,7 @@ fun OldWorkoutDetails(
                         oldWorkoutDetailsViewModel.deleteDraftSet(set.setId)
                         showBottomSheet = false
                         editingSet = null
-                    },
+                    }
                 )
             }
         }
@@ -404,27 +397,24 @@ private fun SummaryCardsRow(
     workout: WorkoutHistoryFull,
     isEditMode: Boolean,
     durationOnClick: () -> Unit,
-    durationText: String,
+    durationText: String
 ) {
-    val completedSets =
-        workout.exerciseWithSets.flatMap { exercise ->
-            if (isEditMode) {
-                exercise.setLogs
-            } else {
-                val clicked = exercise.setLogs.filter { it.clicked }
-                if (clicked.isNotEmpty()) clicked else exercise.setLogs
-            }
+    val completedSets = workout.exerciseWithSets.flatMap { exercise ->
+        if (isEditMode) {
+            exercise.setLogs
+        } else {
+            val clicked = exercise.setLogs.filter { it.clicked }
+            if (clicked.isNotEmpty()) clicked else exercise.setLogs
         }
-    val totalVolume =
-        completedSets
-            .sumOf { set ->
-                (set.weight * set.reps).toDouble()
-            }.toInt()
+    }
+    val totalVolume = completedSets.sumOf { set ->
+        (set.weight * set.reps).toDouble()
+    }.toInt()
     val totalSets = completedSets.size
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         SummaryCard(
             label = "DURATION",
@@ -432,7 +422,7 @@ private fun SummaryCardsRow(
             iconRes = R.drawable.shutterspeedfilledicon128,
             isEditMode = isEditMode,
             modifier = Modifier.weight(1f),
-            onClick = { durationOnClick() },
+            onClick = { durationOnClick() }
         )
         SummaryCard(
             label = "VOLUME",
@@ -440,7 +430,7 @@ private fun SummaryCardsRow(
             iconRes = R.drawable.dumbbellicon128,
             isEditMode = isEditMode,
             modifier = Modifier.weight(1f),
-            onClick = {},
+            onClick = {}
         )
         SummaryCard(
             label = "SETS",
@@ -448,7 +438,7 @@ private fun SummaryCardsRow(
             iconRes = R.drawable.timer10icon128,
             isEditMode = isEditMode,
             modifier = Modifier.weight(1f),
-            onClick = {},
+            onClick = {}
         )
     }
 }
@@ -460,29 +450,28 @@ private fun SummaryCard(
     iconRes: Int,
     isEditMode: Boolean,
     modifier: Modifier,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val borderColor by animateColorAsState(
         targetValue = if (isEditMode) GrozzYellow else GrozzBorder,
-        label = "summaryBorder",
+        label = "summaryBorder"
     )
     Column(
-        modifier =
-            modifier
-                .height(96.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(GrozzSurface)
-                .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-                .padding(horizontal = 8.dp, vertical = 10.dp)
-                .clickable(isEditMode, onClick = { onClick() }),
+        modifier = modifier
+            .height(96.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(GrozzSurface)
+            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
+            .padding(horizontal = 8.dp, vertical = 10.dp)
+            .clickable(isEditMode, onClick = { onClick() }),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         Icon(
             painter = painterResource(iconRes),
             contentDescription = null,
             tint = GrozzYellow,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.height(6.dp))
         Text(
@@ -491,7 +480,7 @@ private fun SummaryCard(
             fontSize = 10.sp,
             fontFamily = Lexend,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 0.4.sp,
+            letterSpacing = 0.4.sp
         )
         Spacer(Modifier.height(4.dp))
         Text(
@@ -501,7 +490,7 @@ private fun SummaryCard(
             fontFamily = Lexend,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -517,24 +506,22 @@ fun ExerciseExpandableCard(
     canMoveDown: Boolean,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    onRemove: () -> Unit,
+    onRemove: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val visibleSets =
-        remember(exerciseData.setLogs, isEditMode) {
-            val source =
-                if (isEditMode) {
-                    exerciseData.setLogs
-                } else {
-                    val clicked = exerciseData.setLogs.filter { it.clicked }
-                    if (clicked.isNotEmpty()) clicked else exerciseData.setLogs
-                }
-            source.sortedBy { it.setIndex }
+    val visibleSets = remember(exerciseData.setLogs, isEditMode) {
+        val source = if (isEditMode) {
+            exerciseData.setLogs
+        } else {
+            val clicked = exerciseData.setLogs.filter { it.clicked }
+            if (clicked.isNotEmpty()) clicked else exerciseData.setLogs
         }
+        source.sortedBy { it.setIndex }
+    }
     val bodyPart = exerciseData.exerciseLog.bodyPart.trim()
     val borderColor by animateColorAsState(
         targetValue = if (isEditMode) GrozzYellow else GrozzBorder,
-        label = "exerciseBorder",
+        label = "exerciseBorder"
     )
 
     LaunchedEffect(isEditMode) {
@@ -542,30 +529,28 @@ fun ExerciseExpandableCard(
     }
 
     Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(GrozzRadiusPanel))
-                .background(GrozzSurface)
-                .border(1.dp, borderColor, RoundedCornerShape(GrozzRadiusPanel))
-                .clickable { expanded = !expanded }
-                .animateContentSize()
-                .padding(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
+            .background(GrozzSurface)
+            .border(1.dp, borderColor, RoundedCornerShape(GrozzRadiusPanel))
+            .clickable { expanded = !expanded }
+            .animateContentSize()
+            .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                modifier =
-                    Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(GrozzYellow),
-                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(GrozzYellow),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(R.drawable.dumbbellicon128),
                     contentDescription = null,
                     tint = GrozzOnPrimary,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp)
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
@@ -578,7 +563,7 @@ fun ExerciseExpandableCard(
                     fontSize = 16.sp,
                     fontFamily = Lexend,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (bodyPart.isNotBlank()) {
                     Spacer(Modifier.height(4.dp))
@@ -587,7 +572,7 @@ fun ExerciseExpandableCard(
                         color = GrozzYellow,
                         fontSize = 12.sp,
                         fontFamily = Lexend,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 if (!expanded) {
@@ -596,7 +581,7 @@ fun ExerciseExpandableCard(
                         text = counted(visibleSets.size, "set"),
                         color = GrozzMuted,
                         fontSize = 12.sp,
-                        fontFamily = Lexend,
+                        fontFamily = Lexend
                     )
                 }
             }
@@ -605,50 +590,49 @@ fun ExerciseExpandableCard(
                 IconButton(
                     onClick = onMoveUp,
                     enabled = canMoveUp,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
                         contentDescription = "Move up",
                         tint = if (canMoveUp) GrozzYellow else GrozzMuted,
-                        modifier = Modifier.size(22.dp),
+                        modifier = Modifier.size(22.dp)
                     )
                 }
                 IconButton(
                     onClick = onMoveDown,
                     enabled = canMoveDown,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Move down",
                         tint = if (canMoveDown) GrozzYellow else GrozzMuted,
-                        modifier = Modifier.size(22.dp),
+                        modifier = Modifier.size(22.dp)
                     )
                 }
                 IconButton(
                     onClick = onRemove,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.terminate),
                         contentDescription = "Remove exercise",
                         tint = GrozzError,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
             Icon(
-                imageVector =
-                    if (expanded) {
-                        Icons.Default.KeyboardArrowUp
-                    } else {
-                        Icons.Default.KeyboardArrowDown
-                    },
+                imageVector = if (expanded) {
+                    Icons.Default.KeyboardArrowUp
+                } else {
+                    Icons.Default.KeyboardArrowDown
+                },
                 contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = GrozzYellow,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -660,14 +644,14 @@ fun ExerciseExpandableCard(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 8.dp),
+                                .padding(bottom = 8.dp)
                         ) {
                             Text(
                                 "SET",
                                 color = GrozzMuted,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.weight(1f)
                             )
                             Text(
                                 "KG",
@@ -675,7 +659,7 @@ fun ExerciseExpandableCard(
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 "REPS",
@@ -683,7 +667,7 @@ fun ExerciseExpandableCard(
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center,
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 "ACTION",
@@ -691,7 +675,7 @@ fun ExerciseExpandableCard(
                                 style = MaterialTheme.typography.labelSmall,
                                 fontFamily = Lexend,
                                 modifier = Modifier.weight(1.5f),
-                                textAlign = TextAlign.End,
+                                textAlign = TextAlign.End
                             )
                         }
                     } else {
@@ -710,23 +694,22 @@ fun ExerciseExpandableCard(
                         color = GrozzMuted,
                         fontSize = 13.sp,
                         fontFamily = Lexend,
-                        modifier = Modifier.padding(vertical = 12.dp),
+                        modifier = Modifier.padding(vertical = 12.dp)
                     )
                     Button(
                         onClick = { onAddSet() },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(40.dp)
-                                .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                     ) {
                         Text(
                             "Add set",
                             color = GrozzYellow,
                             style = MaterialTheme.typography.labelLarge,
-                            fontFamily = Lexend,
+                            fontFamily = Lexend
                         )
                     }
                 } else {
@@ -736,14 +719,14 @@ fun ExerciseExpandableCard(
                                 Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
                                     String.format("%02d", index + 1),
                                     color = GrozzOnBackground,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f)
                                 )
                                 Text(
                                     formatWeightKg(set.weight),
@@ -751,7 +734,7 @@ fun ExerciseExpandableCard(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontFamily = Lexend,
                                     modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Center,
+                                    textAlign = TextAlign.Center
                                 )
                                 Text(
                                     "${set.reps}",
@@ -759,48 +742,45 @@ fun ExerciseExpandableCard(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontFamily = Lexend,
                                     modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Center,
+                                    textAlign = TextAlign.Center
                                 )
 
                                 Row(
                                     modifier = Modifier.weight(1.5f),
-                                    horizontalArrangement = Arrangement.End,
+                                    horizontalArrangement = Arrangement.End
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.editnote),
                                         contentDescription = "Edit",
                                         tint = GrozzYellow,
-                                        modifier =
-                                            Modifier
-                                                .size(22.dp)
-                                                .clickable { onEditSet(set) },
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clickable { onEditSet(set) }
                                     )
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Icon(
                                         painter = painterResource(R.drawable.closeicon128),
                                         contentDescription = "Delete",
                                         tint = GrozzError,
-                                        modifier =
-                                            Modifier
-                                                .size(22.dp)
-                                                .clickable { onDeleteSet(set) },
+                                        modifier = Modifier
+                                            .size(22.dp)
+                                            .clickable { onDeleteSet(set) }
                                     )
                                 }
                             }
                         } else {
                             Row(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
                                     text = "${set.setIndex + 1}",
                                     color = GrozzOnBackground,
                                     fontSize = 15.sp,
                                     fontFamily = Lexend,
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f)
                                 )
                                 Text(
                                     text = formatWeight(set.weight),
@@ -809,7 +789,7 @@ fun ExerciseExpandableCard(
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = Lexend,
                                     modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Center,
+                                    textAlign = TextAlign.Center
                                 )
                                 Text(
                                     text = "${set.reps}",
@@ -818,7 +798,7 @@ fun ExerciseExpandableCard(
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = Lexend,
                                     modifier = Modifier.weight(1f),
-                                    textAlign = TextAlign.Center,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
@@ -827,24 +807,21 @@ fun ExerciseExpandableCard(
                     if (isEditMode) {
                         Button(
                             onClick = { onAddSet() },
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(40.dp)
-                                    .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
                             Text(
                                 "Add set",
                                 color = GrozzYellow,
                                 style = MaterialTheme.typography.labelLarge,
-                                fontFamily = Lexend,
+                                fontFamily = Lexend
                             )
                         }
-                    } else {
-                        return@Column
-                    }
+                    } else return@Column
                 }
             }
         }
@@ -854,20 +831,19 @@ fun ExerciseExpandableCard(
 @Composable
 private fun EditModeBanner(modifier: Modifier = Modifier) {
     Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(GrozzYellow.copy(alpha = 0.12f))
-                .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(GrozzYellow.copy(alpha = 0.12f))
+            .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(R.drawable.editnote),
             contentDescription = null,
             tint = GrozzYellow,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(18.dp)
         )
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -876,20 +852,24 @@ private fun EditModeBanner(modifier: Modifier = Modifier) {
                 color = GrozzYellow,
                 fontSize = 13.sp,
                 fontFamily = Lexend,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
             Text(
                 text = "Tap the checkmark to save. Back discards changes.",
                 color = GrozzTextSecondary,
                 fontSize = 12.sp,
-                fontFamily = Lexend,
+                fontFamily = Lexend
             )
         }
     }
 }
 
 @Composable
-private fun SetHeaderCell(text: String, modifier: Modifier = Modifier, align: TextAlign) {
+private fun SetHeaderCell(
+    text: String,
+    modifier: Modifier = Modifier,
+    align: TextAlign
+) {
     Text(
         text = text,
         color = GrozzMuted,
@@ -898,7 +878,7 @@ private fun SetHeaderCell(text: String, modifier: Modifier = Modifier, align: Te
         fontWeight = FontWeight.Bold,
         letterSpacing = 0.5.sp,
         modifier = modifier,
-        textAlign = align,
+        textAlign = align
     )
 }
 
@@ -909,25 +889,24 @@ private fun OldWorkoutDetailsTopBar(
     onBack: () -> Unit,
     onMenuClick: () -> Unit,
     onEditClick: () -> Unit,
-    isEditModeEnabled: Boolean,
+    isEditModeEnabled: Boolean
 ) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-                .height(56.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .height(56.dp)
     ) {
         IconButton(
             onClick = onBack,
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier.align(Alignment.CenterStart)
         ) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
 
@@ -940,38 +919,31 @@ private fun OldWorkoutDetailsTopBar(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            modifier =
-                Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 56.dp)
-                    .fillMaxWidth(),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(horizontal = 56.dp)
+                .fillMaxWidth()
         )
 
         if (canManage) {
             IconButton(
                 onClick = if (isEditModeEnabled) onEditClick else onMenuClick,
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(
-                    painter =
-                        if (isEditModeEnabled) {
-                            painterResource(R.drawable.checkcircleicon128)
-                        } else {
-                            painterResource(
-                                R.drawable.editnote,
-                            )
-                        },
+                    painter = if (isEditModeEnabled) painterResource(R.drawable.checkcircleicon128) else painterResource(
+                        R.drawable.editnote
+                    ),
                     contentDescription = if (isEditModeEnabled) "Save" else "Edit",
                     modifier = Modifier.size(22.dp),
-                    tint = if (isEditModeEnabled) GrozzYellow else GrozzOnBackground,
+                    tint = if (isEditModeEnabled) GrozzYellow else GrozzOnBackground
                 )
             }
         } else {
             Spacer(
-                modifier =
-                    Modifier
-                        .align(Alignment.CenterEnd)
-                        .size(48.dp),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
             )
         }
     }
@@ -985,8 +957,10 @@ private fun formatDuration(seconds: Long): String {
     return "%d:%02d:%02d".format(h, m, s)
 }
 
-private fun formatWeight(weight: Float): String = if (weight % 1f == 0f) {
-    weight.toInt().toString()
-} else {
-    "%.1f".format(weight)
+private fun formatWeight(weight: Float): String {
+    return if (weight % 1f == 0f) {
+        weight.toInt().toString()
+    } else {
+        "%.1f".format(weight)
+    }
 }

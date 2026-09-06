@@ -22,14 +22,13 @@ import data.local.entity.WorkoutHistoryEntity
         ExerciseCatalogEntity::class,
         ExerciseLogEntity::class,
         SetLogEntity::class,
-        WorkoutHistoryEntity::class,
+        WorkoutHistoryEntity::class
     ],
     version = 1,
-    exportSchema = true,
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class ProjectFitnessDb : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
-
     abstract fun exerciseCatalogDao(): ExerciseCatalogDao
 }

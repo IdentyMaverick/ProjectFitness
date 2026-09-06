@@ -58,7 +58,7 @@ import viewmodel.AuthViewModel
 import viewmodel.LoginUiState
 import viewmodel.RegisterUiState
 
-private const val SIGN_IN_TAG = "sign_in"
+private const val SignInTag = "sign_in"
 
 @Composable
 fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -85,12 +85,11 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
             }
 
             is LoginUiState.Error -> {
-                Toast
-                    .makeText(
-                        context,
-                        (loginState as LoginUiState.Error).message,
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(
+                    context,
+                    (loginState as LoginUiState.Error).message,
+                    Toast.LENGTH_SHORT
+                ).show()
                 authViewModel.resetLoginState()
             }
 
@@ -101,12 +100,11 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
     LaunchedEffect(state) {
         when (state) {
             is RegisterUiState.Error -> {
-                Toast
-                    .makeText(
-                        context,
-                        (state as RegisterUiState.Error).message,
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                Toast.makeText(
+                    context,
+                    (state as RegisterUiState.Error).message,
+                    Toast.LENGTH_SHORT
+                ).show()
                 authViewModel.resetRegisterState()
             }
 
@@ -122,52 +120,47 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
     }
 
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(GrozzBackground),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(GrozzBackground)
     ) {
         Image(
             painter = painterResource(id = R.drawable.grozzregister),
             contentDescription = null,
             alpha = 0.9f,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         )
 
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops =
-                                arrayOf(
-                                    0.0f to Color.Transparent,
-                                    0.40f to Color.Transparent,
-                                    1.0f to GrozzBackground.copy(alpha = 0.85f),
-                                ),
-                        ),
-                    ),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.40f to Color.Transparent,
+                            1.0f to GrozzBackground.copy(alpha = 0.85f)
+                        )
+                    )
+                )
         )
 
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 24.dp, bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp, bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
-                modifier =
-                    Modifier
-                        .size(110.dp)
-                        .padding(bottom = 8.dp),
+                modifier = Modifier
+                    .size(110.dp)
+                    .padding(bottom = 8.dp)
             )
 
             Text(
@@ -176,7 +169,7 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 color = Color.White,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -185,7 +178,7 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 value = name.value,
                 onValueChange = { name.value = it },
                 placeholder = "Full Name",
-                enabled = !isBusy,
+                enabled = !isBusy
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -194,7 +187,7 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 value = nickName.value,
                 onValueChange = { nickName.value = it },
                 placeholder = "Nickname",
-                enabled = !isBusy,
+                enabled = !isBusy
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -204,7 +197,7 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 onValueChange = { emailText.value = it },
                 placeholder = "E-Mail Address",
                 enabled = !isBusy,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -215,7 +208,7 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 placeholder = "Password",
                 visualTransformation = PasswordVisualTransformation(),
                 enabled = !isBusy,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -224,53 +217,48 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 text = "Sign up",
                 loading = state is RegisterUiState.Loading,
                 enabled = loginState !is LoginUiState.Loading,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .widthIn(max = 420.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .widthIn(max = 420.dp),
                 onClick = {
-                    if (name.value.isEmpty() ||
-                        emailText.value.isEmpty() ||
-                        password.value.isEmpty() ||
-                        nickName.value.isEmpty()
+                    if (name.value.isEmpty() || emailText.value.isEmpty() ||
+                        password.value.isEmpty() || nickName.value.isEmpty()
                     ) {
-                        Toast
-                            .makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT)
                             .show()
                     } else {
                         authViewModel.register(
                             name.value,
                             nickName.value,
                             emailText.value,
-                            password.value,
+                            password.value
                         )
                     }
-                },
+                }
             )
 
             Spacer(modifier = Modifier.height(36.dp))
 
             Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = Color.White.copy(alpha = 0.25f),
+                    color = Color.White.copy(alpha = 0.25f)
                 )
                 Text(
                     text = "OR SIGN-UP WITH",
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(horizontal = 12.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = Color.White.copy(alpha = 0.25f),
+                    color = Color.White.copy(alpha = 0.25f)
                 )
             }
 
@@ -278,32 +266,31 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             GoogleSignInButton(
                 authViewModel,
-                enabled = !isBusy,
+                enabled = !isBusy
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val signInText =
-                buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            color = GrozzTextSecondary,
-                            fontWeight = FontWeight.Normal,
-                        ),
-                    ) {
-                        append("Already have an account? ")
-                    }
-                    pushStringAnnotation(tag = SIGN_IN_TAG, annotation = SIGN_IN_TAG)
-                    withStyle(
-                        SpanStyle(
-                            color = GrozzYellow,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    ) {
-                        append("Sign in")
-                    }
-                    pop()
+            val signInText = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = GrozzTextSecondary,
+                        fontWeight = FontWeight.Normal
+                    )
+                ) {
+                    append("Already have an account? ")
                 }
+                pushStringAnnotation(tag = SignInTag, annotation = SignInTag)
+                withStyle(
+                    SpanStyle(
+                        color = GrozzYellow,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Sign in")
+                }
+                pop()
+            }
 
             ClickableText(
                 text = signInText,
@@ -311,12 +298,12 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 onClick = { offset ->
                     if (isBusy) return@ClickableText
                     signInText
-                        .getStringAnnotations(SIGN_IN_TAG, offset, offset)
+                        .getStringAnnotations(SignInTag, offset, offset)
                         .firstOrNull()
                         ?.let {
                             navController.navigate(Screens.LoginScreen.route)
                         }
-                },
+                }
             )
         }
     }

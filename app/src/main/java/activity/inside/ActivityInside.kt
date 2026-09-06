@@ -68,15 +68,17 @@ import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.ActivityInsideViewModel
 
 @Composable
-fun ActivityInside(navController: NavController, activityInsideViewModel: ActivityInsideViewModel) {
+fun ActivityInside(
+    navController: NavController,
+    activityInsideViewModel: ActivityInsideViewModel
+) {
     val selectedCatalog by activityInsideViewModel.selectedCatalog.collectAsState()
-    val steps =
-        remember(selectedCatalog.instructions) {
-            selectedCatalog.instructions
-                .split(".")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-        }
+    val steps = remember(selectedCatalog.instructions) {
+        selectedCatalog.instructions
+            .split(".")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
 
     var gifUrl by remember { mutableStateOf<String?>(null) }
     var muscleGraph by remember { mutableStateOf<String?>(null) }
@@ -92,8 +94,7 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
 
         if (gifPath.isNotEmpty()) {
             gifLoading = true
-            Firebase.storage.reference
-                .child("cloudgoogle/$gifPath")
+            Firebase.storage.reference.child("cloudgoogle/$gifPath")
                 .downloadUrl
                 .addOnSuccessListener { gifUrl = it.toString() }
                 .addOnFailureListener { Log.e("FirebaseStorage", "GIF URL failed", it) }
@@ -102,8 +103,7 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
 
         if (musclePath.isNotEmpty()) {
             muscleLoading = true
-            Firebase.storage.reference
-                .child("cloudgoogle/$musclePath")
+            Firebase.storage.reference.child("cloudgoogle/$musclePath")
                 .downloadUrl
                 .addOnSuccessListener { muscleGraph = it.toString() }
                 .addOnFailureListener { Log.e("FirebaseStorage", "Muscle URL failed", it) }
@@ -116,32 +116,30 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
         topBar = {
             ActivityInsideTopBar(
                 title = selectedCatalog.name.ifBlank { "Exercise" },
-                subtitle =
-                    listOfNotNull(
-                        selectedCatalog.bodyPart.takeIf { it.isNotBlank() },
-                        selectedCatalog.movementType.takeIf { it.isNotBlank() },
-                    ).joinToString(" · "),
-                onBack = { navController.popBackStack() },
+                subtitle = listOfNotNull(
+                    selectedCatalog.bodyPart.takeIf { it.isNotBlank() },
+                    selectedCatalog.movementType.takeIf { it.isNotBlank() }
+                ).joinToString(" · "),
+                onBack = { navController.popBackStack() }
             )
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Column(
-            modifier =
-                Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
             ExerciseDemoCard(
                 gifUrl = gifUrl,
                 level = selectedCatalog.level,
-                loading = gifLoading,
+                loading = gifLoading
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -150,34 +148,37 @@ fun ActivityInside(navController: NavController, activityInsideViewModel: Activi
                 selectedCatalog = selectedCatalog,
                 steps = steps,
                 muscleUrl = muscleGraph,
-                muscleLoading = muscleLoading,
+                muscleLoading = muscleLoading
             )
         }
     }
 }
 
 @Composable
-private fun ActivityInsideTopBar(title: String, subtitle: String, onBack: () -> Unit) {
+private fun ActivityInsideTopBar(
+    title: String,
+    subtitle: String,
+    onBack: () -> Unit
+) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBack) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
 
         Column(
             modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = title,
@@ -187,7 +188,7 @@ private fun ActivityInsideTopBar(title: String, subtitle: String, onBack: () -> 
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
             if (subtitle.isNotBlank()) {
                 Text(
@@ -197,7 +198,7 @@ private fun ActivityInsideTopBar(title: String, subtitle: String, onBack: () -> 
                     fontFamily = Lexend,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -207,16 +208,19 @@ private fun ActivityInsideTopBar(title: String, subtitle: String, onBack: () -> 
 }
 
 @Composable
-private fun ExerciseDemoCard(gifUrl: String?, level: String, loading: Boolean) {
+private fun ExerciseDemoCard(
+    gifUrl: String?,
+    level: String,
+    loading: Boolean
+) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .height(150.dp)
-                .clip(RoundedCornerShape(GrozzRadiusPhoto))
-                .background(GrozzSurface),
-        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(150.dp)
+            .clip(RoundedCornerShape(GrozzRadiusPhoto))
+            .background(GrozzSurface),
+        contentAlignment = Alignment.Center
     ) {
         when {
             !gifUrl.isNullOrBlank() -> {
@@ -224,7 +228,7 @@ private fun ExerciseDemoCard(gifUrl: String?, level: String, loading: Boolean) {
                     model = gifUrl,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
             }
 
@@ -237,7 +241,7 @@ private fun ExerciseDemoCard(gifUrl: String?, level: String, loading: Boolean) {
                     painter = painterResource(R.drawable.dumbbell),
                     contentDescription = null,
                     tint = GrozzMuted,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(64.dp)
                 )
             }
         }
@@ -249,12 +253,11 @@ private fun ExerciseDemoCard(gifUrl: String?, level: String, loading: Boolean) {
                 fontSize = 12.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(12.dp)
-                        .background(GrozzYellow, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
+                    .background(GrozzYellow, RoundedCornerShape(6.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }
     }
@@ -266,7 +269,7 @@ private fun ExerciseDetailTabs(
     selectedCatalog: ExerciseCatalogEntity,
     steps: List<String>,
     muscleUrl: String?,
-    muscleLoading: Boolean,
+    muscleLoading: Boolean
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Instruct", "History", "Charts")
@@ -281,9 +284,9 @@ private fun ExerciseDetailTabs(
                 TabRowDefaults.SecondaryIndicator(
                     Modifier.tabIndicatorOffset(selectedTabIndex),
                     color = GrozzYellow,
-                    height = 2.dp,
+                    height = 2.dp
                 )
-            },
+            }
         ) {
             tabs.forEachIndexed { index, label ->
                 val selected = selectedTabIndex == index
@@ -296,9 +299,9 @@ private fun ExerciseDetailTabs(
                             fontFamily = Lexend,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                             fontSize = 14.sp,
-                            color = if (selected) GrozzYellow else GrozzMuted,
+                            color = if (selected) GrozzYellow else GrozzMuted
                         )
-                    },
+                    }
                 )
             }
         }
@@ -306,25 +309,22 @@ private fun ExerciseDetailTabs(
         Spacer(modifier = Modifier.height(20.dp))
 
         when (selectedTabIndex) {
-            0 ->
-                InstructTab(
-                    selectedCatalog = selectedCatalog,
-                    steps = steps,
-                    muscleUrl = muscleUrl,
-                    muscleLoading = muscleLoading,
-                )
+            0 -> InstructTab(
+                selectedCatalog = selectedCatalog,
+                steps = steps,
+                muscleUrl = muscleUrl,
+                muscleLoading = muscleLoading
+            )
 
-            1 ->
-                GrozzComingSoonPanel(
-                    title = "History",
-                    message = "Your past sets for this exercise will show up here.",
-                )
+            1 -> GrozzComingSoonPanel(
+                title = "History",
+                message = "Your past sets for this exercise will show up here."
+            )
 
-            else ->
-                GrozzComingSoonPanel(
-                    title = "Charts",
-                    message = "Progress charts for this movement are coming soon.",
-                )
+            else -> GrozzComingSoonPanel(
+                title = "Charts",
+                message = "Progress charts for this movement are coming soon."
+            )
         }
     }
 }
@@ -335,35 +335,33 @@ private fun InstructTab(
     selectedCatalog: ExerciseCatalogEntity,
     steps: List<String>,
     muscleUrl: String?,
-    muscleLoading: Boolean,
+    muscleLoading: Boolean
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "Muscle worked",
             style = MaterialTheme.typography.titleLarge,
-            color = GrozzOnBackground,
+            color = GrozzOnBackground
         )
         Spacer(modifier = Modifier.height(14.dp))
 
         Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(132.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(GrozzSurface),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(132.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(GrozzSurface),
+            contentAlignment = Alignment.Center
         ) {
             when {
                 !muscleUrl.isNullOrBlank() -> {
                     AsyncImage(
                         model = muscleUrl,
                         contentDescription = null,
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
-                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(12.dp),
+                        contentScale = ContentScale.Fit
                     )
                 }
 
@@ -375,7 +373,7 @@ private fun InstructTab(
                     Text(
                         text = "Muscle map unavailable",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = GrozzTextSecondary,
+                        color = GrozzTextSecondary
                     )
                 }
             }
@@ -386,12 +384,12 @@ private fun InstructTab(
         Text(
             text = "PRIMARY",
             style = MaterialTheme.typography.labelMedium,
-            color = GrozzMuted,
+            color = GrozzMuted
         )
         Spacer(modifier = Modifier.height(8.dp))
         MuscleChip(
             text = selectedCatalog.bodyPart.ifBlank { "—" },
-            emphasized = true,
+            emphasized = true
         )
 
         if (selectedCatalog.secondaryMuscles.isNotEmpty()) {
@@ -399,12 +397,12 @@ private fun InstructTab(
             Text(
                 text = "SECONDARY",
                 style = MaterialTheme.typography.labelMedium,
-                color = GrozzMuted,
+                color = GrozzMuted
             )
             Spacer(modifier = Modifier.height(8.dp))
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 selectedCatalog.secondaryMuscles
                     .filter { it.isNotBlank() }
@@ -419,7 +417,7 @@ private fun InstructTab(
         Text(
             text = "Step-by-step",
             style = MaterialTheme.typography.titleLarge,
-            color = GrozzOnBackground,
+            color = GrozzOnBackground
         )
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -427,27 +425,26 @@ private fun InstructTab(
             Text(
                 text = "No instructions available for this exercise.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = GrozzTextSecondary,
+                color = GrozzTextSecondary
             )
         } else {
             steps.forEachIndexed { index, step ->
                 Row(
                     verticalAlignment = Alignment.Top,
-                    modifier = Modifier.padding(bottom = 12.dp),
+                    modifier = Modifier.padding(bottom = 12.dp)
                 ) {
                     Box(
-                        modifier =
-                            Modifier
-                                .size(28.dp)
-                                .background(GrozzYellow, RoundedCornerShape(6.dp)),
-                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .background(GrozzYellow, RoundedCornerShape(6.dp)),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "${index + 1}",
                             color = GrozzOnPrimary,
                             fontSize = 14.sp,
                             fontFamily = Oswald,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -455,7 +452,7 @@ private fun InstructTab(
                         text = step,
                         style = MaterialTheme.typography.bodyLarge,
                         color = GrozzOnBackground,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -471,11 +468,11 @@ private fun MuscleChip(text: String, emphasized: Boolean) {
         fontSize = 13.sp,
         fontFamily = Lexend,
         fontWeight = FontWeight.Bold,
-        modifier =
-            Modifier
-                .background(
-                    color = if (emphasized) GrozzMuted.copy(alpha = 0.55f) else GrozzYellow,
-                    shape = RoundedCornerShape(6.dp),
-                ).padding(horizontal = 10.dp, vertical = 5.dp),
+        modifier = Modifier
+            .background(
+                color = if (emphasized) GrozzMuted.copy(alpha = 0.55f) else GrozzYellow,
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 5.dp)
     )
 }

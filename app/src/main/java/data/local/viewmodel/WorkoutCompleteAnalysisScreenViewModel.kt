@@ -10,23 +10,21 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class WorkoutCompleteAnalysisScreenViewModel(private val repo: WorkoutRepository, userRepository: UserRepository) :
-    ViewModel() {
-    private val activeWorkoutId = MutableStateFlow("")
+class WorkoutCompleteAnalysisScreenViewModel(
+    private val repo: WorkoutRepository,
+    userRepository: UserRepository
+) : ViewModel() {
+    val _activeWorkoutId = MutableStateFlow("")
     private val _exerciseList = MutableStateFlow<List<ExerciseLogWithSets>>(emptyList())
     val exerciseList: StateFlow<List<ExerciseLogWithSets>> = _exerciseList
-    private val muscleDistribution = MutableStateFlow<Map<String, Int>>(emptyMap())
+    private val _muscleDistribution = MutableStateFlow<Map<String, Int>>(emptyMap())
     private val _ratioDistribution = MutableStateFlow<Map<String, Float>>(emptyMap())
     val ratioDistribution: StateFlow<Map<String, Float>> = _ratioDistribution
-    private val totalSetCount = MutableStateFlow(0)
-
-    fun setActiveWorkoutId(sessionId: String) {
-        activeWorkoutId.value = sessionId
-    }
+    private val _totalSetCount = MutableStateFlow(0)
 
     fun setWorkoutList() {
         viewModelScope.launch(Dispatchers.IO) {
-            val sessionId = activeWorkoutId.value
+            val sessionId = _activeWorkoutId.value
             if (sessionId.isEmpty()) return@launch
 
             val workoutHistoryFull = repo.sessions.observeHistoricalWorkoutExercise(sessionId)
@@ -34,8 +32,8 @@ class WorkoutCompleteAnalysisScreenViewModel(private val repo: WorkoutRepository
             _exerciseList.value = exercises
 
             val (distribution, totalSets) = buildMuscleDistribution(exercises)
-            muscleDistribution.value = distribution
-            totalSetCount.value = totalSets
+            _muscleDistribution.value = distribution
+            _totalSetCount.value = totalSets
             _ratioDistribution.value = buildRatioDistribution(distribution)
         }
     }
@@ -44,18 +42,20 @@ class WorkoutCompleteAnalysisScreenViewModel(private val repo: WorkoutRepository
     fun calculateMuscleDistribution() {
         viewModelScope.launch(Dispatchers.Default) {
             val (distribution, totalSets) = buildMuscleDistribution(_exerciseList.value)
-            muscleDistribution.value = distribution
-            totalSetCount.value = totalSets
+            _muscleDistribution.value = distribution
+            _totalSetCount.value = totalSets
         }
     }
 
     fun calculateRatioDistribution() {
         viewModelScope.launch(Dispatchers.Default) {
-            _ratioDistribution.value = buildRatioDistribution(muscleDistribution.value)
+            _ratioDistribution.value = buildRatioDistribution(_muscleDistribution.value)
         }
     }
 
-    private fun buildMuscleDistribution(exercises: List<ExerciseLogWithSets>): Pair<Map<String, Int>, Int> {
+    private fun buildMuscleDistribution(
+        exercises: List<ExerciseLogWithSets>
+    ): Pair<Map<String, Int>, Int> {
         if (exercises.isEmpty()) return emptyMap<String, Int>() to 0
 
         val distributionMap = mutableMapOf<String, Int>()
@@ -64,11 +64,9 @@ class WorkoutCompleteAnalysisScreenViewModel(private val repo: WorkoutRepository
         exercises.forEach { eachExerciseWithSets ->
             val primaryMuscle = eachExerciseWithSets.exerciseLog.bodyPart
             val secondaryMuscles = eachExerciseWithSets.exerciseLog.secondaryMuscles
-            val setsCount =
-                eachExerciseWithSets.setLogs
-                    .count { it.clicked }
-                    .takeIf { it > 0 }
-                    ?: eachExerciseWithSets.setLogs.size
+            val setsCount = eachExerciseWithSets.setLogs.count { it.clicked }
+                .takeIf { it > 0 }
+                ?: eachExerciseWithSets.setLogs.size
 
             if (primaryMuscle.isNotBlank()) {
                 distributionMap[primaryMuscle] =

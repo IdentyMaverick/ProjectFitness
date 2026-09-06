@@ -13,5 +13,5 @@ data class UserProfile(
     val birthDate: String = "",
     val height: String = "",
     val weight: String = "",
-    val hasPro: Boolean = false,
+    val hasPro: Boolean = false
 )

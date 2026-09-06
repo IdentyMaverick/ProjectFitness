@@ -30,7 +30,7 @@ fun ProjectFollowScreen(
     navController: NavController,
     socialViewModel: SocialViewModel,
     authViewModel: AuthViewModel,
-    listOwnerNickname: String,
+    listOwnerNickname: String
 ) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val myNickname by socialViewModel.nickname.collectAsState()
@@ -48,32 +48,28 @@ fun ProjectFollowScreen(
 
     var searchQuery by remember { mutableStateOf("") }
 
-    val followingList =
-        remember(allUsers, followingNicknames, searchQuery) {
-            allUsers
-                .filter { it.nickname.isNotBlank() && followingNicknames.contains(it.nickname) }
-                .filter {
-                    searchQuery.isBlank() ||
-                        it.nickname.contains(searchQuery, ignoreCase = true) ||
-                        it.first.contains(searchQuery, ignoreCase = true)
-                }
-        }
-
-    val recommendations =
-        remember(allUsers, myFollowing, myNickname, currentUserId, isOwnList) {
-            if (!isOwnList) {
-                emptyList()
-            } else {
-                allUsers
-                    .filter {
-                        it.nickname.isNotBlank() &&
-                            it.id != currentUserId &&
-                            it.nickname != myNickname &&
-                            !myFollowing.contains(it.nickname)
-                    }.shuffled()
-                    .take(5)
+    val followingList = remember(allUsers, followingNicknames, searchQuery) {
+        allUsers
+            .filter { it.nickname.isNotBlank() && followingNicknames.contains(it.nickname) }
+            .filter {
+                searchQuery.isBlank() ||
+                    it.nickname.contains(searchQuery, ignoreCase = true) ||
+                    it.first.contains(searchQuery, ignoreCase = true)
             }
-        }
+    }
+
+    val recommendations = remember(allUsers, myFollowing, myNickname, currentUserId, isOwnList) {
+        if (!isOwnList) emptyList()
+        else allUsers
+            .filter {
+                it.nickname.isNotBlank() &&
+                    it.id != currentUserId &&
+                    it.nickname != myNickname &&
+                    !myFollowing.contains(it.nickname)
+            }
+            .shuffled()
+            .take(5)
+    }
 
     val showRecommendations = isOwnList && searchQuery.isBlank() && recommendations.isNotEmpty()
     val showEmptyState = followingList.isEmpty() && !showRecommendations
@@ -83,19 +79,18 @@ fun ProjectFollowScreen(
         topBar = {
             FollowListTopBar(
                 title = "FOLLOWING",
-                navController = navController,
+                navController = navController
             )
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {
             ownerNickname.isBlank() -> {
                 FollowListLoadingState(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
                 )
             }
 
@@ -103,37 +98,34 @@ fun ProjectFollowScreen(
                 ColumnWithSearch(
                     searchQuery = searchQuery,
                     onSearchChange = { searchQuery = it },
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
                 ) {
                     FollowEmptyState(
                         title = if (searchQuery.isBlank()) "Not following anyone yet" else "No results found",
-                        subtitle =
-                            if (searchQuery.isBlank()) {
-                                "Accounts this person follows will show up here."
-                            } else {
-                                "Try a different name or username."
-                            },
-                        modifier = Modifier.fillMaxSize(),
+                        subtitle = if (searchQuery.isBlank()) {
+                            "Accounts this person follows will show up here."
+                        } else {
+                            "Try a different name or username."
+                        },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
 
             else -> {
                 LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
                 ) {
                     item(key = "search") {
                         Spacer(Modifier.height(16.dp))
                         FollowSearchField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
-                            placeholder = "Search following...",
+                            placeholder = "Search following..."
                         )
                         Spacer(Modifier.height(8.dp))
                     }
@@ -142,24 +134,23 @@ fun ProjectFollowScreen(
                         item(key = "following_header") {
                             FollowSectionHeader(
                                 title = "Following",
-                                count = followingList.size,
+                                count = followingList.size
                             )
                         }
 
                         items(
                             items = followingList,
-                            key = { it.id.ifBlank { it.nickname } },
+                            key = { it.id.ifBlank { it.nickname } }
                         ) { user ->
                             val isSelf = user.nickname == myNickname
                             val isFollowingThem = myFollowing.contains(user.nickname)
                             FollowUserRow(
                                 user = user,
-                                buttonStyle =
-                                    when {
-                                        isSelf -> FollowButtonStyle.Following
-                                        isOwnList || isFollowingThem -> FollowButtonStyle.Following
-                                        else -> FollowButtonStyle.Follow
-                                    },
+                                buttonStyle = when {
+                                    isSelf -> FollowButtonStyle.Following
+                                    isOwnList || isFollowingThem -> FollowButtonStyle.Following
+                                    else -> FollowButtonStyle.Follow
+                                },
                                 onProfileClick = {
                                     if (isSelf) {
                                         navController.navigate(Screens.Home.Profile.route) {
@@ -176,7 +167,7 @@ fun ProjectFollowScreen(
                                     } else {
                                         socialViewModel.followUser(myNickname, user.nickname)
                                     }
-                                },
+                                }
                             )
                         }
                     } else if (searchQuery.isNotBlank()) {
@@ -184,10 +175,9 @@ fun ProjectFollowScreen(
                             FollowEmptyState(
                                 title = "No results found",
                                 subtitle = "Try a different name or username.",
-                                modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                        .padding(top = 32.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(top = 32.dp)
                             )
                         }
                     }
@@ -197,13 +187,13 @@ fun ProjectFollowScreen(
                             FollowSectionHeader(
                                 title = "Suggested for you",
                                 accent = true,
-                                modifier = Modifier.padding(top = 8.dp),
+                                modifier = Modifier.padding(top = 8.dp)
                             )
                         }
 
                         items(
                             items = recommendations,
-                            key = { "suggested_${it.id.ifBlank { it.nickname }}" },
+                            key = { "suggested_${it.id.ifBlank { it.nickname }}" }
                         ) { user ->
                             FollowUserRow(
                                 user = user,
@@ -213,7 +203,7 @@ fun ProjectFollowScreen(
                                 },
                                 onFollowClick = {
                                     socialViewModel.followUser(myNickname, user.nickname)
-                                },
+                                }
                             )
                         }
                     }
@@ -232,14 +222,14 @@ private fun ColumnWithSearch(
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     Column(modifier = modifier) {
         Spacer(modifier.height(16.dp))
         FollowSearchField(
             value = searchQuery,
             onValueChange = onSearchChange,
-            placeholder = "Search following...",
+            placeholder = "Search following..."
         )
         Spacer(modifier.height(8.dp))
         content()

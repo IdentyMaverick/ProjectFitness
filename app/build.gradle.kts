@@ -24,11 +24,10 @@ android {
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments +=
-                    mapOf(
-                        "room.schemaLocation" to "$projectDir/schemas",
-                        "room.incremental" to "true",
-                    )
+                arguments += mapOf(
+                    "room.schemaLocation" to "$projectDir/schemas",
+                    "room.incremental" to "true"
+                )
             }
         }
     }
@@ -40,7 +39,7 @@ android {
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
+                "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("debug")
         }

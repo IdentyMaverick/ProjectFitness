@@ -12,23 +12,21 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
-class ActivityViewModel(private val repo: WorkoutRepository, private val auth: FirebaseAuth) : ViewModel() {
+class ActivityViewModel(
+    private val repo: WorkoutRepository,
+    private val auth: FirebaseAuth
+) : ViewModel() {
     private val userId = MutableStateFlow(auth.currentUser?.uid.orEmpty())
 
-    private val authStateListener =
-        FirebaseAuth.AuthStateListener { firebaseAuth ->
-            userId.value = firebaseAuth.currentUser?.uid.orEmpty()
-        }
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        userId.value = firebaseAuth.currentUser?.uid.orEmpty()
+    }
 
     val workoutsFlow = repo.templates.observeWorkouts()
-    val myWorkoutsFlow: Flow<List<WorkoutEntity>> =
-        userId.flatMapLatest { uid ->
-            if (uid.isBlank()) {
-                flowOf(emptyList())
-            } else {
-                repo.templates.observeMyWorkouts(uid)
-            }
-        }
+    val myWorkoutsFlow: Flow<List<WorkoutEntity>> = userId.flatMapLatest { uid ->
+        if (uid.isBlank()) flowOf(emptyList())
+        else repo.templates.observeMyWorkouts(uid)
+    }
 
     init {
         auth.addAuthStateListener(authStateListener)

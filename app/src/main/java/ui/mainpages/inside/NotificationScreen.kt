@@ -37,6 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -82,16 +85,15 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
         },
         containerColor = GrozzSystemBar,
         floatingActionButtonPosition = FabPosition.EndOverlay,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {
             nickname.isBlank() -> {
                 Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = GrozzYellow)
                 }
@@ -99,54 +101,50 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
 
             notifications.isEmpty() -> {
                 NotificationEmptyState(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
                 )
             }
 
             else -> {
                 val unreadCount = notifications.count { !it.isRead }
                 LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    contentPadding =
-                        androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 20.dp,
-                            vertical = 16.dp,
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                        horizontal = 20.dp,
+                        vertical = 16.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (unreadCount > 0) {
                         item(key = "unread_header") {
                             Text(
-                                text =
-                                    if (unreadCount == 1) {
-                                        "1 new notification"
-                                    } else {
-                                        "$unreadCount new notifications"
-                                    },
+                                text = if (unreadCount == 1) {
+                                    "1 new notification"
+                                } else {
+                                    "$unreadCount new notifications"
+                                },
                                 color = GrozzYellow,
                                 fontFamily = Lexend,
                                 fontSize = 13.sp,
-                                modifier = Modifier.padding(bottom = 4.dp),
+                                modifier = Modifier.padding(bottom = 4.dp)
                             )
                         }
                     }
 
                     items(
                         items = notifications,
-                        key = { it.id.ifBlank { "${it.time}_${it.title}" } },
+                        key = { it.id.ifBlank { "${it.time}_${it.title}" } }
                     ) { item ->
                         NotificationCard(
                             item = item,
                             onClick = {
                                 extractFollowerNickname(item.message)?.let { follower ->
                                     navController.navigate(
-                                        Screens.OtherScreenProfile.createRoute(follower),
+                                        Screens.OtherScreenProfile.createRoute(follower)
                                     ) {
                                         popUpTo(Screens.OtherScreenProfile.route) {
                                             inclusive = true
@@ -154,7 +152,7 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
                                         launchSingleTop = true
                                     }
                                 }
-                            },
+                            }
                         )
                     }
                 }
@@ -164,43 +162,43 @@ fun NotificationScreen(navController: NavController, socialViewModel: SocialView
 }
 
 @Composable
-private fun NotificationCard(item: NotificationModel, onClick: () -> Unit) {
+private fun NotificationCard(
+    item: NotificationModel,
+    onClick: () -> Unit
+) {
     val cardBackground = if (!item.isRead) NotificationUnreadBg else NotificationCardBg
     val borderColor = if (!item.isRead) GrozzYellow.copy(alpha = 0.35f) else Color.Transparent
 
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(cardBackground)
-                .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-                .clickable(onClick = onClick)
-                .padding(14.dp),
-        verticalAlignment = Alignment.Top,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(cardBackground)
+            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.Top
     ) {
         if (!item.isRead) {
             Box(
-                modifier =
-                    Modifier
-                        .padding(top = 6.dp, end = 10.dp)
-                        .size(8.dp)
-                        .background(GrozzYellow, CircleShape),
+                modifier = Modifier
+                    .padding(top = 6.dp, end = 10.dp)
+                    .size(8.dp)
+                    .background(GrozzYellow, CircleShape)
             )
         }
 
         Box(
-            modifier =
-                Modifier
-                    .size(44.dp)
-                    .background(GrozzYellow.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(44.dp)
+                .background(GrozzYellow.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(notificationIconFor(item.title)),
                 contentDescription = null,
                 tint = GrozzYellow,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -209,7 +207,7 @@ private fun NotificationCard(item: NotificationModel, onClick: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = item.title,
@@ -218,14 +216,14 @@ private fun NotificationCard(item: NotificationModel, onClick: () -> Unit) {
                     fontFamily = Lexend,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = formatNotificationTime(item.time),
                     color = Color.White.copy(alpha = 0.45f),
                     fontSize = 12.sp,
-                    fontFamily = Lexend,
+                    fontFamily = Lexend
                 )
             }
 
@@ -236,7 +234,7 @@ private fun NotificationCard(item: NotificationModel, onClick: () -> Unit) {
                 color = Color.White.copy(alpha = if (!item.isRead) 0.9f else 0.65f),
                 fontSize = 14.sp,
                 fontFamily = Lexend,
-                lineHeight = 20.sp,
+                lineHeight = 20.sp
             )
         }
     }
@@ -247,20 +245,19 @@ private fun NotificationEmptyState(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier =
-                Modifier
-                    .size(72.dp)
-                    .background(GrozzYellow.copy(alpha = 0.12f), CircleShape),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(72.dp)
+                .background(GrozzYellow.copy(alpha = 0.12f), CircleShape),
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.circlenotifications),
                 contentDescription = null,
                 tint = GrozzYellow.copy(alpha = 0.7f),
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(36.dp)
             )
         }
 
@@ -271,7 +268,7 @@ private fun NotificationEmptyState(modifier: Modifier = Modifier) {
             color = Color.White,
             fontSize = 20.sp,
             fontFamily = Oswald,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
 
         Spacer(Modifier.height(8.dp))
@@ -282,27 +279,28 @@ private fun NotificationEmptyState(modifier: Modifier = Modifier) {
             fontSize = 14.sp,
             fontFamily = Lexend,
             textAlign = TextAlign.Center,
-            lineHeight = 20.sp,
+            lineHeight = 20.sp
         )
     }
 }
 
 @Composable
-fun HomeTopBarNotificationScreen(navController: NavController) {
+fun HomeTopBarNotificationScreen(
+    navController: NavController
+) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(30.dp),
-                tint = Color.White,
+                tint = Color.White
             )
         }
 
@@ -313,7 +311,7 @@ fun HomeTopBarNotificationScreen(navController: NavController) {
             color = Color.White,
             fontSize = 20.sp,
             fontFamily = Oswald,
-            style = TextStyle(letterSpacing = 0.sp),
+            style = TextStyle(letterSpacing = 0.sp)
         )
 
         Spacer(Modifier.weight(1f))
@@ -322,19 +320,17 @@ fun HomeTopBarNotificationScreen(navController: NavController) {
     }
 }
 
-private fun notificationIconFor(title: String): Int = when (title.lowercase(Locale.getDefault())) {
-    "follow" -> R.drawable.personadd
-    else -> R.drawable.circlenotifications
+private fun notificationIconFor(title: String): Int {
+    return when (title.lowercase(Locale.getDefault())) {
+        "follow" -> R.drawable.personadd
+        else -> R.drawable.circlenotifications
+    }
 }
 
 private fun extractFollowerNickname(message: String): String? {
     val trimmed = message.trim()
     val followMatch = Regex("^(.+?) has followed you\\.?$").find(trimmed)
-    return followMatch
-        ?.groupValues
-        ?.getOrNull(1)
-        ?.trim()
-        ?.takeIf { it.isNotBlank() }
+    return followMatch?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() }
 }
 
 fun formatNotificationTime(timeMillis: Long): String {

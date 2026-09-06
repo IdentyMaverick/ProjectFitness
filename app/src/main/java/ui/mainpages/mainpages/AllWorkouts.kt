@@ -63,53 +63,46 @@ import ui.mainpages.navigation.Screens
 fun AllWorkouts(
     navController: NavController,
     homesViewModel: HomesViewModel,
-    filter: String = Screens.AllWorkouts.FILTER_ALL,
+    filter: String = Screens.AllWorkouts.FILTER_ALL
 ) {
     val allWorkouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
-    val filteredWorkouts =
-        remember(allWorkouts, filter) {
-            when (filter) {
-                Screens.AllWorkouts.FILTER_COACH ->
-                    allWorkouts.filter {
-                        isCoachType(it.workout.workoutType)
-                    }
-
-                Screens.AllWorkouts.FILTER_CHALLENGE ->
-                    allWorkouts.filter {
-                        isChallengeType(it.workout.workoutType)
-                    }
-
-                else -> allWorkouts
+    val filteredWorkouts = remember(allWorkouts, filter) {
+        when (filter) {
+            Screens.AllWorkouts.FILTER_COACH -> allWorkouts.filter {
+                isCoachType(it.workout.workoutType)
             }
-        }
-    val (titleTop, titleBottom, emptyTitle, emptyBody) =
-        remember(filter) {
-            when (filter) {
-                Screens.AllWorkouts.FILTER_COACH ->
-                    WorkoutListCopy(
-                        titleTop = "COACH'S",
-                        titleBottom = "PICKS",
-                        emptyTitle = "No coach picks yet",
-                        emptyBody = "Coach workouts will show up here when available.",
-                    )
 
-                Screens.AllWorkouts.FILTER_CHALLENGE ->
-                    WorkoutListCopy(
-                        titleTop = "CHALLENGES",
-                        titleBottom = "CATALOGUE",
-                        emptyTitle = "No challenges yet",
-                        emptyBody = "Challenge workouts will show up here when available.",
-                    )
-
-                else ->
-                    WorkoutListCopy(
-                        titleTop = "ALL",
-                        titleBottom = "WORKOUTS LIST",
-                        emptyTitle = "No workouts yet",
-                        emptyBody = "Catalogue workouts will show up here when available.",
-                    )
+            Screens.AllWorkouts.FILTER_CHALLENGE -> allWorkouts.filter {
+                isChallengeType(it.workout.workoutType)
             }
+
+            else -> allWorkouts
         }
+    }
+    val (titleTop, titleBottom, emptyTitle, emptyBody) = remember(filter) {
+        when (filter) {
+            Screens.AllWorkouts.FILTER_COACH -> WorkoutListCopy(
+                titleTop = "COACH'S",
+                titleBottom = "PICKS",
+                emptyTitle = "No coach picks yet",
+                emptyBody = "Coach workouts will show up here when available."
+            )
+
+            Screens.AllWorkouts.FILTER_CHALLENGE -> WorkoutListCopy(
+                titleTop = "CHALLENGES",
+                titleBottom = "CATALOGUE",
+                emptyTitle = "No challenges yet",
+                emptyBody = "Challenge workouts will show up here when available."
+            )
+
+            else -> WorkoutListCopy(
+                titleTop = "ALL",
+                titleBottom = "WORKOUTS LIST",
+                emptyTitle = "No workouts yet",
+                emptyBody = "Catalogue workouts will show up here when available."
+            )
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -117,29 +110,27 @@ fun AllWorkouts(
             HomeTopBarAllWorkouts(onBack = { navController.popBackStack() })
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .navigationBarsPadding(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .navigationBarsPadding(),
             contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 8.dp, bottom = 4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(top = 8.dp, bottom = 4.dp)
                 ) {
                     HorizontalDivider(
                         thickness = 2.dp,
                         color = GrozzYellow,
-                        modifier = Modifier.width(28.dp),
+                        modifier = Modifier.width(28.dp)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -148,7 +139,7 @@ fun AllWorkouts(
                             color = GrozzOnBackground,
                             fontSize = 20.sp,
                             fontFamily = Oswald,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -156,7 +147,7 @@ fun AllWorkouts(
                             color = GrozzYellow,
                             fontSize = 20.sp,
                             fontFamily = Oswald,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
@@ -165,7 +156,7 @@ fun AllWorkouts(
                         color = GrozzMuted,
                         fontSize = 13.sp,
                         fontFamily = Lexend,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
@@ -173,18 +164,17 @@ fun AllWorkouts(
             if (filteredWorkouts.isEmpty()) {
                 item {
                     Column(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 48.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
                             text = emptyTitle,
                             color = GrozzOnBackground,
                             fontSize = 16.sp,
                             fontFamily = Lexend,
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
@@ -192,21 +182,21 @@ fun AllWorkouts(
                             color = GrozzMuted,
                             fontSize = 13.sp,
                             fontFamily = Lexend,
-                            textAlign = TextAlign.Center,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
             } else {
                 items(
                     items = filteredWorkouts,
-                    key = { it.workout.workoutId },
+                    key = { it.workout.workoutId }
                 ) { item ->
                     AllWorkoutCard(
                         workout = item,
                         onClick = {
                             navController.navigate("workoutsettingscreen/${item.workout.workoutId}")
                         },
-                        modifier = Modifier.padding(horizontal = 20.dp),
+                        modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 }
             }
@@ -218,35 +208,37 @@ private data class WorkoutListCopy(
     val titleTop: String,
     val titleBottom: String,
     val emptyTitle: String,
-    val emptyBody: String,
+    val emptyBody: String
 )
 
 @Composable
-private fun AllWorkoutCard(workout: WorkoutWithExercises, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun AllWorkoutCard(
+    workout: WorkoutWithExercises,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val difficulty = workout.workout.workoutRating.coerceIn(0, 5)
     val exerciseCount = workout.exercises.size
 
     GrozzPhotoCard(
         painter = safeWorkoutPainter(workout.workout.image),
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clickable(onClick = onClick),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .clickable(onClick = onClick)
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(14.dp),
-            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = workoutTypeLabel(workout.workout.workoutType).uppercase(),
                 color = GrozzYellow,
                 fontSize = 11.sp,
                 fontFamily = Lexend,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Bold
             )
             Text(
                 text = workout.workout.workoutName,
@@ -255,7 +247,7 @@ private fun AllWorkoutCard(workout: WorkoutWithExercises, onClick: () -> Unit, m
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (exerciseCount > 0) {
@@ -263,25 +255,24 @@ private fun AllWorkoutCard(workout: WorkoutWithExercises, onClick: () -> Unit, m
                     text = counted(exerciseCount, "exercise"),
                     icon = R.drawable.shutterspeedfilledicon128,
                     textColor = GrozzTextSecondary,
-                    iconColor = GrozzTextSecondary,
+                    iconColor = GrozzTextSecondary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 repeat(5) { index ->
                     Icon(
                         painter = painterResource(id = R.drawable.skullicon128),
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint =
-                            if (index < difficulty) {
-                                GrozzYellow
-                            } else {
-                                Color.White.copy(alpha = 0.35f)
-                            },
+                        tint = if (index < difficulty) {
+                            GrozzYellow
+                        } else {
+                            Color.White.copy(alpha = 0.35f)
+                        }
                     )
                 }
             }
@@ -292,49 +283,52 @@ private fun AllWorkoutCard(workout: WorkoutWithExercises, onClick: () -> Unit, m
 @Composable
 private fun HomeTopBarAllWorkouts(onBack: () -> Unit) {
     Box(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         IconButton(
             onClick = onBack,
-            modifier = Modifier.align(Alignment.CenterStart),
+            modifier = Modifier.align(Alignment.CenterStart)
         ) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground,
+                tint = GrozzOnBackground
             )
         }
 
         GrozzTopBarLogo(modifier = Modifier.align(Alignment.Center))
 
         Spacer(
-            modifier =
-                Modifier
-                    .align(Alignment.CenterEnd)
-                    .size(48.dp),
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(48.dp)
         )
     }
 }
 
 @Composable
-fun WorkoutTag(text: String, icon: Int, textColor: Color, iconColor: Color, modifier: Modifier = Modifier) {
+fun WorkoutTag(
+    text: String,
+    icon: Int,
+    textColor: Color,
+    iconColor: Color,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier =
-            modifier
-                .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(GrozzRadiusChip))
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(GrozzRadiusChip))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(id = icon),
             contentDescription = null,
             tint = iconColor,
-            modifier = Modifier.size(14.dp),
+            modifier = Modifier.size(14.dp)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
@@ -344,7 +338,7 @@ fun WorkoutTag(text: String, icon: Int, textColor: Color, iconColor: Color, modi
             fontFamily = Lexend,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

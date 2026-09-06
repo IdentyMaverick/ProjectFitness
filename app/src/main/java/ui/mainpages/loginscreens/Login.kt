@@ -69,7 +69,7 @@ import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.LoginUiState
 
-private const val SIGN_UP_TAG = "sign_up"
+private const val SignUpTag = "sign_up"
 
 @Composable
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -102,53 +102,48 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     }
 
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(GrozzBackground),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(GrozzBackground)
     ) {
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(id = R.drawable.grozzlogin),
             contentDescription = null,
             alpha = 0.9f,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.Crop
         )
 
         // Soft bottom fade so footer text stays readable over the photo
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops =
-                                arrayOf(
-                                    0.0f to Color.Transparent,
-                                    0.45f to Color.Transparent,
-                                    1.0f to GrozzBackground.copy(alpha = 0.85f),
-                                ),
-                        ),
-                    ),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.45f to Color.Transparent,
+                            1.0f to GrozzBackground.copy(alpha = 0.85f)
+                        )
+                    )
+                )
         )
 
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 24.dp, bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp, bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
-                modifier =
-                    Modifier
-                        .size(120.dp)
-                        .padding(bottom = 8.dp),
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(bottom = 8.dp)
             )
 
             Row(horizontalArrangement = Arrangement.Center) {
@@ -157,14 +152,14 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                     fontFamily = Oswald,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = Color.White,
+                    color = Color.White
                 )
                 Text(
                     text = "BACK",
                     fontFamily = Oswald,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = GrozzYellow,
+                    color = GrozzYellow
                 )
             }
 
@@ -175,7 +170,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 onValueChange = { emailText.value = it },
                 placeholder = "E-Mail",
                 enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -186,7 +181,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 placeholder = "Password",
                 visualTransformation = PasswordVisualTransformation(),
                 enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
             Text(
@@ -194,14 +189,13 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = GrozzTextSecondary,
                 textDecoration = TextDecoration.Underline,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                        .clickable(enabled = !isLoading) {
-                            navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route)
-                        },
-                textAlign = TextAlign.End,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .clickable(enabled = !isLoading) {
+                        navController.navigate(Screens.LoginScreen.ForgetPasswordScreen.route)
+                    },
+                textAlign = TextAlign.End
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -209,44 +203,41 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             GrozzPrimaryButton(
                 text = "Sign in",
                 loading = isLoading,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .widthIn(max = 420.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .widthIn(max = 420.dp),
                 onClick = {
                     if (emailText.value.isEmpty() || password.value.isEmpty()) {
-                        Toast
-                            .makeText(context, "E-Mail or Password empty", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, "E-Mail or Password empty", Toast.LENGTH_SHORT)
                             .show()
                     } else {
                         authViewModel.login(emailText.value, password.value)
                     }
-                },
+                }
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
             Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = Color.White.copy(alpha = 0.25f),
+                    color = Color.White.copy(alpha = 0.25f)
                 )
                 Text(
                     text = "OR LOGIN WITH",
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(horizontal = 12.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp)
                 )
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = Color.White.copy(alpha = 0.25f),
+                    color = Color.White.copy(alpha = 0.25f)
                 )
             }
 
@@ -254,32 +245,31 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             GoogleSignInButton(
                 authViewModel,
-                enabled = !isLoading,
+                enabled = !isLoading
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val signUpText =
-                buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            color = GrozzTextSecondary,
-                            fontWeight = FontWeight.Normal,
-                        ),
-                    ) {
-                        append("Don't have an account yet? ")
-                    }
-                    pushStringAnnotation(tag = SIGN_UP_TAG, annotation = SIGN_UP_TAG)
-                    withStyle(
-                        SpanStyle(
-                            color = GrozzYellow,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    ) {
-                        append("Sign up")
-                    }
-                    pop()
+            val signUpText = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = GrozzTextSecondary,
+                        fontWeight = FontWeight.Normal
+                    )
+                ) {
+                    append("Don't have an account yet? ")
                 }
+                pushStringAnnotation(tag = SignUpTag, annotation = SignUpTag)
+                withStyle(
+                    SpanStyle(
+                        color = GrozzYellow,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Sign up")
+                }
+                pop()
+            }
 
             ClickableText(
                 text = signUpText,
@@ -287,12 +277,12 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 onClick = { offset ->
                     if (isLoading) return@ClickableText
                     signUpText
-                        .getStringAnnotations(SIGN_UP_TAG, offset, offset)
+                        .getStringAnnotations(SignUpTag, offset, offset)
                         .firstOrNull()
                         ?.let {
                             navController.navigate(Screens.LoginScreen.RegisterScreen.route)
                         }
-                },
+                }
             )
         }
     }
@@ -301,35 +291,34 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 @Composable
 fun GoogleSignInButton(authViewModel: AuthViewModel, enabled: Boolean = true) {
     val context = LocalContext.current
-    val launcher =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult(),
-        ) { result ->
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val idToken = account.idToken
-                if (idToken.isNullOrBlank()) {
-                    authViewModel.onGoogleSignInFailed("Google ID token is missing")
-                    return@rememberLauncherForActivityResult
-                }
-                authViewModel.loginWithGoogle(
-                    idToken = idToken,
-                    displayName = account.displayName,
-                    email = account.email,
-                    photoUrl = account.photoUrl?.toString(),
-                )
-            } catch (e: ApiException) {
-                if (e.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
-                    return@rememberLauncherForActivityResult
-                }
-                Log.e("Auth", "Google sign-in failed: ${e.statusCode} ${e.message}")
-                authViewModel.onGoogleSignInFailed(googleSignInErrorMessage(e))
-            } catch (e: Exception) {
-                Log.e("Auth", "Error: ${e.message}")
-                authViewModel.onGoogleSignInFailed(e.message ?: "Google sign-in failed")
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account.idToken
+            if (idToken.isNullOrBlank()) {
+                authViewModel.onGoogleSignInFailed("Google ID token is missing")
+                return@rememberLauncherForActivityResult
             }
+            authViewModel.loginWithGoogle(
+                idToken = idToken,
+                displayName = account.displayName,
+                email = account.email,
+                photoUrl = account.photoUrl?.toString()
+            )
+        } catch (e: ApiException) {
+            if (e.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) {
+                return@rememberLauncherForActivityResult
+            }
+            Log.e("Auth", "Google sign-in failed: ${e.statusCode} ${e.message}")
+            authViewModel.onGoogleSignInFailed(googleSignInErrorMessage(e))
+        } catch (e: Exception) {
+            Log.e("Auth", "Error: ${e.message}")
+            authViewModel.onGoogleSignInFailed(e.message ?: "Google sign-in failed")
         }
+    }
 
     Button(
         onClick = {
@@ -337,22 +326,24 @@ fun GoogleSignInButton(authViewModel: AuthViewModel, enabled: Boolean = true) {
             launcher.launch(signInClient.signInIntent)
         },
         enabled = enabled,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {
         Image(
             painterResource(R.drawable.google),
             contentDescription = "Google Sign In",
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(40.dp)
         )
     }
 }
 
-private fun googleSignInErrorMessage(e: ApiException): String = when (e.statusCode) {
-    CommonStatusCodes.DEVELOPER_ERROR ->
-        "Google Sign-In is not configured for this app. Add the debug SHA-1 in Firebase Console, then download a new google-services.json."
+private fun googleSignInErrorMessage(e: ApiException): String {
+    return when (e.statusCode) {
+        CommonStatusCodes.DEVELOPER_ERROR ->
+            "Google Sign-In is not configured for this app. Add the debug SHA-1 in Firebase Console, then download a new google-services.json."
 
-    else -> {
-        val codeName = GoogleSignInStatusCodes.getStatusCodeString(e.statusCode)
-        "Google sign-in failed ($codeName)"
+        else -> {
+            val codeName = GoogleSignInStatusCodes.getStatusCodeString(e.statusCode)
+            "Google sign-in failed ($codeName)"
+        }
     }
 }

@@ -20,35 +20,30 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val userRepository: UserRepository,
     private val repo: WorkoutRepository,
-    private val storageRepository: StorageRepository,
+    private val storageRepository: StorageRepository
 ) : ViewModel() {
     private val _profileState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val profileState: StateFlow<ProfileUiState> = _profileState
     private val _workoutHistoryFull = MutableStateFlow<List<WorkoutHistoryFull>>(emptyList())
     private val userId = MutableStateFlow("")
-    val workoutHistoryFull =
-        userId
-            .flatMapLatest { uid ->
-                repo.sessions.observeWorkoutHistoryOther(uid)
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList(),
-            )
+    val workoutHistoryFull = userId.flatMapLatest { uid ->
+        repo.sessions.observeWorkoutHistoryOther(uid)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
     private val targetNickname = MutableStateFlow("")
-    val userHistory: StateFlow<List<WorkoutHistoryEntity>> =
-        targetNickname
-            .flatMapLatest { nickname ->
-                if (nickname.isBlank()) {
-                    flowOf(emptyList())
-                } else {
-                    repo.sessions.observeUserWorkoutHistory(nickname)
-                }
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList(),
-            )
+    val userHistory: StateFlow<List<WorkoutHistoryEntity>> = targetNickname
+        .flatMapLatest { nickname ->
+            if (nickname.isBlank()) flowOf(emptyList())
+            else repo.sessions.observeUserWorkoutHistory(nickname)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     fun setUserId(uid: String) {
         userId.value = uid

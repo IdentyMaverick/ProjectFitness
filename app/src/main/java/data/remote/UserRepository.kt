@@ -7,13 +7,14 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-class UserRepository(private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()) {
+class UserRepository(
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+) {
     private fun isUsableUid(uid: String) = uid.isNotBlank()
 
     suspend fun createUserProfile(uid: String, profile: UserProfile) {
         if (!isUsableUid(uid)) return
-        firestore
-            .collection("googlecloudusers")
+        firestore.collection("googlecloudusers")
             .document(uid)
             .set(profile)
             .await()
@@ -21,19 +22,13 @@ class UserRepository(private val firestore: FirebaseFirestore = FirebaseFirestor
 
     suspend fun getUserProfile(uid: String): UserProfile? {
         if (!isUsableUid(uid)) return null
-        val doc =
-            firestore
-                .collection("googlecloudusers")
-                .document(uid)
-                .get()
-                .await()
+        val doc = firestore.collection("googlecloudusers").document(uid).get().await()
         return doc.toObject(UserProfile::class.java)
     }
 
     suspend fun setUserOnline(uid: String, isOnline: Boolean) {
         if (!isUsableUid(uid)) return
-        firestore
-            .collection("googlecloudusers")
+        firestore.collection("googlecloudusers")
             .document(uid)
             .update("isOnline", isOnline)
             .await()
@@ -41,11 +36,7 @@ class UserRepository(private val firestore: FirebaseFirestore = FirebaseFirestor
 
     suspend fun updatePhotoUrl(uid: String, url: String) {
         if (!isUsableUid(uid)) return
-        firestore
-            .collection("googlecloudusers")
-            .document(uid)
-            .update("userPhotoUri", url)
-            .await()
+        firestore.collection("googlecloudusers").document(uid).update("userPhotoUri", url).await()
     }
 
     suspend fun updateUserInformation(
@@ -54,12 +45,10 @@ class UserRepository(private val firestore: FirebaseFirestore = FirebaseFirestor
         gender: Boolean,
         birthDate: String,
         height: String,
-        weight: String,
+        weight: String
     ) {
         if (!isUsableUid(uid)) return
-        firestore
-            .collection("googlecloudusers")
-            .document(uid)
+        firestore.collection("googlecloudusers").document(uid)
             .update(
                 "first",
                 first,
@@ -70,27 +59,37 @@ class UserRepository(private val firestore: FirebaseFirestore = FirebaseFirestor
                 "height",
                 height,
                 "weight",
-                weight,
-            ).await()
+                weight
+            )
+            .await()
     }
 
     fun updateUserIdea(selectedRating: String) {
         val db = FirebaseFirestore.getInstance()
         val currentUser = Firebase.auth.currentUser
         if (currentUser != null) {
-            val updateUserIdea =
-                UpdateUserIdea(
-                    userId = currentUser.uid,
-                    rating = selectedRating,
-                    userEmail = currentUser.email ?: "",
-                )
+            val updateUserIdea = UpdateUserIdea(
+                userId = currentUser.uid,
+                rating = selectedRating,
+                userEmail = currentUser.email ?: ""
+            )
 
-            db
-                .collection("googlecloudidea")
+            db.collection("googlecloudidea")
                 .add(updateUserIdea)
+                .addOnSuccessListener {
+                    Log.d("Idea", "Idea added successfully")
+                }
                 .addOnFailureListener { e ->
                     Log.e("Idea", "Error adding idea", e)
                 }
+        }
+    }
+
+    fun updateUserExercise() {
+        val db = FirebaseFirestore.getInstance()
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser != null) {
+
         }
     }
 }
@@ -100,5 +99,5 @@ data class UpdateUserIdea(
     val userId: String = "",
     val rating: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-    val userEmail: String = "",
+    val userEmail: String = ""
 )

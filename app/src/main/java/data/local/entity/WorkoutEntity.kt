@@ -17,7 +17,7 @@ data class WorkoutEntity(
     val workoutRating: Int = 0,
     val ownerUid: String? = "",
     val syncState: Boolean = false,
-    val image: Int = 0,
+    val image: Int = 0
 )
 
 @Keep
@@ -25,9 +25,9 @@ data class WorkoutWithExercises(
     @Embedded val workout: WorkoutEntity,
     @Relation(
         parentColumn = "workoutId",
-        entityColumn = "workoutOwnerId",
+        entityColumn = "workoutOwnerId"
     )
-    val exercises: List<WorkoutExerciseEntity>,
+    val exercises: List<WorkoutExerciseEntity>
 )
 
 @Keep
@@ -35,9 +35,9 @@ data class ExerciseWithSets(
     @Embedded val exercise: WorkoutExerciseEntity,
     @Relation(
         parentColumn = "exerciseId",
-        entityColumn = "exerciseOwnerId",
+        entityColumn = "exerciseOwnerId"
     )
-    val sets: List<SetEntity>,
+    val sets: List<SetEntity>
 )
 
 @Keep
@@ -46,17 +46,21 @@ data class WorkoutFull(
     @Relation(
         entity = WorkoutExerciseEntity::class,
         parentColumn = "workoutId",
-        entityColumn = "workoutOwnerId",
+        entityColumn = "workoutOwnerId"
     )
-    val exercises: List<ExerciseWithSets>,
+    val exercises: List<ExerciseWithSets>
 )
 
 @Entity(
     tableName = "workout_exercise_crossref",
-    primaryKeys = ["workoutId", "exerciseId"],
+    primaryKeys = ["workoutId", "exerciseId"]
 )
 @Keep
-data class WorkoutExerciseCrossRef(val workoutId: String, val exerciseId: String, val orderIndex: Int = 0)
+data class WorkoutExerciseCrossRef(
+    val workoutId: String,
+    val exerciseId: String,
+    val orderIndex: Int = 0
+)
 
 @Keep
 data class WorkoutWithCatalogExercises(
@@ -64,12 +68,11 @@ data class WorkoutWithCatalogExercises(
     @Relation(
         parentColumn = "workoutId",
         entityColumn = "id",
-        associateBy =
-            Junction(
-                value = WorkoutExerciseCrossRef::class,
-                parentColumn = "workoutId",
-                entityColumn = "exerciseId",
-            ),
+        associateBy = Junction(
+            value = WorkoutExerciseCrossRef::class,
+            parentColumn = "workoutId",
+            entityColumn = "exerciseId"
+        )
     )
-    val exercises: List<ExerciseCatalogEntity>,
+    val exercises: List<ExerciseCatalogEntity>
 )

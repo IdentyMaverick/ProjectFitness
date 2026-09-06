@@ -5,12 +5,10 @@ import androidx.navigation.NavController
 
 sealed class Screens(val route: String) {
     object WorkoutCompleteAnalysisScreen : Screens("workoutcompleteanalysisscreen")
-
     object InfoHorizontalScreen : Screens("infohorizontalscreen")
 
     object LoginScreen : Screens("login") {
         object ForgetPasswordScreen : Screens("fps")
-
         object RegisterScreen : Screens("Register")
     }
 
@@ -19,7 +17,6 @@ sealed class Screens(val route: String) {
     }
 
     object Activity : Screens("activity")
-
     object ChooseExercises : Screens(route = "chooseexercises/{workoutId}") {
         const val ARG_WORKOUT_ID = "workoutId"
         const val MODE_CREATE = "new"
@@ -33,25 +30,22 @@ sealed class Screens(val route: String) {
         fun isEditMode(workoutId: String?): Boolean =
             !workoutId.isNullOrBlank() && workoutId != MODE_CREATE && workoutId != MODE_HISTORY
 
-        fun isHistoryMode(workoutId: String?): Boolean = workoutId == MODE_HISTORY
+        fun isHistoryMode(workoutId: String?): Boolean =
+            workoutId == MODE_HISTORY
     }
 
     object CreateWorkout : Screens(route = "createworkout")
-
     object LeaderBoard : Screens("leaderboard")
-
     object WorkoutSettingScreen : Screens(route = "workoutsettingscreen") {
-        const val ROUTE_WITH_ARG = "workoutsettingscreen/{workoutId}"
+        const val routeWithArg = "workoutsettingscreen/{workoutId}"
     }
 
     object WorkoutLog : Screens(route = "workoutlog") {
-        const val ROUTE_WITH_ARG = "workoutlog/{workoutId}"
+        const val routeWithArg = "workoutlog/{workoutId}"
     }
 
     object Meal : Screens(route = "meal")
-
     object WorkoutCompleteScreen : Screens(route = "workoutcompletescreen")
-
     object ProjectFollowersScreen : Screens(route = "projectfollowersscreen/{nickname}") {
         fun createRoute(nickname: String) = "projectfollowersscreen/${Uri.encode(nickname)}"
     }
@@ -61,13 +55,11 @@ sealed class Screens(val route: String) {
     }
 
     object FindUsersScreen : Screens(route = "findusersscreen")
-
     object OtherScreenProfile : Screens(route = "otherscreenprofile/{nickname}") {
         fun createRoute(nickname: String) = "otherscreenprofile/${Uri.encode(nickname)}"
     }
 
     object HomesSettings : Screens(route = "settings")
-
     object AllWorkouts : Screens(route = "allworkouts/{filter}") {
         const val ARG_FILTER = "filter"
         const val FILTER_ALL = "all"
@@ -78,13 +70,9 @@ sealed class Screens(val route: String) {
     }
 
     object FaqcontactfeedbackScreen : Screens(route = "faqcontactfeedbackscreen")
-
     object PersonalInformationsScreen : Screens(route = "personalinformationsscreen")
-
     object OldWorkoutDetails : Screens(route = "oldworkoutdetails")
-
     object NotificationScreen : Screens(route = "notification")
-
     object ActivityInside : Screens(route = "activityinside")
 }
 

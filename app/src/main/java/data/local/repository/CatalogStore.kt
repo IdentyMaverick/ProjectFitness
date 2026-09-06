@@ -16,23 +16,20 @@ import kotlinx.coroutines.tasks.await
 class CatalogStore(
     private val dao: WorkoutDao,
     private val catalogDao: ExerciseCatalogDao,
-    private val firestore: FirebaseFirestore,
+    private val firestore: FirebaseFirestore
 ) {
     fun observeAllActive() = catalogDao.observeAllActive()
 
     suspend fun syncCatalog() {
         try {
-            val snap =
-                firestore
-                    .collection(FirestorePaths.CATALOG)
-                    .whereEqualTo("isActive", true)
-                    .get()
-                    .await()
-            val entities =
-                snap.documents.mapNotNull { doc ->
-                    val dto = doc.toObject(Workoutin::class.java)
-                    dto?.toEntity(doc.id)
-                }
+            val snap = firestore.collection(FirestorePaths.CATALOG)
+                .whereEqualTo("isActive", true)
+                .get()
+                .await()
+            val entities = snap.documents.mapNotNull { doc ->
+                val dto = doc.toObject(Workoutin::class.java)
+                dto?.toEntity(doc.id)
+            }
             if (catalogDao.count() == 0 || catalogDao.count() != entities.size) {
                 catalogDao.upsertAll(entities)
             }
@@ -47,6 +44,7 @@ class CatalogStore(
             for (doc in snapshot) {
                 val imageName = doc.getString("exerciseImage") ?: ""
                 val name = doc.getString("name") ?: ""
+                Log.d("exercise and name", "Hata: $imageName & $name")
                 dao.updateExerciseLogImage(name = name, imageUrl = imageName)
             }
         } catch (e: Exception) {

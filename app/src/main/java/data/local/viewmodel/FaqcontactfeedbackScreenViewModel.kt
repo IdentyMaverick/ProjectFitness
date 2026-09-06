@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import data.remote.UserRepository
 import kotlinx.coroutines.launch
 
-class FaqcontactfeedbackScreenViewModel(private val userRepo: UserRepository) : ViewModel() {
+class FaqcontactfeedbackScreenViewModel(
+    private val userRepo: UserRepository
+) : ViewModel() {
     fun updateUserIdea(rating: String) {
         viewModelScope.launch {
             userRepo.updateUserIdea(rating)

@@ -1,17 +1,22 @@
 package data.local.viewmodel
 
+import android.util.Log
 import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.grozzbear.projectfitness.data.local.entity.ExerciseCatalogEntity
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutExerciseEntity
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,13 +26,20 @@ data class ExerciseDraft(
     val name: String,
     val bodyPart: String,
     val equipment: String,
-    val sets: List<SetDraft> = listOf(SetDraft(), SetDraft(), SetDraft()),
+    val sets: List<SetDraft> = listOf(SetDraft(), SetDraft(), SetDraft())
 )
 
 @Keep
-data class SetDraft(val reps: Int = 10, val sets: Float = 0f, val weight: Float = 0f)
+data class SetDraft(
+    val reps: Int = 10,
+    val sets: Float = 0f,
+    val weight: Float = 0f
+)
 
-class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() {
+class CreateWorkoutViewModel(
+    private val repo: WorkoutRepository
+) : ViewModel() {
+
     val catalogWorkoutList = repo.catalog.observeAllActive()
 
     private val _selectedExerciseIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
@@ -55,21 +67,24 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
             val keptIds = kept.map { it.catalogId }.toSet()
 
             // Append newly selected exercises in selection iteration order.
-            val newlyAdded =
-                selectedIds
-                    .filter { it !in keptIds }
-                    .mapNotNull { id ->
-                        val e = allCatalog[id] ?: return@mapNotNull null
-                        ExerciseDraft(
-                            catalogId = e.id,
-                            name = e.name,
-                            bodyPart = e.bodyPart,
-                            equipment = e.equipment,
-                            sets = listOf(SetDraft(), SetDraft(), SetDraft()),
-                        )
-                    }
+            val newlyAdded = selectedIds
+                .filter { it !in keptIds }
+                .mapNotNull { id ->
+                    val e = allCatalog[id] ?: return@mapNotNull null
+                    ExerciseDraft(
+                        catalogId = e.id,
+                        name = e.name,
+                        bodyPart = e.bodyPart,
+                        equipment = e.equipment,
+                        sets = listOf(SetDraft(), SetDraft(), SetDraft())
+                    )
+                }
 
             _draftExercises.value = kept + newlyAdded
+            Log.d(
+                "CreateWorkout",
+                "Taslaklar güncellendi: ${_draftExercises.value.size} egzersiz hazır."
+            )
         }
     }
 
@@ -109,14 +124,10 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
         _draftExercises.update { list ->
             list.map { ex ->
                 if (ex.catalogId != catalogId) return@map ex
-                val newSets =
-                    ex.sets.mapIndexed { i, s ->
-                        if (i != setIndex) {
-                            s
-                        } else {
-                            s.copy(reps = reps ?: s.reps, weight = weight ?: s.weight)
-                        }
-                    }
+                val newSets = ex.sets.mapIndexed { i, s ->
+                    if (i != setIndex) s
+                    else s.copy(reps = reps ?: s.reps, weight = weight ?: s.weight)
+                }
                 ex.copy(sets = newSets)
             }
         }
@@ -131,7 +142,7 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
         syncState: Boolean,
         image: Int,
         onDone: () -> Unit,
-        onError: (Throwable) -> Unit,
+        onError: (Throwable) -> Unit
     ) {
         viewModelScope.launch {
             try {
@@ -142,7 +153,7 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
                     workoutRating = workoutRating,
                     ownerUid = ownerUid,
                     syncState = syncState,
-                    image = image,
+                    image = image
                 )
 
                 val exercisesForSync = mutableListOf<WorkoutExerciseEntity>()
@@ -157,7 +168,7 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
                         name = draft.name,
                         catalogExerciseId = draft.catalogId,
                         bodyPart = draft.bodyPart,
-                        secondaryMuscles = listOf(draft.equipment),
+                        secondaryMuscles = listOf(draft.equipment)
                     )
 
                     exercisesForSync.add(
@@ -165,21 +176,20 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
                             exerciseId = newExerciseId,
                             workoutOwnerId = workoutId,
                             exerciseName = draft.name,
-                            catalogExerciseId = draft.catalogId,
-                        ),
+                            catalogExerciseId = draft.catalogId
+                        )
                     )
 
                     for ((index, set) in draft.sets.withIndex()) {
                         val newSetId = UUID.randomUUID().toString()
-                        val newSetEntity =
-                            SetEntity(
-                                setId = newSetId,
-                                exerciseOwnerId = newExerciseId,
-                                reps = set.reps,
-                                weight = set.weight,
-                                note = null,
-                                setIndex = index,
-                            )
+                        val newSetEntity = SetEntity(
+                            setId = newSetId,
+                            exerciseOwnerId = newExerciseId,
+                            reps = set.reps,
+                            weight = set.weight,
+                            note = null,
+                            setIndex = index
+                        )
 
                         repo.templates.addSet(
                             setId = newSetId,
@@ -187,21 +197,20 @@ class CreateWorkoutViewModel(private val repo: WorkoutRepository) : ViewModel() 
                             reps = newSetEntity.reps,
                             weight = newSetEntity.weight,
                             note = newSetEntity.note,
-                            setIndex = index,
+                            setIndex = index
                         )
                         setForSync.add(newSetEntity)
                     }
                 }
 
-                val newWorkout =
-                    WorkoutEntity(
-                        workoutId = workoutId,
-                        workoutName = workoutName,
-                        workoutType = workoutType,
-                        workoutRating = workoutRating,
-                        ownerUid = ownerUid,
-                        syncState = syncState,
-                    )
+                val newWorkout = WorkoutEntity(
+                    workoutId = workoutId,
+                    workoutName = workoutName,
+                    workoutType = workoutType,
+                    workoutRating = workoutRating,
+                    ownerUid = ownerUid,
+                    syncState = syncState
+                )
 
                 repo.templates.saveAndSyncWorkout(newWorkout, exercisesForSync, setForSync)
 

@@ -57,7 +57,7 @@ import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.ResetUiState
 
-private const val LOGIN_TAG = "login"
+private const val LoginTag = "login"
 
 @Composable
 fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewModel) {
@@ -70,8 +70,7 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
     LaunchedEffect(resetState) {
         when (resetState) {
             is ResetUiState.Success -> {
-                Toast
-                    .makeText(context, "Reset mail sent to ${emailText.value}", Toast.LENGTH_LONG)
+                Toast.makeText(context, "Reset mail sent to ${emailText.value}", Toast.LENGTH_LONG)
                     .show()
                 navController.navigate(Screens.LoginScreen.route) {
                     popUpTo(Screens.LoginScreen.ForgetPasswordScreen.route) { inclusive = true }
@@ -90,52 +89,47 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
     }
 
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(GrozzBackground),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(GrozzBackground)
     ) {
         Image(
             modifier = Modifier.fillMaxSize(),
             painter = painterResource(id = R.drawable.grozzforget),
             contentDescription = null,
             alpha = 0.8f,
-            contentScale = ContentScale.Crop,
+            contentScale = ContentScale.Crop
         )
 
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops =
-                                arrayOf(
-                                    0.0f to Color.Transparent,
-                                    0.45f to Color.Transparent,
-                                    1.0f to GrozzBackground.copy(alpha = 0.85f),
-                                ),
-                        ),
-                    ),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.45f to Color.Transparent,
+                            1.0f to GrozzBackground.copy(alpha = 0.85f)
+                        )
+                    )
+                )
         )
 
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.systemBars)
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 8.dp)
-                    .padding(top = 24.dp, bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 8.dp)
+                .padding(top = 24.dp, bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
-                modifier =
-                    Modifier
-                        .size(120.dp)
-                        .padding(bottom = 8.dp),
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(bottom = 8.dp)
             )
 
             Row(horizontalArrangement = Arrangement.Center) {
@@ -144,32 +138,31 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                     fontFamily = Oswald,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = GrozzOnBackground,
+                    color = GrozzOnBackground
                 )
                 Text(
                     text = "PASSWORD",
                     fontFamily = Oswald,
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
-                    color = GrozzYellow,
+                    color = GrozzYellow
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text =
-                    buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = GrozzYellow)) {
-                            append("No worries, ")
-                        }
-                        withStyle(SpanStyle(color = GrozzOnBackground)) {
-                            append("we'll send you reset instructions.")
-                        }
-                    },
+                text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = GrozzYellow)) {
+                        append("No worries, ")
+                    }
+                    withStyle(SpanStyle(color = GrozzOnBackground)) {
+                        append("we'll send you reset instructions.")
+                    }
+                },
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp),
+                modifier = Modifier.padding(horizontal = 32.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -179,7 +172,7 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                 onValueChange = { emailText.value = it },
                 placeholder = "E-Mail Address",
                 enabled = !isLoading,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -187,48 +180,45 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
             GrozzPrimaryButton(
                 text = "Reset Password",
                 loading = isLoading,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .widthIn(max = 420.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .widthIn(max = 420.dp),
                 onClick = {
                     if (emailText.value.isEmpty()) {
-                        Toast
-                            .makeText(
-                                context,
-                                "Please enter your e-mail address",
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                        Toast.makeText(
+                            context,
+                            "Please enter your e-mail address",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     } else {
                         authViewModel.reset(emailText.value)
                     }
-                },
+                }
             )
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            val backToLoginText =
-                buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            color = GrozzTextSecondary,
-                            fontWeight = FontWeight.Normal,
-                        ),
-                    ) {
-                        append("Back to ")
-                    }
-                    pushStringAnnotation(tag = LOGIN_TAG, annotation = LOGIN_TAG)
-                    withStyle(
-                        SpanStyle(
-                            color = GrozzYellow,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                    ) {
-                        append("Login")
-                    }
-                    pop()
+            val backToLoginText = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        color = GrozzTextSecondary,
+                        fontWeight = FontWeight.Normal
+                    )
+                ) {
+                    append("Back to ")
                 }
+                pushStringAnnotation(tag = LoginTag, annotation = LoginTag)
+                withStyle(
+                    SpanStyle(
+                        color = GrozzYellow,
+                        fontWeight = FontWeight.Bold
+                    )
+                ) {
+                    append("Login")
+                }
+                pop()
+            }
 
             ClickableText(
                 text = backToLoginText,
@@ -236,12 +226,12 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                 onClick = { offset ->
                     if (isLoading) return@ClickableText
                     backToLoginText
-                        .getStringAnnotations(LOGIN_TAG, offset, offset)
+                        .getStringAnnotations(LoginTag, offset, offset)
                         .firstOrNull()
                         ?.let {
                             navController.navigate(Screens.LoginScreen.route)
                         }
-                },
+                }
             )
         }
     }

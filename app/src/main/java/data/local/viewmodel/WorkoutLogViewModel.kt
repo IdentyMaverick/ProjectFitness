@@ -23,7 +23,7 @@ class WorkoutLogViewModel(
     val repo: com.grozzbear.projectfitness.data.local.repository.WorkoutRepository,
     workoutId: String,
     val workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel,
-    val workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel,
+    val workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel
 ) : ViewModel() {
     val workoutFlow = repo.templates.observeWorkoutFull(workoutId)
     val addedExerciseMap = mutableMapOf<String, String>()
@@ -34,20 +34,24 @@ class WorkoutLogViewModel(
     var activeSessionId: String? = null
     var activeExerciseId: String? = null
 
-    private val _elapsedTime = MutableStateFlow(0L)
+    private var _elapsedTime = MutableStateFlow(0L)
     val elapsedTime: StateFlow<Long> = _elapsedTime
     private var startTime = 0L
     private var isRunning = false
     val exerciseSetsMap = mutableMapOf<String, SnapshotStateList<SetEntity>>()
     val calculateMaxMap = mutableMapOf<String, Double>()
-    private val maxOneRep = MutableStateFlow(0.0)
+    val _max = MutableStateFlow(0.0)
     private val _newRecords = MutableStateFlow<List<String>>(emptyList())
     val newRecords: StateFlow<List<String>> = _newRecords
 
-    fun getOrInitSets(exerciseName: String, defaultSets: List<SetEntity>): SnapshotStateList<SetEntity> =
-        exerciseSetsMap.getOrPut(exerciseName) {
+    fun getOrInitSets(
+        exerciseName: String,
+        defaultSets: List<SetEntity>
+    ): SnapshotStateList<SetEntity> {
+        return exerciseSetsMap.getOrPut(exerciseName) {
             defaultSets.toMutableStateList()
         }
+    }
 
     fun startWorkout() {
         if (isRunning) return
@@ -78,19 +82,18 @@ class WorkoutLogViewModel(
 
             workoutFull.exercises.forEach { exercise ->
                 if (!initialDataLoaded.contains(exercise.exercise.exerciseId)) {
-                    val logId =
-                        addExercise(
-                            exercise.exercise.exerciseName,
-                            exercise.exercise.bodyPart,
-                            exercise.exercise.secondaryMuscles,
-                        )
+                    val logId = addExercise(
+                        exercise.exercise.exerciseName,
+                        exercise.exercise.bodyPart,
+                        exercise.exercise.secondaryMuscles
+                    )
                     if (logId != null) {
                         exercise.sets.forEachIndexed { index, set ->
                             saveSetToDbManual(
                                 logId,
                                 set.reps.toString(),
                                 set.weight.toString(),
-                                index,
+                                index
                             )
                         }
                     }
@@ -100,17 +103,20 @@ class WorkoutLogViewModel(
         }
     }
 
-    suspend fun addExercise(exerciseName: String, bodyPart: String, secondaryMuslces: List<String>): String? {
+    suspend fun addExercise(
+        exerciseName: String,
+        bodyPart: String,
+        secondaryMuslces: List<String>
+    ): String? {
         activeSessionId?.let { id ->
             if (addedExerciseMap.containsKey(exerciseName)) return addedExerciseMap[exerciseName]
 
-            val exerciseId =
-                repo.sessions.addExerciseLog(
-                    sessionId = id,
-                    exerciseName = exerciseName,
-                    bodyPart = bodyPart,
-                    secondaryMuscles = secondaryMuslces,
-                )
+            val exerciseId = repo.sessions.addExerciseLog(
+                sessionId = id,
+                exerciseName = exerciseName,
+                bodyPart = bodyPart,
+                secondaryMuscles = secondaryMuslces
+            )
             val stringId = exerciseId.toString()
             addedExerciseMap[exerciseName] = stringId
             activeExerciseId = stringId
@@ -119,18 +125,22 @@ class WorkoutLogViewModel(
         return null
     }
 
-    private suspend fun saveSetToDbManual(logId: String, reps: String, weight: String, setIndex: Int) {
+    private suspend fun saveSetToDbManual(
+        logId: String,
+        reps: String,
+        weight: String,
+        setIndex: Int
+    ) {
         val key = "${logId}_$setIndex"
         val r = reps.toIntOrNull() ?: 0
         val w = weight.toFloatOrNull() ?: 0f
-        val newId =
-            repo.sessions.addSetLog(
-                logOwnerId = logId.toLong(),
-                setId = 0L,
-                reps = r,
-                weight = w,
-                setIndex = setIndex,
-            )
+        val newId = repo.sessions.addSetLog(
+            logOwnerId = logId.toLong(),
+            setId = 0L,
+            reps = r,
+            weight = w,
+            setIndex = setIndex
+        )
         savedSetIds[key] = newId
     }
 
@@ -143,14 +153,13 @@ class WorkoutLogViewModel(
         val w = weight.toFloatOrNull() ?: 0f
         calculateAndStoreMax(exerciseName, w, r)
 
-        val newId =
-            repo.sessions.addSetLog(
-                logOwnerId = logId.toLong(),
-                setId = existingSetId,
-                reps = r,
-                weight = w,
-                setIndex = setIndex,
-            )
+        val newId = repo.sessions.addSetLog(
+            logOwnerId = logId.toLong(),
+            setId = existingSetId,
+            reps = r,
+            weight = w,
+            setIndex = setIndex
+        )
         savedSetIds[key] = newId
 
         val currentList = exerciseSetsMap[exerciseName]
@@ -161,8 +170,8 @@ class WorkoutLogViewModel(
                         setId = newId.toString(),
                         reps = r,
                         weight = w,
-                        exerciseOwnerId = logId,
-                    ),
+                        exerciseOwnerId = logId
+                    )
                 )
             } else {
                 val oldSet = currentList[setIndex]
@@ -184,19 +193,18 @@ class WorkoutLogViewModel(
                     reps = 0,
                     weight = 0f,
                     log = "",
-                    setIndex = setIndex,
-                ),
+                    setIndex = setIndex
+                )
             )
             savedSetIds.remove(key)
 
             val currentSets = exerciseSetsMap[exerciseName] ?: return@launch
 
-            val keysToUpdate =
-                savedSetIds.keys
-                    .filter { it.startsWith("${logId}_") }
-                    .map { it.split("_")[1].toInt() }
-                    .filter { it > setIndex }
-                    .sorted()
+            val keysToUpdate = savedSetIds.keys
+                .filter { it.startsWith("${logId}_") }
+                .map { it.split("_")[1].toInt() }
+                .filter { it > setIndex }
+                .sorted()
 
             keysToUpdate.forEach { oldIdx ->
                 val oldKey = "${logId}_$oldIdx"
@@ -214,7 +222,7 @@ class WorkoutLogViewModel(
                         setId = setId,
                         reps = reps,
                         weight = weight,
-                        setIndex = newIdx,
+                        setIndex = newIdx
                     )
                     savedSetIds.remove(oldKey)
                     savedSetIds[newKey] = setId
@@ -236,7 +244,7 @@ class WorkoutLogViewModel(
             viewModelScope.launch {
                 repo.sessions.updateExerciseNote(
                     it.toLong(),
-                    log,
+                    log
                 )
             }
         }
@@ -248,7 +256,7 @@ class WorkoutLogViewModel(
                 repo.sessions.updateSetNote(
                     log,
                     it.toLong(),
-                    setIndex,
+                    setIndex
                 )
             }
         }
@@ -292,28 +300,25 @@ class WorkoutLogViewModel(
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUserId != null) {
                 viewModelScope.launch {
-                    val userDoc =
-                        FirebaseFirestore
-                            .getInstance()
-                            .collection(FirestorePaths.USERS)
-                            .document(currentUserId)
-                            .get()
-                            .await()
+                    val userDoc = FirebaseFirestore.getInstance()
+                        .collection(FirestorePaths.USERS)
+                        .document(currentUserId)
+                        .get()
+                        .await()
 
                     val username = userDoc.getString("nickname") ?: ""
                     val userPhotoUri = userDoc.getString("userPhotoUri") ?: ""
 
                     calculateMaxMap.forEach { (exerciseName, weight) ->
                         if (weight > 0) {
-                            val entry =
-                                LeaderboardEntry(
-                                    currentUserId,
-                                    exerciseName,
-                                    "",
-                                    weight,
-                                    username,
-                                    userPhotoUri,
-                                )
+                            val entry = LeaderboardEntry(
+                                currentUserId,
+                                exerciseName,
+                                "",
+                                weight,
+                                username,
+                                userPhotoUri
+                            )
                             val isPr = repo.updateLeaderboard(entry)
                             if (isPr) {
                                 prExercises.add(exerciseName)
@@ -328,16 +333,16 @@ class WorkoutLogViewModel(
             activeSessionId?.let {
                 workoutCompleteScreenViewModel.setWorkoutData(
                     System.currentTimeMillis(),
-                    _elapsedTime.value,
+                    _elapsedTime.value
                 )
                 try {
                     if (!currentUserId.isNullOrBlank()) {
                         saveWorkoutHistoryToFirebase(currentUserId, it)
                     }
                 } catch (e: Exception) {
-                    Log.e("FirebaseError", e.message.toString())
+                    Log.d("Firebase Error", e.message.toString())
                 }
-                workoutCompleteAnalysisScreenViewModel.setActiveWorkoutId(it)
+                workoutCompleteAnalysisScreenViewModel._activeWorkoutId.value = it
                 repo.sessions.finishWorkout(it, System.currentTimeMillis(), _elapsedTime.value, true)
             }
             onComplete()
@@ -347,17 +352,16 @@ class WorkoutLogViewModel(
     fun calculateAndStoreMax(exerciseName: String, weight: Float, reps: Int) {
         if (weight <= 0f || reps <= 0) return
 
-        val current1RM =
-            if (reps == 1) {
-                weight.toDouble()
-            } else {
-                weight * (1 + reps / 30.0)
-            }
+        val current1RM = if (reps == 1) {
+            weight.toDouble()
+        } else {
+            weight * (1 + reps / 30.0)
+        }
 
         val previousMax = calculateMaxMap[exerciseName] ?: 0.0
         if (current1RM > previousMax) {
             calculateMaxMap[exerciseName] = current1RM
-            maxOneRep.value = current1RM
+            _max.value = current1RM
         }
     }
 

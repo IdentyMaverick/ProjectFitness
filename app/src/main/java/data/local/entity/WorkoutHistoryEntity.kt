@@ -19,7 +19,7 @@ data class WorkoutHistoryEntity(
     val totalDuration: Long = 0,
     val syncState: Boolean = false,
     val isCompleted: Boolean = false,
-    val ownerUid: String? = null,
+    val ownerUid: String? = null
 )
 
 @Entity(
@@ -29,9 +29,9 @@ data class WorkoutHistoryEntity(
             entity = WorkoutHistoryEntity::class,
             parentColumns = ["sessionId"],
             childColumns = ["sessionOwnerId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 @Keep
 data class ExerciseLogEntity(
@@ -44,7 +44,7 @@ data class ExerciseLogEntity(
     val reps: Int = 0,
     val setOrder: Int = 0,
     val log: String = "",
-    val imageUrl: String? = null,
+    val imageUrl: String? = null
 )
 
 /** Logged set on a session. Room table `set_logs`. Not a template set. */
@@ -55,9 +55,9 @@ data class ExerciseLogEntity(
             entity = ExerciseLogEntity::class,
             parentColumns = ["logId"],
             childColumns = ["logOwnerId"],
-            onDelete = ForeignKey.CASCADE,
-        ),
-    ],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 @Keep
 data class SetLogEntity(
@@ -67,7 +67,7 @@ data class SetLogEntity(
     val weight: Float = 0F,
     val log: String = "",
     val setIndex: Int = 0,
-    val clicked: Boolean = false,
+    val clicked: Boolean = false
 )
 
 @Keep
@@ -75,9 +75,9 @@ data class ExerciseLogWithSets(
     @Embedded val exerciseLog: ExerciseLogEntity,
     @Relation(
         parentColumn = "logId",
-        entityColumn = "logOwnerId",
+        entityColumn = "logOwnerId"
     )
-    val setLogs: List<SetLogEntity>,
+    val setLogs: List<SetLogEntity>
 )
 
 @Keep
@@ -86,7 +86,7 @@ data class WorkoutHistoryFull(
     @Relation(
         entity = ExerciseLogEntity::class,
         parentColumn = "sessionId",
-        entityColumn = "sessionOwnerId",
+        entityColumn = "sessionOwnerId"
     )
-    val exerciseWithSets: List<ExerciseLogWithSets>,
+    val exerciseWithSets: List<ExerciseLogWithSets>
 )
