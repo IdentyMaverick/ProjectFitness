@@ -38,8 +38,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,7 +62,7 @@ private val FollowSearchBg = Color(0xFF21282F)
 enum class FollowButtonStyle {
     Follow,
     FollowBack,
-    Following
+    Following,
 }
 
 @Composable
@@ -78,22 +76,23 @@ fun FollowListLoadingState(modifier: Modifier = Modifier) {
 fun FollowListTopBar(
     title: String,
     navController: NavController,
-    topPadding: Dp = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+    topPadding: Dp = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = topPadding)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(top = topPadding)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = { navController.popBackStack() }) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 tint = Color.White,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(30.dp),
             )
         }
 
@@ -103,7 +102,7 @@ fun FollowListTopBar(
             text = title,
             color = Color.White,
             fontFamily = Oswald,
-            fontSize = 20.sp
+            fontSize = 20.sp,
         )
 
         Spacer(Modifier.weight(1f))
@@ -117,62 +116,61 @@ fun FollowSearchField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .height(52.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .height(52.dp),
         placeholder = {
             Text(
                 text = placeholder,
                 color = Color.White.copy(alpha = 0.35f),
-                fontFamily = Lexend
+                fontFamily = Lexend,
             )
         },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.45f)
+                tint = Color.White.copy(alpha = 0.45f),
             )
         },
         shape = RoundedCornerShape(14.dp),
         singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = FollowSearchBg,
-            unfocusedContainerColor = FollowSearchBg,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = GrozzYellow
-        ),
-        textStyle = TextStyle(
-            color = Color.White,
-            fontSize = 14.sp,
-            fontFamily = Lexend
-        )
+        colors =
+            TextFieldDefaults.colors(
+                focusedContainerColor = FollowSearchBg,
+                unfocusedContainerColor = FollowSearchBg,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                cursorColor = GrozzYellow,
+            ),
+        textStyle =
+            TextStyle(
+                color = Color.White,
+                fontSize = 14.sp,
+                fontFamily = Lexend,
+            ),
     )
 }
 
 @Composable
-fun FollowSectionHeader(
-    title: String,
-    count: Int? = null,
-    accent: Boolean = false,
-    modifier: Modifier = Modifier
-) {
+fun FollowSectionHeader(title: String, count: Int? = null, accent: Boolean = false, modifier: Modifier = Modifier) {
     val label = if (count != null) "$title · $count" else title
     Text(
         text = label,
         color = if (accent) GrozzYellow else Color.White,
         fontSize = 16.sp,
         fontFamily = Lexend,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
     )
 }
 
@@ -182,28 +180,30 @@ fun FollowUserRow(
     buttonStyle: FollowButtonStyle,
     onProfileClick: () -> Unit,
     onFollowClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(FollowCardBg)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 6.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(FollowCardBg)
+                .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         FollowUserAvatar(
             user = user,
-            onClick = onProfileClick
+            onClick = onProfileClick,
         )
 
         Spacer(Modifier.width(14.dp))
 
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .clickable(onClick = onProfileClick)
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .clickable(onClick = onProfileClick),
         ) {
             Text(
                 text = user.first.ifBlank { user.nickname },
@@ -211,7 +211,7 @@ fun FollowUserRow(
                 fontSize = 16.sp,
                 fontFamily = Lexend,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = "@${user.nickname}",
@@ -219,7 +219,7 @@ fun FollowUserRow(
                 fontSize = 13.sp,
                 fontFamily = Lexend,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
@@ -227,96 +227,94 @@ fun FollowUserRow(
 
         FollowActionButton(
             style = buttonStyle,
-            onClick = onFollowClick
+            onClick = onFollowClick,
         )
     }
 }
 
 @Composable
-private fun FollowUserAvatar(
-    user: User,
-    onClick: () -> Unit
-) {
+private fun FollowUserAvatar(user: User, onClick: () -> Unit) {
     Box(
-        modifier = Modifier
-            .size(52.dp)
-            .border(2.dp, GrozzYellow, CircleShape)
-            .padding(2.dp)
-            .border(2.dp, Color.Black, CircleShape)
-            .padding(3.dp)
+        modifier =
+            Modifier
+                .size(52.dp)
+                .border(2.dp, GrozzYellow, CircleShape)
+                .padding(2.dp)
+                .border(2.dp, Color.Black, CircleShape)
+                .padding(3.dp),
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(
-                    user.userPhotoUri.ifEmpty {
-                        R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
-                    }
-                )
-                .crossfade(true)
-                .build(),
+            model =
+                ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(
+                        user.userPhotoUri.ifEmpty {
+                            R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
+                        },
+                    ).crossfade(true)
+                    .build(),
             contentDescription = "Profile picture",
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(CircleShape)
-                .clickable(onClick = onClick),
-            contentScale = ContentScale.Crop
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .clickable(onClick = onClick),
+            contentScale = ContentScale.Crop,
         )
     }
 }
 
 @Composable
-private fun FollowActionButton(
-    style: FollowButtonStyle,
-    onClick: () -> Unit
-) {
+private fun FollowActionButton(style: FollowButtonStyle, onClick: () -> Unit) {
     val isFollowing = style == FollowButtonStyle.Following
-    val label = when (style) {
-        FollowButtonStyle.Following -> "Following"
-        FollowButtonStyle.FollowBack -> "Follow Back"
-        FollowButtonStyle.Follow -> "Follow"
-    }
+    val label =
+        when (style) {
+            FollowButtonStyle.Following -> "Following"
+            FollowButtonStyle.FollowBack -> "Follow Back"
+            FollowButtonStyle.Follow -> "Follow"
+        }
 
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isFollowing) Color.White.copy(alpha = 0.1f) else GrozzYellow
-        ),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = if (isFollowing) Color.White.copy(alpha = 0.1f) else GrozzYellow,
+            ),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.height(34.dp),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp)
+        contentPadding =
+            androidx.compose.foundation.layout
+                .PaddingValues(horizontal = 12.dp),
     ) {
         Text(
             text = label,
             color = if (isFollowing) Color.White else Color.Black,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = Lexend
+            fontFamily = Lexend,
         )
     }
 }
 
 @Composable
-fun FollowEmptyState(
-    title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
-) {
+fun FollowEmptyState(title: String, subtitle: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier
-                .size(72.dp)
-                .background(GrozzYellow.copy(alpha = 0.12f), CircleShape),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(72.dp)
+                    .background(GrozzYellow.copy(alpha = 0.12f), CircleShape),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
                 contentDescription = null,
                 tint = GrozzYellow.copy(alpha = 0.7f),
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(36.dp),
             )
         }
 
@@ -327,7 +325,7 @@ fun FollowEmptyState(
             color = Color.White,
             fontSize = 20.sp,
             fontFamily = Oswald,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(Modifier.height(8.dp))
@@ -338,19 +336,14 @@ fun FollowEmptyState(
             fontSize = 14.sp,
             fontFamily = Lexend,
             textAlign = TextAlign.Center,
-            lineHeight = 20.sp
+            lineHeight = 20.sp,
         )
     }
 }
 
-fun openUserProfile(
-    navController: NavController,
-    authViewModel: AuthViewModel,
-    nickname: String
-) {
+fun openUserProfile(navController: NavController, authViewModel: AuthViewModel, nickname: String) {
     if (nickname.isBlank()) return
-    authViewModel._totalWorkoutNumber.value = 0
-    authViewModel._totalLiftedWeight.value = 0F
+    authViewModel.resetDisplayedStats()
     // Replace any existing other-profile (and screens above it) so
     // Profile A → … → Profile B doesn't leave a deep back-stack chain.
     navController.navigate(Screens.OtherScreenProfile.createRoute(nickname)) {

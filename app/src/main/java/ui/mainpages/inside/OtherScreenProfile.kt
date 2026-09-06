@@ -57,8 +57,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,12 +68,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.grozzbear.R
 import com.grozzbear.ui.theme.GrozzMuted
-import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
-import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.remote.User
 import ui.mainpages.navigation.Screens
@@ -93,7 +89,7 @@ fun OtherScreenProfile(
     nickname: String,
     profileViewModel: ProfileViewModel,
     oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
 ) {
     val myNickname by socialViewModel.nickname.collectAsState()
     val user by socialViewModel.getUserByNicknameLive(nickname).observeAsState()
@@ -116,7 +112,7 @@ fun OtherScreenProfile(
     val blurAlpha by animateDpAsState(
         targetValue = if (isPhotoExpanded) 15.dp else 0.dp,
         animationSpec = tween(durationMillis = 50),
-        label = "blurAnimation"
+        label = "blurAnimation",
     )
 
     val userHistory by profileViewModel.userHistory.collectAsState()
@@ -132,10 +128,11 @@ fun OtherScreenProfile(
     when (val currentUser = user) {
         null -> {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(GrozzSystemBar),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(GrozzSystemBar),
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(color = GrozzYellow)
             }
@@ -159,7 +156,7 @@ fun OtherScreenProfile(
                 onPhotoExpandedChange = { isPhotoExpanded = it },
                 blurAlpha = blurAlpha,
                 socialViewModel = socialViewModel,
-                oldWorkoutDetailsViewModel = oldWorkoutDetailsViewModel
+                oldWorkoutDetailsViewModel = oldWorkoutDetailsViewModel,
             )
         }
     }
@@ -184,7 +181,7 @@ private fun OtherProfileContent(
     onPhotoExpandedChange: (Boolean) -> Unit,
     blurAlpha: androidx.compose.ui.unit.Dp,
     socialViewModel: SocialViewModel,
-    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel
+    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel,
 ) {
     val hasPhoto = currentUser.userPhotoUri.isNotBlank()
     val topBarTitle = currentUser.nickname.ifBlank { "PROFILE" }.uppercase()
@@ -195,44 +192,49 @@ private fun OtherProfileContent(
             FollowListTopBar(
                 title = topBarTitle,
                 navController = navController,
-                topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
+                topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp,
             )
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier
-            .fillMaxSize()
-            .blur(blurAlpha)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .blur(blurAlpha),
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Box(
-                modifier = Modifier
-                    .size(110.dp)
-                    .border(4.dp, GrozzYellow, CircleShape)
-                    .padding(4.dp)
-                    .border(2.dp, Color.Black, CircleShape)
-                    .padding(4.dp)
+                modifier =
+                    Modifier
+                        .size(110.dp)
+                        .border(4.dp, GrozzYellow, CircleShape)
+                        .padding(4.dp)
+                        .border(2.dp, Color.Black, CircleShape)
+                        .padding(4.dp),
             ) {
                 AsyncImage(
-                    model = if (hasPhoto) {
-                        currentUser.userPhotoUri
-                    } else {
-                        R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
-                    },
-                    contentDescription = "Profile picture",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
-                        .clickable(enabled = hasPhoto) {
-                            onPhotoExpandedChange(true)
+                    model =
+                        if (hasPhoto) {
+                            currentUser.userPhotoUri
+                        } else {
+                            R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
                         },
-                    contentScale = ContentScale.Crop
+                    contentDescription = "Profile picture",
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .clickable(enabled = hasPhoto) {
+                                onPhotoExpandedChange(true)
+                            },
+                    contentScale = ContentScale.Crop,
                 )
             }
 
@@ -243,15 +245,16 @@ private fun OtherProfileContent(
                 fontFamily = Lexend,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .padding(top = 12.dp)
-                    .padding(horizontal = 24.dp)
+                modifier =
+                    Modifier
+                        .padding(top = 12.dp)
+                        .padding(horizontal = 24.dp),
             )
             Text(
                 text = "@${currentUser.nickname}",
                 color = GrozzYellow,
                 fontSize = 15.sp,
-                fontFamily = Lexend
+                fontFamily = Lexend,
             )
 
             Spacer(Modifier.height(16.dp))
@@ -266,104 +269,117 @@ private fun OtherProfileContent(
                             socialViewModel.followUser(myNickname, currentUser.nickname)
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isFollowing) {
-                            Color.Transparent
-                        } else {
-                            GrozzYellow
-                        },
-                        contentColor = if (isFollowing) Color.White else Color.Black
-                    ),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor =
+                                if (isFollowing) {
+                                    Color.Transparent
+                                } else {
+                                    GrozzYellow
+                                },
+                            contentColor = if (isFollowing) Color.White else Color.Black,
+                        ),
                     shape = followShape,
-                    border = if (isFollowing) {
-                        BorderStroke(
-                            1.dp,
-                            GrozzYellow.copy(alpha = 0.55f)
-                        )
-                    } else {
-                        null
-                    },
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 0.dp,
-                        pressedElevation = 0.dp
-                    ),
+                    border =
+                        if (isFollowing) {
+                            BorderStroke(
+                                1.dp,
+                                GrozzYellow.copy(alpha = 0.55f),
+                            )
+                        } else {
+                            null
+                        },
+                    elevation =
+                        ButtonDefaults.buttonElevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
+                        ),
                     contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
-                    modifier = Modifier.height(32.dp)
+                    modifier = Modifier.height(32.dp),
                 ) {
                     Text(
                         text = if (isFollowing) "Following" else "Follow",
-                        style = TextStyle(
-                            fontFamily = Lexend,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        style =
+                            TextStyle(
+                                fontFamily = Lexend,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            ),
                     )
                 }
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(72.dp)
-                    .padding(horizontal = 20.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(72.dp)
+                        .padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 StatItem(label = "FOLLOWERS", count = followerCount) {
                     navController.navigate(
-                        Screens.ProjectFollowersScreen.createRoute(currentUser.nickname)
+                        Screens.ProjectFollowersScreen.createRoute(currentUser.nickname),
                     )
                 }
                 Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .height(40.dp)
-                        .background(Color.DarkGray)
+                    modifier =
+                        Modifier
+                            .width(1.dp)
+                            .height(40.dp)
+                            .background(Color.DarkGray),
                 )
                 StatItem(label = "FOLLOWING", count = followingCount) {
                     navController.navigate(
-                        Screens.ProjectFollowScreen.createRoute(currentUser.nickname)
+                        Screens.ProjectFollowScreen.createRoute(currentUser.nickname),
                     )
                 }
             }
 
             Box(
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-                    .fillMaxWidth()
-                    .height(36.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(Color.Gray.copy(alpha = 0.1f))
+                modifier =
+                    Modifier
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .fillMaxWidth()
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.Gray.copy(alpha = 0.1f)),
             ) {
                 SecondaryTabRow(
                     selectedTabIndex = selectedTabIndex,
                     containerColor = Color.Transparent,
                     divider = {},
                     indicator = {},
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     tabTitles.forEachIndexed { index, title ->
                         val isSelected = selectedTabIndex == index
                         Tab(
                             selected = isSelected,
                             onClick = { onTabSelected(index) },
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(18.dp))
-                                .then(
-                                    if (isSelected) Modifier.background(GrozzYellow)
-                                    else Modifier
-                                ),
+                            modifier =
+                                Modifier
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .then(
+                                        if (isSelected) {
+                                            Modifier.background(GrozzYellow)
+                                        } else {
+                                            Modifier
+                                        },
+                                    ),
                             text = {
                                 Text(
                                     text = title,
-                                    style = TextStyle(
-                                        fontFamily = Lexend,
-                                        fontSize = 15.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    ),
-                                    color = if (isSelected) Color.Black else GrozzMuted
+                                    style =
+                                        TextStyle(
+                                            fontFamily = Lexend,
+                                            fontSize = 15.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        ),
+                                    color = if (isSelected) Color.Black else GrozzMuted,
                                 )
-                            }
+                            },
                         )
                     }
                 }
@@ -372,10 +388,11 @@ private fun OtherProfileContent(
             if (selectedTabIndex == 0) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)
-                        .padding(bottom = 24.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                            .padding(bottom = 24.dp),
                 ) {
                     Text(
                         text = "Lifetime Statistics",
@@ -384,62 +401,69 @@ private fun OtherProfileContent(
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
                         color = Color.White,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp, vertical = 12.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp, vertical = 12.dp),
                     )
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         OtherLifetimeStatCard(
                             value = formatOtherStatNumber(target.count),
-                            lines = listOf(
-                                "WORKOUTS" to Color.White,
-                                "COMPLETED" to GrozzYellow
-                            ),
-                            modifier = Modifier.weight(1f)
+                            lines =
+                                listOf(
+                                    "WORKOUTS" to Color.White,
+                                    "COMPLETED" to GrozzYellow,
+                                ),
+                            modifier = Modifier.weight(1f),
                         )
                         OtherLifetimeStatCard(
                             value = formatOtherStatNumber(target.weight.toLong()),
-                            lines = listOf(
-                                "KG" to Color.White,
-                                "WEIGHT" to Color.White,
-                                "LIFTED" to GrozzYellow
-                            ),
+                            lines =
+                                listOf(
+                                    "KG" to Color.White,
+                                    "WEIGHT" to Color.White,
+                                    "LIFTED" to GrozzYellow,
+                                ),
                             modifier = Modifier.weight(1f),
-                            valueFontSize = 36.sp
+                            valueFontSize = 36.sp,
                         )
                     }
 
                     Spacer(Modifier.height(16.dp))
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         OtherLifetimeStatCard(
                             value = formatOtherStatNumber(target.time),
-                            lines = listOf(
-                                "MINUTES" to Color.White,
-                                "SPENT FOR" to Color.White,
-                                "WORKOUTS" to GrozzYellow
-                            ),
-                            modifier = Modifier.weight(1f)
+                            lines =
+                                listOf(
+                                    "MINUTES" to Color.White,
+                                    "SPENT FOR" to Color.White,
+                                    "WORKOUTS" to GrozzYellow,
+                                ),
+                            modifier = Modifier.weight(1f),
                         )
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             } else {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 16.dp),
                 ) {
                     Text(
                         text = "Last Activity",
@@ -448,9 +472,10 @@ private fun OtherProfileContent(
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
                         color = Color.White,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 25.dp, vertical = 8.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 25.dp, vertical = 8.dp),
                     )
 
                     if (userHistory.isEmpty()) {
@@ -460,15 +485,14 @@ private fun OtherProfileContent(
                                 .fillMaxWidth()
                                 .background(
                                     Color.Gray.copy(alpha = 0.1f),
-                                    RoundedCornerShape(20.dp)
-                                )
-                                .padding(vertical = 28.dp, horizontal = 20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                    RoundedCornerShape(20.dp),
+                                ).padding(vertical = 28.dp, horizontal = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.sentimentsadicon128),
                                 contentDescription = null,
-                                tint = Color.Gray.copy(alpha = 0.5f)
+                                tint = Color.Gray.copy(alpha = 0.5f),
                             )
                             Spacer(Modifier.height(12.dp))
                             Text(
@@ -477,28 +501,26 @@ private fun OtherProfileContent(
                                 fontFamily = Lexend,
                                 fontWeight = FontWeight.Bold,
                                 style = TextStyle(letterSpacing = 0.sp, fontSize = 15.sp),
-                                color = Color.Gray.copy(alpha = 0.5f)
+                                color = Color.Gray.copy(alpha = 0.5f),
                             )
                         }
                     } else {
                         LazyColumn(
-                            contentPadding = PaddingValues(bottom = 24.dp)
+                            contentPadding = PaddingValues(bottom = 24.dp),
                         ) {
                             items(
                                 items = userHistory,
-                                key = { it.sessionId }
+                                key = { it.sessionId },
                             ) { item ->
                                 OtherActivityHistoryRow(
                                     workoutName = item.workoutName,
                                     dateLabel = formatNotificationTime(item.dateTimestamp),
                                     onClick = {
-                                        oldWorkoutDetailsViewModel._targetUserId.value =
-                                            currentUser.id
-                                        oldWorkoutDetailsViewModel._sessionId.value =
-                                            item.sessionId
-                                        oldWorkoutDetailsViewModel._flag.value = false
+                                        oldWorkoutDetailsViewModel.setTargetUserId(currentUser.id)
+                                        oldWorkoutDetailsViewModel.setSessionId(item.sessionId)
+                                        oldWorkoutDetailsViewModel.setCanManage(false)
                                         navController.navigate("oldworkoutdetails")
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -510,26 +532,28 @@ private fun OtherProfileContent(
         if (isPhotoExpanded && hasPhoto) {
             Dialog(onDismissRequest = { onPhotoExpandedChange(false) }) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { onPhotoExpandedChange(false) },
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clickable { onPhotoExpandedChange(false) },
+                    contentAlignment = Alignment.Center,
                 ) {
                     AnimatedVisibility(
                         visible = isPhotoExpanded,
                         enter = fadeIn() + scaleIn(initialScale = 0.8f),
-                        exit = fadeOut() + scaleOut(targetScale = 0.8f)
+                        exit = fadeOut() + scaleOut(targetScale = 0.8f),
                     ) {
                         AsyncImage(
                             model = currentUser.userPhotoUri,
                             contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .aspectRatio(1f)
-                                .clip(CircleShape)
-                                .background(Color.Black)
-                                .clickable(enabled = false) {},
-                            contentScale = ContentScale.Crop
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .aspectRatio(1f)
+                                    .clip(CircleShape)
+                                    .background(Color.Black)
+                                    .clickable(enabled = false) {},
+                            contentScale = ContentScale.Crop,
                         )
                     }
                 }
@@ -543,14 +567,15 @@ private fun OtherLifetimeStatCard(
     value: String,
     lines: List<Pair<String, Color>>,
     modifier: Modifier = Modifier,
-    valueFontSize: TextUnit = 40.sp
+    valueFontSize: TextUnit = 40.sp,
 ) {
     Box(
-        modifier = modifier
-            .background(OtherProfileCardBg, RoundedCornerShape(12.dp))
-            .aspectRatio(1f)
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .background(OtherProfileCardBg, RoundedCornerShape(12.dp))
+                .aspectRatio(1f)
+                .padding(12.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -561,7 +586,7 @@ private fun OtherLifetimeStatCard(
                 color = Color.White,
                 fontSize = valueFontSize,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             lines.forEach { (label, color) ->
                 Text(
@@ -570,7 +595,7 @@ private fun OtherLifetimeStatCard(
                     fontFamily = Lexend,
                     fontWeight = FontWeight.Bold,
                     color = color,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
                 )
             }
         }
@@ -578,51 +603,51 @@ private fun OtherLifetimeStatCard(
 }
 
 @Composable
-private fun OtherActivityHistoryRow(
-    workoutName: String,
-    dateLabel: String,
-    onClick: () -> Unit
-) {
+private fun OtherActivityHistoryRow(workoutName: String, dateLabel: String, onClick: () -> Unit) {
     Box(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .fillMaxWidth()
-            .padding(horizontal = 25.dp, vertical = 6.dp)
-            .background(OtherProfileCardBg, RoundedCornerShape(10.dp))
-            .height(64.dp)
+        modifier =
+            Modifier
+                .clickable(onClick = onClick)
+                .fillMaxWidth()
+                .padding(horizontal = 25.dp, vertical = 6.dp)
+                .background(OtherProfileCardBg, RoundedCornerShape(10.dp))
+                .height(64.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 painter = painterResource(R.drawable.dumbbellicon128),
                 contentDescription = null,
                 tint = GrozzYellow,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(30.dp),
             )
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = workoutName,
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontFamily = Lexend,
-                        color = Color.White
-                    ),
+                    style =
+                        TextStyle(
+                            fontSize = 15.sp,
+                            fontFamily = Lexend,
+                            color = Color.White,
+                        ),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (dateLabel.isNotBlank()) {
                     Text(
                         text = dateLabel,
-                        style = TextStyle(
-                            fontSize = 11.sp,
-                            fontFamily = Lexend,
-                            color = Color.White.copy(alpha = 0.5f)
-                        )
+                        style =
+                            TextStyle(
+                                fontSize = 11.sp,
+                                fontFamily = Lexend,
+                                color = Color.White.copy(alpha = 0.5f),
+                            ),
                     )
                 }
             }
@@ -630,7 +655,7 @@ private fun OtherActivityHistoryRow(
                 painter = painterResource(R.drawable.keyboarddoublearrowright),
                 contentDescription = null,
                 tint = GrozzYellow,
-                modifier = Modifier.size(25.dp)
+                modifier = Modifier.size(25.dp),
             )
         }
     }
@@ -649,21 +674,22 @@ private fun formatOtherStatNumber(value: Number): String {
 fun StatItem(label: String, count: Int, onClick: () -> Unit = {}) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(8.dp)
+        modifier =
+            Modifier
+                .clickable(onClick = onClick)
+                .padding(8.dp),
     ) {
         Text(
             text = "$count",
             color = Color.White,
             fontSize = 20.sp,
-            fontFamily = Lexend
+            fontFamily = Lexend,
         )
         Text(
             text = label,
             color = Color.Gray,
             fontSize = 11.sp,
-            fontFamily = Lexend
+            fontFamily = Lexend,
         )
     }
 }

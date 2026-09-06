@@ -13,11 +13,9 @@ object VideoCacheProvider {
     @Volatile
     private var cache: Cache? = null
 
-    fun get(context: Context): Cache {
-        return cache ?: synchronized(this) {
-            cache ?: createCache(context).also {
-                cache = it
-            }
+    fun get(context: Context): Cache = cache ?: synchronized(this) {
+        cache ?: createCache(context).also {
+            cache = it
         }
     }
 

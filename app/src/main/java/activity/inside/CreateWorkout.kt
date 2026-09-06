@@ -53,7 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -68,8 +67,8 @@ import com.google.firebase.auth.auth
 import com.grozzbear.R
 import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.IntPickerColumn
-import com.grozzbear.ui.components.WeightFractionOptions
-import com.grozzbear.ui.components.WeightWholeKgRange
+import com.grozzbear.ui.components.WEIGHT_FRACTION_OPTIONS
+import com.grozzbear.ui.components.WEIGHT_WHOLE_KG_RANGE
 import com.grozzbear.ui.components.combineWeightKg
 import com.grozzbear.ui.components.formatWeightKg
 import com.grozzbear.ui.components.splitWeightKg
@@ -99,7 +98,7 @@ import ui.mainpages.navigation.Screens
 fun CreateWorkout(
     navController: NavController,
     createWorkoutViewModel: CreateWorkoutViewModel,
-    chooseExercisesViewModel: ChooseExercisesViewModel
+    chooseExercisesViewModel: ChooseExercisesViewModel,
 ) {
     val draft by createWorkoutViewModel.draftExercises.collectAsState()
     val workoutNameInput by chooseExercisesViewModel.workoutName.collectAsState()
@@ -109,7 +108,7 @@ fun CreateWorkout(
     var editingCatalogId by remember { mutableStateOf("") }
     var editingSetIndex by remember { mutableStateOf(0) }
     var tempReps by remember { mutableIntStateOf(0) }
-    // Whole kg + fraction index (not a raw float) — see WeightFractionOptions.
+    // Whole kg + fraction index (not a raw float) — see WEIGHT_FRACTION_OPTIONS.
     var tempWholeKg by remember { mutableIntStateOf(0) }
     var tempFractionIndex by remember { mutableIntStateOf(0) }
 
@@ -122,11 +121,12 @@ fun CreateWorkout(
     fun saveWorkout() {
         val user = currentUser
         if (user == null || workoutNameInput.isBlank() || draft.isEmpty()) {
-            Toast.makeText(
-                context,
-                "Please enter a name and add exercises.",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast
+                .makeText(
+                    context,
+                    "Please enter a name and add exercises.",
+                    Toast.LENGTH_SHORT,
+                ).show()
             return
         }
         scope.launch {
@@ -149,7 +149,7 @@ fun CreateWorkout(
                 },
                 onError = { e ->
                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                }
+                },
             )
         }
     }
@@ -164,39 +164,41 @@ fun CreateWorkout(
                         popUpTo(Screens.Activity.route) { inclusive = true }
                         launchSingleTop = true
                     }
-                }
+                },
             )
         },
         containerColor = GrozzSystemBar,
         bottomBar = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(GrozzSystemBar)
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-                    .padding(bottom = 8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(GrozzSystemBar)
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .padding(bottom = 8.dp),
             ) {
                 GrozzPrimaryButton(
                     text = "Save workout",
                     onClick = { saveWorkout() },
                     enabled = canSave,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-        }
+        },
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+            contentPadding = PaddingValues(bottom = 24.dp),
         ) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                     HorizontalDivider(
                         thickness = 2.dp,
                         color = GrozzYellow,
-                        modifier = Modifier.width(28.dp)
+                        modifier = Modifier.width(28.dp),
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -205,7 +207,7 @@ fun CreateWorkout(
                             fontFamily = Oswald,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = GrozzOnBackground
+                            color = GrozzOnBackground,
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -213,18 +215,19 @@ fun CreateWorkout(
                             fontFamily = Oswald,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = GrozzYellow
+                            color = GrozzYellow,
                         )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (draft.isEmpty()) {
-                            "Name your plan, then add exercises."
-                        } else {
-                            counted(draft.size, "exercise") + " ready"
-                        },
+                        text =
+                            if (draft.isEmpty()) {
+                                "Name your plan, then add exercises."
+                            } else {
+                                counted(draft.size, "exercise") + " ready"
+                            },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = GrozzTextSecondary
+                        color = GrozzTextSecondary,
                     )
                 }
             }
@@ -234,67 +237,70 @@ fun CreateWorkout(
                     text = "Workout name",
                     style = MaterialTheme.typography.labelLarge,
                     color = GrozzTextSecondary,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 20.dp),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = workoutNameInput,
                     onValueChange = { chooseExercisesViewModel.setName(it) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
                     placeholder = {
                         Text(
                             "e.g. Monday Leg Day",
                             color = GrozzMuted,
-                            fontFamily = Lexend
+                            fontFamily = Lexend,
                         )
                     },
-                    textStyle = TextStyle(
-                        color = GrozzOnBackground,
-                        fontSize = 16.sp,
-                        fontFamily = Lexend
-                    ),
+                    textStyle =
+                        TextStyle(
+                            color = GrozzOnBackground,
+                            fontSize = 16.sp,
+                            fontFamily = Lexend,
+                        ),
                     singleLine = true,
                     shape = RoundedCornerShape(GrozzRadiusChip),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = GrozzSurface,
-                        unfocusedContainerColor = GrozzSurface,
-                        focusedBorderColor = GrozzMuted,
-                        unfocusedBorderColor = GrozzBorder,
-                        cursorColor = GrozzYellow
-                    ),
+                    colors =
+                        OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = GrozzSurface,
+                            unfocusedContainerColor = GrozzSurface,
+                            focusedBorderColor = GrozzMuted,
+                            unfocusedBorderColor = GrozzBorder,
+                            cursorColor = GrozzYellow,
+                        ),
                     trailingIcon = {
                         IconButton(
                             onClick = {
                                 chooseExercisesViewModel.setName(randomWorkoutName())
-                            }
+                            },
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.casinoicon128),
                                 contentDescription = "Random name",
                                 tint = GrozzOnBackground,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(20.dp),
                             )
                         }
-                    }
+                    },
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 TextButton(
                     onClick = { navController.navigate(Screens.ChooseExercises.createRoute()) },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = null,
                         tint = GrozzYellow,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Add exercises",
                         color = GrozzYellow,
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.labelLarge,
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -303,18 +309,19 @@ fun CreateWorkout(
             if (draft.isEmpty()) {
                 item {
                     EmptyExercisesPlaceholder(
-                        onAddClick = { navController.navigate(Screens.ChooseExercises.createRoute()) }
+                        onAddClick = { navController.navigate(Screens.ChooseExercises.createRoute()) },
                     )
                 }
             } else {
                 itemsIndexed(
                     items = draft,
-                    key = { _, item -> item.catalogId }
+                    key = { _, item -> item.catalogId },
                 ) { index, item ->
                     Box(
-                        modifier = Modifier
-                            .animateItem()
-                            .padding(horizontal = 20.dp, vertical = 6.dp)
+                        modifier =
+                            Modifier
+                                .animateItem()
+                                .padding(horizontal = 20.dp, vertical = 6.dp),
                     ) {
                         ExerciseExpandableCardChooseExercises(
                             onEditClick = { setIndex, weight, reps ->
@@ -339,7 +346,7 @@ fun CreateWorkout(
                             },
                             onRemove = {
                                 createWorkoutViewModel.removeDraftExercise(item.catalogId)
-                            }
+                            },
                         )
                     }
                 }
@@ -350,7 +357,7 @@ fun CreateWorkout(
             ModalBottomSheet(
                 onDismissRequest = { expandBottomSheet = false },
                 sheetState = modalBottomSheetState,
-                containerColor = GrozzSurface
+                containerColor = GrozzSurface,
             ) {
                 var currentRepsPicker by remember(tempReps) { mutableIntStateOf(tempReps) }
                 var currentWholeKg by remember(tempWholeKg) { mutableIntStateOf(tempWholeKg) }
@@ -360,16 +367,17 @@ fun CreateWorkout(
                 val previewWeight = combineWeightKg(currentWholeKg, currentFractionIndex)
 
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
-                        .padding(bottom = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp)
+                            .padding(bottom = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = "Edit set",
                         style = MaterialTheme.typography.titleLarge,
-                        color = GrozzOnBackground
+                        color = GrozzOnBackground,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -377,39 +385,39 @@ fun CreateWorkout(
                         color = GrozzYellow,
                         fontSize = 16.sp,
                         fontFamily = Lexend,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Spacer(modifier = Modifier.height(20.dp))
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         // Wheel 1: whole kilograms (Int)
                         IntPickerColumn(
                             label = "KG",
                             value = currentWholeKg,
-                            range = WeightWholeKgRange,
-                            onValueChange = { currentWholeKg = it }
+                            range = WEIGHT_WHOLE_KG_RANGE,
+                            onValueChange = { currentWholeKg = it },
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        // Wheel 2: fraction index → WeightFractionOptions[index]
+                        // Wheel 2: fraction index → WEIGHT_FRACTION_OPTIONS[index]
                         IntPickerColumn(
                             label = "+",
                             value = currentFractionIndex,
-                            range = WeightFractionOptions.indices,
+                            range = WEIGHT_FRACTION_OPTIONS.indices,
                             labelForValue = { index ->
-                                val f = WeightFractionOptions[index]
+                                val f = WEIGHT_FRACTION_OPTIONS[index]
                                 if (f == 0f) "0" else f.toString()
                             },
-                            onValueChange = { currentFractionIndex = it }
+                            onValueChange = { currentFractionIndex = it },
                         )
                         Spacer(modifier = Modifier.width(32.dp))
                         IntPickerColumn(
                             label = "REPS",
                             value = currentRepsPicker,
                             range = 0..100,
-                            onValueChange = { currentRepsPicker = it }
+                            onValueChange = { currentRepsPicker = it },
                         )
                     }
                     Spacer(modifier = Modifier.height(28.dp))
@@ -420,11 +428,11 @@ fun CreateWorkout(
                                 editingCatalogId,
                                 editingSetIndex,
                                 currentRepsPicker,
-                                combineWeightKg(currentWholeKg, currentFractionIndex)
+                                combineWeightKg(currentWholeKg, currentFractionIndex),
                             )
                             expandBottomSheet = false
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -442,31 +450,32 @@ fun ExerciseExpandableCardChooseExercises(
     canMoveDown: Boolean,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(GrozzRadiusChip))
-            .background(GrozzSurface)
-            .clickable { expanded = !expanded }
-            .animateContentSize()
-            .padding(16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(GrozzRadiusChip))
+                .background(GrozzSurface)
+                .clickable { expanded = !expanded }
+                .animateContentSize()
+                .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
                     .size(44.dp)
                     .background(GrozzYellow, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painterResource(R.drawable.dumbbellicon128),
                     null,
                     tint = GrozzOnPrimary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
@@ -478,55 +487,55 @@ fun ExerciseExpandableCardChooseExercises(
                     fontSize = 16.sp,
                     fontFamily = Lexend,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = exerciseDraft.bodyPart.uppercase(),
                     color = GrozzTextSecondary,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
                 )
             }
 
             IconButton(
                 onClick = onMoveUp,
                 enabled = canMoveUp,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(36.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowUp,
                     contentDescription = "Move up",
                     tint = if (canMoveUp) GrozzYellow else GrozzMuted,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
             IconButton(
                 onClick = onMoveDown,
                 enabled = canMoveDown,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(36.dp),
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = "Move down",
                     tint = if (canMoveDown) GrozzYellow else GrozzMuted,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
             }
             IconButton(
                 onClick = onRemove,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(36.dp),
             ) {
                 Icon(
                     painter = painterResource(R.drawable.terminate),
                     contentDescription = "Remove exercise",
                     tint = GrozzError,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
             Icon(
                 painter = painterResource(R.drawable.down),
                 contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = GrozzYellow,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
 
@@ -536,7 +545,7 @@ fun ExerciseExpandableCardChooseExercises(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 8.dp),
                 ) {
                     Text("SET", color = GrozzMuted, fontSize = 11.sp, modifier = Modifier.weight(1f))
                     Text(
@@ -544,21 +553,21 @@ fun ExerciseExpandableCardChooseExercises(
                         color = GrozzMuted,
                         fontSize = 11.sp,
                         modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                     Text(
                         "REPS",
                         color = GrozzMuted,
                         fontSize = 11.sp,
                         modifier = Modifier.weight(1f),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                     Text(
                         "ACTION",
                         color = GrozzMuted,
                         fontSize = 11.sp,
                         modifier = Modifier.weight(1.5f),
-                        textAlign = TextAlign.End
+                        textAlign = TextAlign.End,
                     )
                 }
 
@@ -567,27 +576,27 @@ fun ExerciseExpandableCardChooseExercises(
                         Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             "${index + 1}",
                             color = GrozzOnBackground,
                             fontSize = 14.sp,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         )
                         Text(
                             formatWeightKg(set.weight),
                             color = GrozzOnBackground,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                         Text(
                             "${set.reps}",
                             color = GrozzOnBackground,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
 
                         Row(modifier = Modifier.weight(1.5f), horizontalArrangement = Arrangement.End) {
@@ -595,20 +604,22 @@ fun ExerciseExpandableCardChooseExercises(
                                 painter = painterResource(R.drawable.editnote),
                                 contentDescription = null,
                                 tint = GrozzYellow,
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .clickable { onEditClick(index, set.weight, set.reps) }
+                                modifier =
+                                    Modifier
+                                        .size(22.dp)
+                                        .clickable { onEditClick(index, set.weight, set.reps) },
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Icon(
                                 painter = painterResource(R.drawable.minusicon128),
                                 contentDescription = null,
                                 tint = GrozzError,
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .clickable {
-                                        createWorkoutViewModel.removeSetToExercise(catalogId, set)
-                                    }
+                                modifier =
+                                    Modifier
+                                        .size(22.dp)
+                                        .clickable {
+                                            createWorkoutViewModel.removeSetToExercise(catalogId, set)
+                                        },
                             )
                         }
                     }
@@ -616,12 +627,12 @@ fun ExerciseExpandableCardChooseExercises(
 
                 IconButton(
                     onClick = { createWorkoutViewModel.addSetToExercise(catalogId) },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 ) {
                     Icon(
                         Icons.Default.Add,
                         contentDescription = "Add set",
-                        tint = GrozzYellow
+                        tint = GrozzYellow,
                     )
                 }
             }
@@ -634,34 +645,35 @@ fun EmptyExercisesPlaceholder(onAddClick: () -> Unit) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 40.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 40.dp),
     ) {
         Icon(
             painter = painterResource(R.drawable.dumbbell),
             contentDescription = null,
             tint = GrozzMuted,
-            modifier = Modifier.size(96.dp)
+            modifier = Modifier.size(96.dp),
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "No exercises yet",
             style = MaterialTheme.typography.titleLarge,
-            color = GrozzOnBackground
+            color = GrozzOnBackground,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Add exercises from the catalogue to build this plan.",
             style = MaterialTheme.typography.bodyMedium,
             color = GrozzTextSecondary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(20.dp))
         GrozzPrimaryButton(
             text = "Add exercises",
             onClick = onAddClick,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -669,61 +681,61 @@ fun EmptyExercisesPlaceholder(onAddClick: () -> Unit) {
 @Composable
 private fun CreateWorkoutTopBar(onBack: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onBack) {
             Icon(
                 painter = painterResource(R.drawable.left),
                 contentDescription = "Back",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground
+                tint = GrozzOnBackground,
             )
         }
         Spacer(modifier = Modifier.weight(1f))
         Image(
             painter = painterResource(R.drawable.grozzlogo),
             contentDescription = "Grozz",
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
         )
         Spacer(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.size(48.dp))
     }
 }
 
-private fun randomWorkoutName(): String =
-    listOf(
-        "Rock it!",
-        "Dumbbell Day!",
-        "Power Hour",
-        "Leg Legend",
-        "Push Mode",
-        "Pull Session",
-        "Core Crusher",
-        "Iron Hour",
-        "Sweat Check",
-        "Beast Mode",
-        "No Excuses",
-        "Full Send",
-        "Gain Day",
-        "Lift Heavy",
-        "Upper Fire",
-        "Lower Burn",
-        "Back Attack",
-        "Chest Day",
-        "Shoulder Pump",
-        "Arm Farm",
-        "Glute Focus",
-        "Cardio Mix",
-        "Strength Stack",
-        "Volume Day",
-        "PR Hunt",
-        "Morning Grind",
-        "Night Session",
-        "Quick Hit",
-        "Max Effort",
-        "Stay Solid"
-    ).random()
+private fun randomWorkoutName(): String = listOf(
+    "Rock it!",
+    "Dumbbell Day!",
+    "Power Hour",
+    "Leg Legend",
+    "Push Mode",
+    "Pull Session",
+    "Core Crusher",
+    "Iron Hour",
+    "Sweat Check",
+    "Beast Mode",
+    "No Excuses",
+    "Full Send",
+    "Gain Day",
+    "Lift Heavy",
+    "Upper Fire",
+    "Lower Burn",
+    "Back Attack",
+    "Chest Day",
+    "Shoulder Pump",
+    "Arm Farm",
+    "Glute Focus",
+    "Cardio Mix",
+    "Strength Stack",
+    "Volume Day",
+    "PR Hunt",
+    "Morning Grind",
+    "Night Session",
+    "Quick Hit",
+    "Max Effort",
+    "Stay Solid",
+).random()

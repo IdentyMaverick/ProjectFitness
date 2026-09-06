@@ -21,5 +21,5 @@ data class ExerciseCatalogEntity(
     val equipment: String = "",
     val movementType: String = "",
     val secondaryMuscles: List<String> = emptyList(),
-    val isActive: Boolean = false
+    val isActive: Boolean = false,
 )

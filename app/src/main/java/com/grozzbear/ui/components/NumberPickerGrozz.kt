@@ -43,24 +43,25 @@ fun NumberPickerGrozz(
     onValueChange3: (Int) -> Unit,
     labelForValue: (Int) -> String = { it.toString() },
     labelForValue2: (Int) -> String = { it.toString() },
-    labelForValue3: (Int) -> String = { it.toString() }
+    labelForValue3: (Int) -> String = { it.toString() },
 ) {
     ModalBottomSheet(
         onDismissRequest = { onDismissRequest() },
-        sheetState = sheetState
+        sheetState = sheetState,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .padding(bottom = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(bottom = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 NumberPickerUnit(
                     label = label,
@@ -68,7 +69,7 @@ fun NumberPickerGrozz(
                     range = range,
                     onValueChange = onValueChange,
                     labelForValue = labelForValue,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 NumberPickerUnit(
                     label = label2,
@@ -76,7 +77,7 @@ fun NumberPickerGrozz(
                     range = range2,
                     onValueChange = onValueChange2,
                     labelForValue = labelForValue2,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 NumberPickerUnit(
                     label = label3,
@@ -84,7 +85,7 @@ fun NumberPickerGrozz(
                     range = range3,
                     onValueChange = onValueChange3,
                     labelForValue = labelForValue3,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -98,18 +99,18 @@ private fun NumberPickerUnit(
     range: Iterable<Int>,
     onValueChange: (Int) -> Unit,
     labelForValue: (Int) -> String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = label,
             color = GrozzOnBackground,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = Lexend
+            fontFamily = Lexend,
         )
         Spacer(modifier = Modifier.height(8.dp))
         NumberPicker(
@@ -118,7 +119,7 @@ private fun NumberPickerUnit(
             range = range,
             label = labelForValue,
             dividersColor = GrozzYellow,
-            textStyle = TextStyle(color = GrozzOnBackground)
+            textStyle = TextStyle(color = GrozzOnBackground),
         )
     }
 }

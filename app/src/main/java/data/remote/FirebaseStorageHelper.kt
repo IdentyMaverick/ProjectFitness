@@ -1,7 +1,6 @@
 package data.remote
 
 object FirebaseStorageHelper {
-
     private const val BUCKET_NAME = "projectfitness-ddfeb.appspot.com"
     private const val BASE_URL = "https://firebasestorage.googleapis.com/v0/b/$BUCKET_NAME/o/"
 

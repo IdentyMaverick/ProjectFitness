@@ -26,43 +26,44 @@ import kotlinx.coroutines.tasks.await
 class AuthViewModel(
     private var authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val repo: WorkoutRepository
+    private val repo: WorkoutRepository,
 ) : ViewModel() {
-
     private val _registerState = MutableStateFlow<RegisterUiState>(RegisterUiState.Idle)
-    private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
+    private val _loginState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     private val _resetUiState = MutableStateFlow<ResetUiState>(ResetUiState.Idle)
     val registerState: StateFlow<RegisterUiState> = _registerState
-    val loginState: StateFlow<LoginUiState> = _loginUiState
+    val loginState: StateFlow<LoginUiState> = _loginState
     val resetUiState: StateFlow<ResetUiState> = _resetUiState
     val allHistoricalWorkouts = repo.sessions.observeHistoricalWorkouts()
-    val _totalWorkoutNumber = MutableStateFlow<Long>(0L)
+    private val _totalWorkoutNumber = MutableStateFlow(0L)
     val totalWorkoutNumber: StateFlow<Long> = _totalWorkoutNumber
-    val _totalLiftedWeight = MutableStateFlow<Float>(0F)
+    private val _totalLiftedWeight = MutableStateFlow(0F)
     val totalLiftedWeight: StateFlow<Float> = _totalLiftedWeight
-    val _totalSpentTime = MutableStateFlow(0L)
+    private val _totalSpentTime = MutableStateFlow(0L)
     val totalSpentTime: StateFlow<Long> = _totalSpentTime
-    val _target = MutableStateFlow<UserStats>(UserStats(0, 0f, 0L))
+    private val _target = MutableStateFlow(UserStats(0, 0f, 0L))
     val target: StateFlow<UserStats> = _target
 
+    fun resetDisplayedStats() {
+        _totalWorkoutNumber.value = 0L
+        _totalLiftedWeight.value = 0F
+    }
+
     @Keep
-    data class UserStats(
-        val count: Int,
-        val weight: Float,
-        val time: Long
-    )
+    data class UserStats(val count: Int, val weight: Float, val time: Long)
 
     fun register(fullName: String, nickname: String, email: String, password: String) {
         viewModelScope.launch {
             _registerState.value = RegisterUiState.Loading
             try {
                 val uid = authRepository.register(email, password)
-                val profile = UserProfile(
-                    first = fullName,
-                    nickname = nickname,
-                    email = email,
-                    userPhotoUri = ""
-                )
+                val profile =
+                    UserProfile(
+                        first = fullName,
+                        nickname = nickname,
+                        email = email,
+                        userPhotoUri = "",
+                    )
                 try {
                     userRepository.createUserProfile(uid, profile)
                 } catch (profileError: Exception) {
@@ -72,7 +73,7 @@ class AuthViewModel(
                         Log.e(
                             "Auth",
                             "Profile write failed and auth rollback also failed",
-                            deleteError
+                            deleteError,
                         )
                     }
                     throw profileError
@@ -90,54 +91,49 @@ class AuthViewModel(
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            _loginUiState.value = LoginUiState.Loading
+            _loginState.value = LoginUiState.Loading
             try {
                 val uid = authRepository.login(email, password)
                 ensureUserProfile(uid, displayName = null, email = email)
                 userRepository.setUserOnline(uid, true)
-                _loginUiState.value = LoginUiState.Success
+                _loginState.value = LoginUiState.Success
                 saveUserFcmToken(uid)
             } catch (e: Exception) {
                 authRepository.logout()
-                _loginUiState.value = LoginUiState.Error(e.message ?: "Login failed")
+                _loginState.value = LoginUiState.Error(e.message ?: "Login failed")
             }
         }
     }
 
     fun resetLoginState() {
-        _loginUiState.value = LoginUiState.Idle
+        _loginState.value = LoginUiState.Idle
     }
 
-    fun loginWithGoogle(
-        idToken: String,
-        displayName: String?,
-        email: String?,
-        photoUrl: String?
-    ) {
+    fun loginWithGoogle(idToken: String, displayName: String?, email: String?, photoUrl: String?) {
         viewModelScope.launch {
-            _loginUiState.value = LoginUiState.Loading
+            _loginState.value = LoginUiState.Loading
             try {
                 val uid = authRepository.loginWithGoogle(idToken)
                 ensureUserProfile(uid, displayName, email, photoUrl)
                 userRepository.setUserOnline(uid, true)
-                _loginUiState.value = LoginUiState.Success
+                _loginState.value = LoginUiState.Success
                 saveUserFcmToken(uid)
             } catch (e: Exception) {
                 authRepository.logout()
-                _loginUiState.value = LoginUiState.Error(e.message ?: "Google sign-in failed")
+                _loginState.value = LoginUiState.Error(e.message ?: "Google sign-in failed")
             }
         }
     }
 
     fun onGoogleSignInFailed(message: String) {
-        _loginUiState.value = LoginUiState.Error(message)
+        _loginState.value = LoginUiState.Error(message)
     }
 
     private suspend fun ensureUserProfile(
         uid: String,
         displayName: String?,
         email: String?,
-        photoUrl: String? = null
+        photoUrl: String? = null,
     ) {
         if (userRepository.getUserProfile(uid) != null) return
         userRepository.createUserProfile(
@@ -146,8 +142,8 @@ class AuthViewModel(
                 first = displayName?.takeIf { it.isNotBlank() } ?: "Sporcu",
                 nickname = googleNickname(displayName, email),
                 email = email.orEmpty(),
-                userPhotoUri = photoUrl.orEmpty()
-            )
+                userPhotoUri = photoUrl.orEmpty(),
+            ),
         )
     }
 
@@ -160,10 +156,12 @@ class AuthViewModel(
     }
 
     fun getGoogleSignInClient(context: Context): com.google.android.gms.auth.api.signin.GoogleSignInClient {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
+        val gso =
+            GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(context.getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
         return GoogleSignIn.getClient(context, gso)
     }
 
@@ -225,7 +223,7 @@ class AuthViewModel(
             try {
                 _totalWorkoutNumber.value = repo.sessions.getUserTotalWorkoutNumber(userId)
             } catch (e: Exception) {
-                Log.d("TAG", "getTotalWorkoutNumber: ${e.message}")
+                Log.e("AuthViewModel", "getTotalWorkoutNumber: ${e.message}")
             }
         }
     }
@@ -235,8 +233,13 @@ class AuthViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val db = FirebaseFirestore.getInstance()
-                val result = db.collection(FirestorePaths.USERS).document(userId)
-                    .collection(FirestorePaths.HISTORY).get().await()
+                val result =
+                    db
+                        .collection(FirestorePaths.USERS)
+                        .document(userId)
+                        .collection(FirestorePaths.HISTORY)
+                        .get()
+                        .await()
 
                 for (document in result) {
                     val workout = document.toObject(WorkoutHistoryEntity::class.java) ?: continue
@@ -263,7 +266,7 @@ class AuthViewModel(
             try {
                 _totalLiftedWeight.value = repo.sessions.getTotalLiftedWeight(userId).toFloat()
             } catch (e: Exception) {
-                Log.d("TAG", "getTotalWorkoutNumber: ${e.message}")
+                Log.e("AuthViewModel", "getTotalLiftedWeight: ${e.message}")
             }
         }
     }
@@ -274,7 +277,7 @@ class AuthViewModel(
             try {
                 _totalSpentTime.value = repo.sessions.getTotalSpentTime(userId)
             } catch (e: Exception) {
-                Log.d("TAG", "getTotalWorkoutNumber: ${e.message}")
+                Log.e("AuthViewModel", "getTotalSpentTime: ${e.message}")
             }
         }
     }
@@ -285,14 +288,14 @@ class AuthViewModel(
         val currentTime = System.currentTimeMillis()
         val thirtyDaysAgo = currentTime - (30L * 24 * 60 * 60 * 1000)
 
-        val uniqueDaysActive = workout
-            .filter { it.workoutHistory.dateTimestamp > thirtyDaysAgo }
-            .map {
-                val sdf = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault())
-                sdf.format(java.util.Date(it.workoutHistory.dateTimestamp))
-            }
-            .distinct()
-            .size
+        val uniqueDaysActive =
+            workout
+                .filter { it.workoutHistory.dateTimestamp > thirtyDaysAgo }
+                .map {
+                    val sdf = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault())
+                    sdf.format(java.util.Date(it.workoutHistory.dateTimestamp))
+                }.distinct()
+                .size
 
         val targetDays = 12.0
         val score = (uniqueDaysActive / targetDays) * 100
@@ -310,20 +313,29 @@ class AuthViewModel(
                 var time = 0L
 
                 // 1. Antrenmanları çek
-                val userDoc = db.collection(FirestorePaths.USERS)
-                    .document(targetUserUid)
-                    .collection(FirestorePaths.HISTORY)
-                    .get()
-                    .await()
+                val userDoc =
+                    db
+                        .collection(FirestorePaths.USERS)
+                        .document(targetUserUid)
+                        .collection(FirestorePaths.HISTORY)
+                        .get()
+                        .await()
 
                 for (doc in userDoc) {
                     count++
                     time += doc.getLong("totalDuration") ?: 0L
 
-                    val exerciseDoc = doc.reference.collection(FirestorePaths.EXERCISES).get().await()
+                    val exerciseDoc =
+                        doc.reference
+                            .collection(FirestorePaths.EXERCISES)
+                            .get()
+                            .await()
                     for (exercisedoc in exerciseDoc) {
                         val setDoc =
-                            exercisedoc.reference.collection(FirestorePaths.SETS).get().await()
+                            exercisedoc.reference
+                                .collection(FirestorePaths.SETS)
+                                .get()
+                                .await()
                         for (setdoc in setDoc) {
                             // Güvenli okuma: !! yerine 0.0 kullan
                             weight += setdoc.getDouble("weight")?.toFloat() ?: 0f

@@ -1,7 +1,6 @@
 package data.local.viewmodel
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,33 +17,37 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
-class WorkoutCompleteScreenViewModel(
-    repository: WorkoutRepository,
-    private val userRepository: UserRepository
-) : ViewModel() {
+class WorkoutCompleteScreenViewModel(repository: WorkoutRepository, private val userRepository: UserRepository) :
+    ViewModel() {
     val currentUserUid: String?
-        get() = Firebase.auth.currentUser?.uid?.takeIf { it.isNotBlank() }
-    private val _userName = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
-    var userName: StateFlow<String> = _userName
-    private val _elapsedTime = kotlinx.coroutines.flow.MutableStateFlow("0 Minutes")
+        get() =
+            Firebase.auth.currentUser
+                ?.uid
+                ?.takeIf { it.isNotBlank() }
+    private val _userName = MutableStateFlow("Yükleniyor...")
+    val userName: StateFlow<String> = _userName
+    private val _elapsedTime = MutableStateFlow("0 Minutes")
     val elapsedTime: StateFlow<String> = _elapsedTime
-    private val _formattedDate = kotlinx.coroutines.flow.MutableStateFlow("")
+    private val _formattedDate = MutableStateFlow("")
     val formattedDate: StateFlow<String> = _formattedDate
-    var _totalSetsCompleted = MutableStateFlow<Int>(0)
+    private val _totalSetsCompleted = MutableStateFlow(0)
     val totalSetsCompleted: StateFlow<Int> = _totalSetsCompleted
-    val _totalRepsCompleted = MutableStateFlow<Int>(0)
+    private val _totalRepsCompleted = MutableStateFlow(0)
     val totalRepsCompleted: StateFlow<Int> = _totalRepsCompleted
-    val _prExercises = MutableStateFlow<List<String>>(emptyList())
+    private val _prExercises = MutableStateFlow<List<String>>(emptyList())
     val prExercises: StateFlow<List<String>> = _prExercises
 
     init {
         getUserName()
-        Log.d("init worked", "init worked")
+    }
+
+    fun setCompletedTotals(sets: Int, reps: Int) {
+        _totalSetsCompleted.value = sets
+        _totalRepsCompleted.value = reps
     }
 
     fun setPrExercises(prExercises: List<String>) {
         _prExercises.value = prExercises
-        Log.d("UI_DEBUG", "ViewModel yeni rekorları aldı: ${prExercises.size} adet")
     }
 
     fun getUserName() {
@@ -57,12 +60,13 @@ class WorkoutCompleteScreenViewModel(
     }
 
     fun formatElapsedTime(durationSeconds: Long): String {
-        val formattedTime = String.format(
-            "%02d:%02d:%02d",
-            durationSeconds / 3600,
-            (durationSeconds % 3600) / 60,
-            durationSeconds % 60
-        )
+        val formattedTime =
+            String.format(
+                "%02d:%02d:%02d",
+                durationSeconds / 3600,
+                (durationSeconds % 3600) / 60,
+                durationSeconds % 60,
+            )
         return formattedTime
     }
 
@@ -77,8 +81,10 @@ class WorkoutCompleteScreenViewModel(
         if (dateTimeStamp == 0L) return ""
 
         val instant = Instant.ofEpochMilli(dateTimeStamp)
-        val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d", Locale.ENGLISH)
-            .withZone(ZoneId.systemDefault())
+        val formatter =
+            DateTimeFormatter
+                .ofPattern("EEEE, MMM d", Locale.ENGLISH)
+                .withZone(ZoneId.systemDefault())
         return formatter.format(instant)
     }
 }

@@ -15,21 +15,19 @@ data class Workoutin(
     val secondaryMuscles: List<String> = emptyList(),
     val movementType: String = "",
     val isActive: Boolean = true,
-    val exerciseImage: String = ""
+    val exerciseImage: String = "",
 )
 
-fun Workoutin.toEntity(id: String): ExerciseCatalogEntity {
-    return ExerciseCatalogEntity(
-        id = id,
-        instructions = instructions,
-        level = level,
-        gifUrl = gifUrl,
-        muscle = muscle,
-        name = name,
-        bodyPart = bodyPart,
-        equipment = equipment,
-        movementType = movementType,
-        secondaryMuscles = secondaryMuscles,
-        isActive = isActive
-    )
-}
+fun Workoutin.toEntity(id: String): ExerciseCatalogEntity = ExerciseCatalogEntity(
+    id = id,
+    instructions = instructions,
+    level = level,
+    gifUrl = gifUrl,
+    muscle = muscle,
+    name = name,
+    bodyPart = bodyPart,
+    equipment = equipment,
+    movementType = movementType,
+    secondaryMuscles = secondaryMuscles,
+    isActive = isActive,
+)

@@ -4,7 +4,9 @@ import androidx.annotation.Keep
 
 interface LoginUiState {
     data object Idle : LoginUiState
+
     data object Loading : LoginUiState
+
     data object Success : LoginUiState
 
     @Keep

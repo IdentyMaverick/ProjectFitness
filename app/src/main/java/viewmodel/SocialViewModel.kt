@@ -30,12 +30,12 @@ data class NotificationModel(
     @get:PropertyName("isRead")
     @set:PropertyName("isRead")
     var isRead: Boolean = false,
-    val time: Long = System.currentTimeMillis()
+    val time: Long = System.currentTimeMillis(),
 )
 
 class SocialViewModel(private val repository: FirestoreRepository) : ViewModel() {
     // Mevcut kullanıcının nickname'ini tutar
-    val _nickname = MutableStateFlow("")
+    private val _nickname = MutableStateFlow("")
     val nickname: StateFlow<String> = _nickname
 
     fun setNickname(newNickname: String) {
@@ -46,20 +46,23 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         repository.followUser(followerNickname, followingNickname)
 
         val db = FirebaseFirestore.getInstance()
-        db.collection("googlecloudusers")
+        db
+            .collection("googlecloudusers")
             .whereEqualTo("nickname", followingNickname)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val userId = querySnapshot.documents.firstOrNull()?.id
                 if (userId != null) {
-                    val notification = hashMapOf(
-                        "title" to "Follow",
-                        "message" to "$followerNickname has followed you.",
-                        "isRead" to false,
-                        "time" to System.currentTimeMillis()
-                    )
+                    val notification =
+                        hashMapOf(
+                            "title" to "Follow",
+                            "message" to "$followerNickname has followed you.",
+                            "isRead" to false,
+                            "time" to System.currentTimeMillis(),
+                        )
 
-                    db.collection("googlecloudusers")
+                    db
+                        .collection("googlecloudusers")
                         .document(userId)
                         .collection("notifications")
                         .add(notification)
@@ -75,14 +78,17 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         if (nickname.isBlank()) return
 
         val db = FirebaseFirestore.getInstance()
-        db.collection("googlecloudusers")
+        db
+            .collection("googlecloudusers")
             .whereEqualTo("nickname", nickname)
             .get()
             .addOnSuccessListener { snapshots ->
                 val userId = snapshots.documents.firstOrNull()?.id ?: return@addOnSuccessListener
-                val notificationsRef = db.collection("googlecloudusers")
-                    .document(userId)
-                    .collection("notifications")
+                val notificationsRef =
+                    db
+                        .collection("googlecloudusers")
+                        .document(userId)
+                        .collection("notifications")
 
                 notificationsRef
                     .whereEqualTo("isRead", false)
@@ -93,27 +99,20 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
                         unreadDocs.documents.forEach { doc ->
                             batch.update(doc.reference, "isRead", true)
                         }
-                        batch.commit()
-                            .addOnSuccessListener {
-                                Log.d("Notifications", "Marked ${unreadDocs.size()} as read")
-                            }
+                        batch
+                            .commit()
                             .addOnFailureListener { e ->
                                 Log.e("Notifications", "Failed to mark as read", e)
                             }
                     }
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 Log.e("Notifications", "Failed to resolve user for markAllAsRead", e)
             }
     }
 
-    fun getFollowers(nickname: String): Flow<List<String>> {
-        return repository.observeFollowers(nickname)
-    }
+    fun getFollowers(nickname: String): Flow<List<String>> = repository.observeFollowers(nickname)
 
-    fun getFollowing(nickname: String): Flow<List<String>> {
-        return repository.observeFollowing(nickname)
-    }
+    fun getFollowing(nickname: String): Flow<List<String>> = repository.observeFollowing(nickname)
 
     @SuppressLint("RestrictedApi")
     fun getUserByNicknameLive(nickname: String): LiveData<User?> {
@@ -125,9 +124,7 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         return userLiveData
     }
 
-    fun getAllUsers(): Flow<List<User>> {
-        return repository.observeAllUsers()
-    }
+    fun getAllUsers(): Flow<List<User>> = repository.observeAllUsers()
 
     fun getNotification(nickname: String): Flow<List<NotificationModel>> = callbackFlow {
         if (nickname.isBlank()) {
@@ -137,46 +134,51 @@ class SocialViewModel(private val repository: FirestoreRepository) : ViewModel()
         }
         val db = FirebaseFirestore.getInstance()
         var notificationsRegistration: ListenerRegistration? = null
-        val userRegistration = db.collection(FirestorePaths.USERS)
-            .whereEqualTo("nickname", nickname)
-            .addSnapshotListener { snapshots, exception ->
-                if (exception != null) {
-                    Log.e("Firestore", "Kullanıcı sorgusu hatası", exception)
-                    return@addSnapshotListener
-                }
-
-                notificationsRegistration?.remove()
-                notificationsRegistration = null
-
-                val userId = snapshots?.documents?.firstOrNull()?.id
-                if (userId == null) {
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
-
-                notificationsRegistration = db.collection(FirestorePaths.USERS)
-                    .document(userId)
-                    .collection("notifications")
-                    .orderBy("time", Query.Direction.DESCENDING)
-                    .addSnapshotListener { notificationSnapshots, notificationException ->
-                        if (notificationException != null) {
-                            Log.e("Firestore", "Notification Error", notificationException)
-                            return@addSnapshotListener
-                        }
-                        val list = notificationSnapshots?.documents?.mapNotNull { doc ->
-                            // Read isRead from the document explicitly — Kotlin Boolean
-                            // "isRead" often fails to map via toObject alone.
-                            NotificationModel(
-                                id = doc.id,
-                                title = doc.getString("title").orEmpty(),
-                                message = doc.getString("message").orEmpty(),
-                                isRead = doc.getBoolean("isRead") ?: false,
-                                time = doc.getLong("time") ?: 0L
-                            )
-                        } ?: emptyList()
-                        trySend(list)
+        val userRegistration =
+            db
+                .collection(FirestorePaths.USERS)
+                .whereEqualTo("nickname", nickname)
+                .addSnapshotListener { snapshots, exception ->
+                    if (exception != null) {
+                        Log.e("Firestore", "Kullanıcı sorgusu hatası", exception)
+                        return@addSnapshotListener
                     }
-            }
+
+                    notificationsRegistration?.remove()
+                    notificationsRegistration = null
+
+                    val userId = snapshots?.documents?.firstOrNull()?.id
+                    if (userId == null) {
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
+
+                    notificationsRegistration =
+                        db
+                            .collection(FirestorePaths.USERS)
+                            .document(userId)
+                            .collection("notifications")
+                            .orderBy("time", Query.Direction.DESCENDING)
+                            .addSnapshotListener { notificationSnapshots, notificationException ->
+                                if (notificationException != null) {
+                                    Log.e("Firestore", "Notification Error", notificationException)
+                                    return@addSnapshotListener
+                                }
+                                val list =
+                                    notificationSnapshots?.documents?.mapNotNull { doc ->
+                                        // Read isRead from the document explicitly — Kotlin Boolean
+                                        // "isRead" often fails to map via toObject alone.
+                                        NotificationModel(
+                                            id = doc.id,
+                                            title = doc.getString("title").orEmpty(),
+                                            message = doc.getString("message").orEmpty(),
+                                            isRead = doc.getBoolean("isRead") ?: false,
+                                            time = doc.getLong("time") ?: 0L,
+                                        )
+                                    } ?: emptyList()
+                                trySend(list)
+                            }
+                }
         awaitClose {
             notificationsRegistration?.remove()
             userRegistration.remove()

@@ -22,10 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import viewmodel.ProfileViewModel
 
-class LeaderboardViewModel(
-    val repository: WorkoutRepository,
-    requireNotNull: ProfileViewModel
-) : ViewModel() {
+class LeaderboardViewModel(val repository: WorkoutRepository, requireNotNull: ProfileViewModel) : ViewModel() {
     private val _leaderboardData = MutableStateFlow<List<LeaderboardEntry>>(emptyList())
     val leaderboardData: StateFlow<List<LeaderboardEntry>> = _leaderboardData
 
@@ -35,19 +32,20 @@ class LeaderboardViewModel(
     private var fetchJob: Job? = null
 
     val currentUserRankInfo: StateFlow<Pair<Int, LeaderboardEntry>?> =
-        leaderboardData.map { entries ->
-            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-            val index = entries.indexOfFirst { it.userId == currentUserId }
-            entries.forEach {
-                it.userPhotoUri = fetchUserImage(it.userId)
-            }
+        leaderboardData
+            .map { entries ->
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                val index = entries.indexOfFirst { it.userId == currentUserId }
+                entries.forEach {
+                    it.userPhotoUri = fetchUserImage(it.userId)
+                }
 
-            if (index != -1) {
-                Pair(index + 1, entries[index])
-            } else {
-                null
-            }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+                if (index != -1) {
+                    Pair(index + 1, entries[index])
+                } else {
+                    null
+                }
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun uploadPrProof(uri: android.net.Uri, userId: String, exerciseName: String, weight: Double, nickname: String) {
         if (userId.isBlank()) return
@@ -61,7 +59,7 @@ class LeaderboardViewModel(
                 val downloadUrl = proofRef.downloadUrl.await().toString()
                 updateFirestoreProof(userId, exerciseName, downloadUrl, weight, nickname)
             } catch (e: Exception) {
-                Log.d("error", e.toString())
+                Log.e("Leaderboard", "Proof upload failed", e)
             }
         }
     }
@@ -71,12 +69,13 @@ class LeaderboardViewModel(
         exercise: String,
         url: String,
         weight: Double,
-        nickname: String
+        nickname: String,
     ) {
         val db = FirebaseFirestore.getInstance()
 
-        db.collection(FirestorePaths.LEADERBOARD)
-            .document("${userId}_${exercise}")
+        db
+            .collection(FirestorePaths.LEADERBOARD)
+            .document("${userId}_$exercise")
             .set(
                 mapOf(
                     "userId" to userId,
@@ -84,50 +83,48 @@ class LeaderboardViewModel(
                     "exerciseName" to exercise,
                     "proofUrl" to url,
                     "verificationStatus" to "pendent",
-                    "weight" to weight
+                    "weight" to weight,
                 ),
-                SetOptions.merge()
-            )
-//            .update(
-//                mapOf(
-//                    "proofUrl" to url,
-//                    "verificationStatus" to "pendent"
-//                )
-//            )
-            .await()
+                SetOptions.merge(),
+            ).await()
     }
 
     fun fetchLeaderboard(exerciseName: String) {
         fetchJob?.cancel()
-        fetchJob = viewModelScope.launch {
-            _isLoading.value = true
-            _leaderboardData.value = emptyList()
-            try {
-                repository.getLeaderboard(exerciseName).collect { entries ->
-                    val updatedEntries = entries.map { entry ->
-                        val photo = fetchUserImage(entry.userId)
-                        entry.copy(userPhotoUri = photo)
+        fetchJob =
+            viewModelScope.launch {
+                _isLoading.value = true
+                _leaderboardData.value = emptyList()
+                try {
+                    repository.getLeaderboard(exerciseName).collect { entries ->
+                        val updatedEntries =
+                            entries.map { entry ->
+                                val photo = fetchUserImage(entry.userId)
+                                entry.copy(userPhotoUri = photo)
+                            }
+                        _leaderboardData.value = updatedEntries
+                        _isLoading.value = false
                     }
-                    _leaderboardData.value = updatedEntries
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("LeaderboardVM", "Leaderboard fetch failed: ${e.message}")
                     _isLoading.value = false
                 }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.e("LeaderboardVM", "Leaderboard fetch failed: ${e.message}")
-                _isLoading.value = false
             }
-        }
     }
 
-    suspend fun fetchUserImage(userId: String): String {
-        return try {
-            val db = FirebaseFirestore.getInstance()
-            val document = db.collection(FirestorePaths.USERS).document(userId).get().await()
-            document.getString("userPhotoUri") ?: ""
-        } catch (e: Exception) {
-            Log.e("LeaderboardVM", "Fotoğraf çekilemedi: ${e.message}")
-            ""
-        }
+    suspend fun fetchUserImage(userId: String): String = try {
+        val db = FirebaseFirestore.getInstance()
+        val document =
+            db
+                .collection(FirestorePaths.USERS)
+                .document(userId)
+                .get()
+                .await()
+        document.getString("userPhotoUri") ?: ""
+    } catch (e: Exception) {
+        Log.e("LeaderboardVM", "Fotoğraf çekilemedi: ${e.message}")
+        ""
     }
 }

@@ -11,5 +11,5 @@ data class LeaderboardEntry(
     val userName: String = "Anonymous",
     var userPhotoUri: String? = null,
     val hasPro: Boolean = false,
-    val verificationStatus: String = "notVerified"
+    val verificationStatus: String = "notVerified",
 )

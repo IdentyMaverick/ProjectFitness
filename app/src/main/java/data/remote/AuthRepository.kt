@@ -5,7 +5,6 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.tasks.await
 
 class AuthRepository(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
-
     val currentUser get() = auth.currentUser
 
     val currentUid: String?
