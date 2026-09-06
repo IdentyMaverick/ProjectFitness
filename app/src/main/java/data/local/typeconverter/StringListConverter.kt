@@ -7,6 +7,5 @@ class StringListConverter {
     fun fromList(list: List<String>): String = list.joinToString("|")
 
     @TypeConverter
-    fun toList(value: String): List<String> =
-        if (value.isBlank()) emptyList() else value.split("|")
+    fun toList(value: String): List<String> = if (value.isBlank()) emptyList() else value.split("|")
 }

@@ -20,7 +20,7 @@ import kotlinx.coroutines.tasks.await
 class WorkoutRepository(
     dao: WorkoutDao,
     catalogdao: ExerciseCatalogDao,
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
 ) {
     private val fs = WorkoutFirestore(firestore)
 
@@ -31,17 +31,30 @@ class WorkoutRepository(
     suspend fun updateLeaderboard(entry: LeaderboardEntry): Boolean {
         val docId = "${entry.userId}_${entry.exerciseName}"
         return try {
-            val document = firestore.collection(FirestorePaths.LEADERBOARD).document(docId).get().await()
+            val document =
+                firestore
+                    .collection(FirestorePaths.LEADERBOARD)
+                    .document(docId)
+                    .get()
+                    .await()
             if (document.exists()) {
                 val oldWeight = document.getDouble("weight") ?: 0.0
                 if (entry.weight > oldWeight) {
-                    firestore.collection(FirestorePaths.LEADERBOARD).document(docId).set(entry).await()
+                    firestore
+                        .collection(FirestorePaths.LEADERBOARD)
+                        .document(docId)
+                        .set(entry)
+                        .await()
                     true
                 } else {
                     false
                 }
             } else {
-                firestore.collection(FirestorePaths.LEADERBOARD).document(docId).set(entry).await()
+                firestore
+                    .collection(FirestorePaths.LEADERBOARD)
+                    .document(docId)
+                    .set(entry)
+                    .await()
                 true
             }
         } catch (e: Exception) {
@@ -50,24 +63,24 @@ class WorkoutRepository(
         }
     }
 
-    fun getLeaderboard(exerciseName: String): Flow<List<LeaderboardEntry>> =
-        kotlinx.coroutines.flow.flow {
-            try {
-                val snapshot = firestore.collection(FirestorePaths.LEADERBOARD)
+    fun getLeaderboard(exerciseName: String): Flow<List<LeaderboardEntry>> = kotlinx.coroutines.flow.flow {
+        try {
+            val snapshot =
+                firestore
+                    .collection(FirestorePaths.LEADERBOARD)
                     .whereEqualTo("exerciseName", exerciseName)
                     .orderBy(
                         "weight",
-                        com.google.firebase.firestore.Query.Direction.DESCENDING
-                    )
-                    .limit(20)
+                        com.google.firebase.firestore.Query.Direction.DESCENDING,
+                    ).limit(20)
                     .get()
                     .await()
 
-                val entries = snapshot.toObjects(LeaderboardEntry::class.java)
-                emit(entries)
-            } catch (e: Exception) {
-                Log.e("LeaderboardError", "Veri çekme hatası: ${e.message}")
-                emit(emptyList())
-            }
+            val entries = snapshot.toObjects(LeaderboardEntry::class.java)
+            emit(entries)
+        } catch (e: Exception) {
+            Log.e("LeaderboardError", "Veri çekme hatası: ${e.message}")
+            emit(emptyList())
         }
+    }
 }

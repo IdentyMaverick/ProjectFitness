@@ -14,22 +14,20 @@ import kotlinx.coroutines.tasks.await
  * Templates live at root [FirestorePaths.TEMPLATES]; sessions live under
  * [FirestorePaths.USERS]/{uid}/[FirestorePaths.HISTORY].
  */
-internal class WorkoutFirestore(
-    private val firestore: FirebaseFirestore
-) {
+internal class WorkoutFirestore(private val firestore: FirebaseFirestore) {
     fun templateRef(workoutId: String): DocumentReference =
         firestore.collection(FirestorePaths.TEMPLATES).document(workoutId)
 
-    fun historyRef(userId: String, sessionId: String): DocumentReference =
-        firestore.collection(FirestorePaths.USERS)
-            .document(userId)
-            .collection(FirestorePaths.HISTORY)
-            .document(sessionId)
+    fun historyRef(userId: String, sessionId: String): DocumentReference = firestore
+        .collection(FirestorePaths.USERS)
+        .document(userId)
+        .collection(FirestorePaths.HISTORY)
+        .document(sessionId)
 
-    fun historyCol(userId: String) =
-        firestore.collection(FirestorePaths.USERS)
-            .document(userId)
-            .collection(FirestorePaths.HISTORY)
+    fun historyCol(userId: String) = firestore
+        .collection(FirestorePaths.USERS)
+        .document(userId)
+        .collection(FirestorePaths.HISTORY)
 
     suspend fun loadSetDocuments(exerciseRef: DocumentReference): QuerySnapshot {
         val current = exerciseRef.collection(FirestorePaths.SETS).get().await()
@@ -44,10 +42,7 @@ internal class WorkoutFirestore(
         for (doc in legacy) batch.delete(doc.reference)
     }
 
-    suspend fun resolveSetDocument(
-        exerciseRef: DocumentReference,
-        setId: String
-    ): DocumentReference {
+    suspend fun resolveSetDocument(exerciseRef: DocumentReference, setId: String): DocumentReference {
         val currentCol = exerciseRef.collection(FirestorePaths.SETS)
         val current = currentCol.get().await()
         if (!current.isEmpty) return currentCol.document(setId)

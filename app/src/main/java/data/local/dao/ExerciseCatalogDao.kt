@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExerciseCatalogDao {
-
     @Query("SELECT * FROM exercise_catalog WHERE isActive = 1 ORDER BY bodyPart")
     fun observeAllActive(): Flow<List<ExerciseCatalogEntity>>
 
@@ -18,7 +17,7 @@ interface ExerciseCatalogDao {
         WHERE isActive = 1
         AND name LIKE '%' || :q || '%'
         ORDER BY bodyPart
-    """
+    """,
     )
     fun observeSearch(q: String): Flow<List<ExerciseCatalogEntity>>
 

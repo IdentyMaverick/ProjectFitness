@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.ktx.auth
@@ -28,11 +27,7 @@ import viewmodel.AuthViewModel
 import viewmodel.SocialViewModel
 
 @Composable
-fun FindUsersScreen(
-    navController: NavController,
-    socialViewModel: SocialViewModel,
-    authViewModel: AuthViewModel
-) {
+fun FindUsersScreen(navController: NavController, socialViewModel: SocialViewModel, authViewModel: AuthViewModel) {
     val currentUserId = Firebase.auth.currentUser?.uid
     val myNickname by socialViewModel.nickname.collectAsState()
 
@@ -44,54 +39,55 @@ fun FindUsersScreen(
 
     var searchQuery by remember { mutableStateOf("") }
 
-    val discoverList = remember(allUsers, myNickname, currentUserId, searchQuery) {
-        allUsers
-            .filter {
-                it.nickname.isNotBlank() &&
-                    it.id != currentUserId &&
-                    it.nickname != myNickname
-            }
-            .filter {
-                searchQuery.isBlank() ||
-                    it.nickname.contains(searchQuery, ignoreCase = true) ||
-                    it.first.contains(searchQuery, ignoreCase = true)
-            }
-            .sortedBy { it.nickname.lowercase() }
-    }
+    val discoverList =
+        remember(allUsers, myNickname, currentUserId, searchQuery) {
+            allUsers
+                .filter {
+                    it.nickname.isNotBlank() &&
+                        it.id != currentUserId &&
+                        it.nickname != myNickname
+                }.filter {
+                    searchQuery.isBlank() ||
+                        it.nickname.contains(searchQuery, ignoreCase = true) ||
+                        it.first.contains(searchQuery, ignoreCase = true)
+                }.sortedBy { it.nickname.lowercase() }
+        }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             FollowListTopBar(
                 title = "FIND PEOPLE",
-                navController = navController
+                navController = navController,
             )
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { paddingValues ->
         when {
             myNickname.isBlank() -> {
                 FollowListLoadingState(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
                 )
             }
 
             else -> {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Spacer(Modifier.height(16.dp))
 
                     FollowSearchField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = "Search people..."
+                        placeholder = "Search people...",
                     )
 
                     Spacer(Modifier.height(8.dp))
@@ -99,38 +95,40 @@ fun FindUsersScreen(
                     if (discoverList.isEmpty()) {
                         FollowEmptyState(
                             title = if (searchQuery.isBlank()) "No people to show" else "No results found",
-                            subtitle = if (searchQuery.isBlank()) {
-                                "Check back later to find new athletes to follow."
-                            } else {
-                                "Try a different name or username."
-                            },
-                            modifier = Modifier.fillMaxSize()
+                            subtitle =
+                                if (searchQuery.isBlank()) {
+                                    "Check back later to find new athletes to follow."
+                                } else {
+                                    "Try a different name or username."
+                                },
+                            modifier = Modifier.fillMaxSize(),
                         )
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
+                            contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
                         ) {
                             item(key = "discover_header") {
                                 FollowSectionHeader(
                                     title = if (searchQuery.isBlank()) "Suggested for you" else "Results",
                                     count = discoverList.size,
-                                    accent = searchQuery.isBlank()
+                                    accent = searchQuery.isBlank(),
                                 )
                             }
 
                             items(
                                 items = discoverList,
-                                key = { it.id.ifBlank { it.nickname } }
+                                key = { it.id.ifBlank { it.nickname } },
                             ) { user ->
                                 val isFollowingThem = myFollowing.contains(user.nickname)
                                 FollowUserRow(
                                     user = user,
-                                    buttonStyle = if (isFollowingThem) {
-                                        FollowButtonStyle.Following
-                                    } else {
-                                        FollowButtonStyle.Follow
-                                    },
+                                    buttonStyle =
+                                        if (isFollowingThem) {
+                                            FollowButtonStyle.Following
+                                        } else {
+                                            FollowButtonStyle.Follow
+                                        },
                                     onProfileClick = {
                                         openUserProfile(navController, authViewModel, user.nickname)
                                     },
@@ -141,7 +139,7 @@ fun FindUsersScreen(
                                         } else {
                                             socialViewModel.followUser(myNickname, user.nickname)
                                         }
-                                    }
+                                    },
                                 )
                             }
                         }

@@ -1,6 +1,5 @@
 package viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import data.remote.WorkoutinRepository
@@ -8,9 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class WorkoutinViewModel(
-    private val workoutinRepository: WorkoutinRepository
-) : ViewModel() {
+class WorkoutinViewModel(private val workoutinRepository: WorkoutinRepository) : ViewModel() {
     private val _workoutUiState = MutableStateFlow<WorkoutUiState>(WorkoutUiState.Idle)
     val workoutUiState: StateFlow<WorkoutUiState> = _workoutUiState
 
@@ -32,7 +29,6 @@ class WorkoutinViewModel(
             _workoutUiState.value = WorkoutUiState.Loading
             try {
                 val list = workoutinRepository.getExercisesByBodyPart(bodyPart.toList(), limit)
-                Log.d("selected", list.toString())
                 _workoutUiState.value = WorkoutUiState.Success(list)
             } catch (e: Exception) {
                 _workoutUiState.value =

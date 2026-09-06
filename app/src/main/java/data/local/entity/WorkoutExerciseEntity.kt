@@ -16,16 +16,15 @@ import java.util.UUID
             entity = WorkoutEntity::class,
             parentColumns = ["workoutId"],
             childColumns = ["workoutOwnerId"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index("workoutOwnerId")]
+    indices = [Index("workoutOwnerId")],
 )
 @Keep
 data class WorkoutExerciseEntity(
     @PrimaryKey
     var exerciseId: String = UUID.randomUUID().toString(),
-
     @get:PropertyName("workoutId")
     @set:PropertyName("workoutId")
     var workoutOwnerId: String = "",
@@ -34,5 +33,5 @@ data class WorkoutExerciseEntity(
     var exerciseImage: String? = null,
     val bodyPart: String = "",
     val secondaryMuscles: List<String> = emptyList(),
-    val orderIndex: Int = 0
+    val orderIndex: Int = 0,
 )

@@ -5,6 +5,7 @@ import data.remote.UserProfile
 
 interface ProfileUiState {
     data object Idle : ProfileUiState
+
     data object Loading : ProfileUiState
 
     @Keep

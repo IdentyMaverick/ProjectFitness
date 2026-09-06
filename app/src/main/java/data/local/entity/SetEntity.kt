@@ -14,10 +14,10 @@ import androidx.room.PrimaryKey
             entity = WorkoutExerciseEntity::class,
             parentColumns = ["exerciseId"],
             childColumns = ["exerciseOwnerId"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index("exerciseOwnerId")]
+    indices = [Index("exerciseOwnerId")],
 )
 @Keep
 data class SetEntity(
@@ -28,5 +28,5 @@ data class SetEntity(
     val weight: Float,
     val note: String? = null,
     val isClicked: Boolean = false,
-    val setIndex: Int = 0
+    val setIndex: Int = 0,
 )

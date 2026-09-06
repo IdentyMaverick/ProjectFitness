@@ -89,12 +89,13 @@ fun WorkoutCompleteScreen(
     navController: NavController,
     workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel,
     workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel,
-    leaderboardViewModel: LeaderboardViewModel
+    leaderboardViewModel: LeaderboardViewModel,
 ) {
     val userName by workoutCompleteScreenViewModel.userName.collectAsState()
-    val userFirstName = remember(userName) {
-        userName.trim().substringBefore(' ').ifBlank { "Athlete" }
-    }
+    val userFirstName =
+        remember(userName) {
+            userName.trim().substringBefore(' ').ifBlank { "Athlete" }
+        }
     val formattedDate by workoutCompleteScreenViewModel.formattedDate.collectAsState()
     val elapsedTime by workoutCompleteScreenViewModel.elapsedTime.collectAsState()
     val totalSetsCompleted by workoutCompleteScreenViewModel.totalSetsCompleted.collectAsState()
@@ -115,44 +116,45 @@ fun WorkoutCompleteScreen(
             HomeTopBarWorkoutCompleteScreen(onClose = ::goHome)
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { paddingValues ->
         BackHandler(onBack = ::goHome)
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(scrollState)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.height(24.dp))
 
             Box(
                 modifier = Modifier.size(88.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val circleRadius = size.minDimension / 2
                     drawCircle(
                         color = GrozzYellow.copy(alpha = 0.35f),
                         radius = circleRadius,
-                        style = Fill
+                        style = Fill,
                     )
                     drawCircle(
                         color = GrozzYellow,
                         radius = circleRadius - 2.dp.toPx(),
-                        style = Stroke(width = 3.dp.toPx())
+                        style = Stroke(width = 3.dp.toPx()),
                     )
                 }
                 Icon(
                     painter = painterResource(R.drawable.trophyfilledicon128),
                     contentDescription = null,
                     tint = GrozzYellow,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(40.dp),
                 )
             }
 
@@ -164,7 +166,7 @@ fun WorkoutCompleteScreen(
                 fontSize = 22.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(8.dp))
             Text(
@@ -173,25 +175,26 @@ fun WorkoutCompleteScreen(
                 fontSize = 16.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = listOf(formattedDate, elapsedTime)
-                    .filter { it.isNotBlank() }
-                    .joinToString(" · "),
+                text =
+                    listOf(formattedDate, elapsedTime)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
                 color = GrozzMuted,
                 fontSize = 14.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Spacer(Modifier.height(32.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             ) {
                 ProgressCircle(
                     progress = 1f,
@@ -200,7 +203,7 @@ fun WorkoutCompleteScreen(
                     color = SetsAccent,
                     iconRes = R.drawable.timer10icon128,
                     iconColor = SetsAccent,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 ProgressCircle(
                     progress = 1f,
@@ -209,7 +212,7 @@ fun WorkoutCompleteScreen(
                     color = RepsAccent,
                     iconRes = R.drawable.dumbbellicon128,
                     iconColor = RepsAccent,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -222,9 +225,10 @@ fun WorkoutCompleteScreen(
                     fontFamily = Lexend,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                 )
                 prExercises.forEach { exercise ->
                     WorkoutRecordCard(
@@ -233,7 +237,7 @@ fun WorkoutCompleteScreen(
                         isUploaded = exercise in uploadedExercises,
                         onUploaded = {
                             uploadedExercises = uploadedExercises + exercise
-                        }
+                        },
                     )
                     Spacer(Modifier.height(12.dp))
                 }
@@ -247,7 +251,7 @@ fun WorkoutCompleteScreen(
                     workoutCompleteAnalysisScreenViewModel.setWorkoutList()
                     navController.navigate(Screens.WorkoutCompleteAnalysisScreen.route)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(Modifier.height(12.dp))
@@ -258,9 +262,10 @@ fun WorkoutCompleteScreen(
                 fontSize = 15.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .clickable(onClick = ::goHome)
-                    .padding(vertical = 12.dp)
+                modifier =
+                    Modifier
+                        .clickable(onClick = ::goHome)
+                        .padding(vertical = 12.dp),
             )
         }
     }
@@ -269,27 +274,28 @@ fun WorkoutCompleteScreen(
 @Composable
 private fun HomeTopBarWorkoutCompleteScreen(onClose: () -> Unit) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .height(56.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .height(56.dp),
     ) {
         IconButton(
             onClick = onClose,
-            modifier = Modifier.align(Alignment.CenterStart)
+            modifier = Modifier.align(Alignment.CenterStart),
         ) {
             Icon(
                 painter = painterResource(R.drawable.closeicon128),
                 contentDescription = "Close",
                 modifier = Modifier.size(24.dp),
-                tint = GrozzOnBackground
+                tint = GrozzOnBackground,
             )
         }
 
         Row(
             modifier = Modifier.align(Alignment.Center),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "SESSION",
@@ -297,7 +303,7 @@ private fun HomeTopBarWorkoutCompleteScreen(onClose: () -> Unit) {
                 fontSize = 20.sp,
                 letterSpacing = 0.sp,
                 fontFamily = Oswald,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.width(6.dp))
             Text(
@@ -306,15 +312,16 @@ private fun HomeTopBarWorkoutCompleteScreen(onClose: () -> Unit) {
                 fontSize = 20.sp,
                 letterSpacing = 0.sp,
                 fontFamily = Oswald,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
 
         // Balance the close button so the title stays visually centered.
         Spacer(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .size(48.dp)
+            modifier =
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp),
         )
     }
 }
@@ -327,19 +334,20 @@ private fun ProgressCircle(
     color: Color,
     iconRes: Int,
     iconColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(GrozzRadiusPanel))
-            .background(GrozzSurface)
-            .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel))
-            .padding(vertical = 20.dp, horizontal = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(GrozzRadiusPanel))
+                .background(GrozzSurface)
+                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel))
+                .padding(vertical = 20.dp, horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
             modifier = Modifier.size(84.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val strokeWidth = 5.dp.toPx()
@@ -351,7 +359,7 @@ private fun ProgressCircle(
                     radius = radius,
                     center = center,
                     alpha = 0.2f,
-                    style = Stroke(width = strokeWidth)
+                    style = Stroke(width = strokeWidth),
                 )
                 drawArc(
                     color = color,
@@ -360,14 +368,14 @@ private fun ProgressCircle(
                     useCenter = false,
                     topLeft = Offset(center.x - radius, center.y - radius),
                     size = Size(radius * 2, radius * 2),
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
                 )
             }
             Icon(
                 painter = painterResource(iconRes),
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
         }
         Spacer(Modifier.height(16.dp))
@@ -376,7 +384,7 @@ private fun ProgressCircle(
             color = GrozzOnBackground,
             fontSize = 18.sp,
             fontFamily = Lexend,
-            fontWeight = FontWeight.ExtraBold
+            fontWeight = FontWeight.ExtraBold,
         )
         Spacer(Modifier.height(4.dp))
         Text(
@@ -385,7 +393,7 @@ private fun ProgressCircle(
             fontSize = 11.sp,
             fontFamily = Lexend,
             fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -396,32 +404,34 @@ private fun WorkoutRecordCard(
     exerciseName: String,
     leaderboardViewModel: LeaderboardViewModel,
     isUploaded: Boolean,
-    onUploaded: () -> Unit
+    onUploaded: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(GrozzRadiusPanel))
-            .background(GrozzSurface)
-            .border(1.dp, GrozzYellow.copy(alpha = 0.35f), RoundedCornerShape(GrozzRadiusPanel))
-            .padding(16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(GrozzRadiusPanel))
+                .background(GrozzSurface)
+                .border(1.dp, GrozzYellow.copy(alpha = 0.35f), RoundedCornerShape(GrozzRadiusPanel))
+                .padding(16.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(GrozzYellow),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(GrozzYellow),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.workspacepremium128icon),
                     contentDescription = null,
                     modifier = Modifier.size(28.dp),
-                    tint = GrozzOnPrimary
+                    tint = GrozzOnPrimary,
                 )
             }
 
@@ -433,7 +443,7 @@ private fun WorkoutRecordCard(
                     color = GrozzOnBackground,
                     fontSize = 17.sp,
                     fontFamily = Lexend,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -441,7 +451,7 @@ private fun WorkoutRecordCard(
                     color = GrozzTextSecondary,
                     fontSize = 14.sp,
                     fontFamily = Lexend,
-                    lineHeight = 18.sp
+                    lineHeight = 18.sp,
                 )
             }
         }
@@ -458,71 +468,71 @@ private fun WorkoutRecordCard(
                         uid,
                         exerciseName,
                         0.0,
-                        ""
+                        "",
                     )
                     onUploaded()
                 }
-            }
+            },
         )
     }
 }
 
 @Composable
-private fun ProofUploadSection(
-    onUriSelected: (Uri) -> Unit,
-    isUploaded: Boolean
-) {
+private fun ProofUploadSection(onUriSelected: (Uri) -> Unit, isUploaded: Boolean) {
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { video: Uri? ->
-        video ?: return@rememberLauncherForActivityResult
-        val retriever = MediaMetadataRetriever()
-        try {
-            retriever.setDataSource(context, video)
-            val durationInMs = retriever
-                .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                ?.toLongOrNull()
-                ?: 0L
-            if (durationInMs <= 15_000) {
-                onUriSelected(video)
-            } else {
-                Toast.makeText(context, "Video must be under 15 seconds.", Toast.LENGTH_SHORT)
-                    .show()
+    val launcher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.PickVisualMedia(),
+        ) { video: Uri? ->
+            video ?: return@rememberLauncherForActivityResult
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(context, video)
+                val durationInMs =
+                    retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull()
+                        ?: 0L
+                if (durationInMs <= 15_000) {
+                    onUriSelected(video)
+                } else {
+                    Toast
+                        .makeText(context, "Video must be under 15 seconds.", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            } catch (_: Exception) {
+                Toast.makeText(context, "Could not read that video.", Toast.LENGTH_SHORT).show()
+            } finally {
+                retriever.release()
             }
-        } catch (_: Exception) {
-            Toast.makeText(context, "Could not read that video.", Toast.LENGTH_SHORT).show()
-        } finally {
-            retriever.release()
         }
-    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(GrozzSystemBar)
-            .border(1.dp, GrozzBorder, RoundedCornerShape(12.dp))
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessLow
-                )
-            )
-            .clickable(enabled = !isUploaded) {
-                launcher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
-                )
-            }
-            .padding(vertical = 20.dp, horizontal = 16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(GrozzSystemBar)
+                .border(1.dp, GrozzBorder, RoundedCornerShape(12.dp))
+                .animateContentSize(
+                    animationSpec =
+                        spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessLow,
+                        ),
+                ).clickable(enabled = !isUploaded) {
+                    launcher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly),
+                    )
+                }.padding(vertical = 20.dp, horizontal = 16.dp),
     ) {
         if (!isUploaded) {
             Icon(
                 painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
                 contentDescription = null,
                 tint = GrozzYellow,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
@@ -531,7 +541,7 @@ private fun ProofUploadSection(
                 fontSize = 15.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -539,7 +549,7 @@ private fun ProofUploadSection(
                 color = GrozzMuted,
                 fontSize = 12.sp,
                 fontFamily = Lexend,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -547,7 +557,7 @@ private fun ProofUploadSection(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = null,
                     tint = SetsAccent,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -555,7 +565,7 @@ private fun ProofUploadSection(
                     color = GrozzOnBackground,
                     fontSize = 14.sp,
                     fontFamily = Lexend,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
             }
         }

@@ -11,10 +11,15 @@ import viewmodel.ProfileViewModel
 class PersonalInformationsScreenViewModel(
     repository: WorkoutRepository,
     private val profileViewModel: ProfileViewModel,
-    private val userRepo: UserRepository
+    private val userRepo: UserRepository,
 ) : ViewModel() {
     val currentUserUid: String?
-        get() = FirebaseAuth.getInstance().currentUser?.uid?.takeIf { it.isNotBlank() }
+        get() =
+            FirebaseAuth
+                .getInstance()
+                .currentUser
+                ?.uid
+                ?.takeIf { it.isNotBlank() }
     val profileState = profileViewModel.profileState
 
     fun loadUid() {
@@ -23,13 +28,7 @@ class PersonalInformationsScreenViewModel(
         }
     }
 
-    fun updateUserInformation(
-        first: String,
-        gender: Boolean,
-        birthDate: String,
-        height: String,
-        weight: String
-    ) {
+    fun updateUserInformation(first: String, gender: Boolean, birthDate: String, height: String, weight: String) {
         val uid = currentUserUid ?: return
         viewModelScope.launch {
             userRepo.updateUserInformation(
@@ -38,7 +37,7 @@ class PersonalInformationsScreenViewModel(
                 gender,
                 birthDate,
                 height,
-                weight
+                weight,
             )
         }
     }

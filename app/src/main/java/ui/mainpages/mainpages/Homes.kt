@@ -1,6 +1,6 @@
 @file:SuppressLint(
     "StateFlowValueCalledInComposition",
-    "UnusedMaterial3ScaffoldPaddingParameter"
+    "UnusedMaterial3ScaffoldPaddingParameter",
 )
 
 package ui.mainpages.mainpages
@@ -78,7 +78,6 @@ import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.GrozzTopBarLogo
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzOnBackground
-import com.grozzbear.ui.theme.GrozzOnPrimary
 import com.grozzbear.ui.theme.GrozzRadiusPanel
 import com.grozzbear.ui.theme.GrozzRadiusPhoto
 import com.grozzbear.ui.theme.GrozzSurface
@@ -98,31 +97,28 @@ import ui.mainpages.navigation.NavigationBar
 import ui.mainpages.navigation.Screens
 import ui.mainpages.navigation.navigateToLoginAfterLogout
 import viewmodel.AuthViewModel
-import viewmodel.ProjectFitnessViewModel
 import viewmodel.SocialViewModel
 import viewmodel.ViewModelProfile
-import viewmodel.ViewModelSave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
     navController: NavController,
-    viewModelSave: ViewModelSave,
-    viewModel: ProjectFitnessViewModel,
     viewModelProfile: ViewModelProfile,
     authViewModel: AuthViewModel,
     homesViewModel: HomesViewModel,
     socialViewModel: SocialViewModel,
-    workoutSettingViewModel: WorkoutSettingViewModel
+    workoutSettingViewModel: WorkoutSettingViewModel,
 ) {
     val uid = Firebase.auth.currentUser?.uid
     var showMenuSheet by remember { mutableStateOf(false) }
     val menuSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val storageRef = remember { Firebase.storage.reference }
-    val profileRef = remember(uid) {
-        storageRef.child("gs://projectfitness-ddfeb.appspot.com/profile_photos/$uid/profile.jpg")
-    }
+    val profileRef =
+        remember(uid) {
+            storageRef.child("gs://projectfitness-ddfeb.appspot.com/profile_photos/$uid/profile.jpg")
+        }
 
     val workouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
     val challengeWorkouts =
@@ -137,9 +133,10 @@ fun Home(
     val unReadCount = notification.count { !it.isRead }
     socialViewModel.setNickname(nickname)
 
-    val featuredWorkout = remember(workouts) {
-        pickTodaysWorkout(workouts)
-    }
+    val featuredWorkout =
+        remember(workouts) {
+            pickTodaysWorkout(workouts)
+        }
     val challengePagerState = rememberPagerState(pageCount = { challengeWorkouts.size.coerceAtLeast(1) })
     val isLoading = workouts.isEmpty() || userName.isEmpty() || userName == "Yükleniyor..."
 
@@ -148,8 +145,7 @@ fun Home(
         profileRef.downloadUrl
             .addOnSuccessListener { uri ->
                 viewModelProfile.selectedImageUri.value = uri.toString()
-            }
-            .addOnFailureListener { exception ->
+            }.addOnFailureListener { exception ->
                 Log.e("Firebase", "Failed profile url", exception)
             }
     }
@@ -169,7 +165,7 @@ fun Home(
                 onNotificationsClick = {
                     navController.navigate(Screens.NotificationScreen.route)
                 },
-                unreadCount = unReadCount
+                unreadCount = unReadCount,
             )
         },
         containerColor = GrozzSystemBar,
@@ -180,20 +176,21 @@ fun Home(
                 flag = true,
                 flag2 = false,
                 flag3 = false,
-                flag4 = false
+                flag4 = false,
             )
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { paddingValues ->
         if (isLoading) {
             HomeLoadingState(Modifier.padding(paddingValues))
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
                 contentPadding = PaddingValues(bottom = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 item {
                     GreetingSection(userName = userName)
@@ -206,11 +203,11 @@ fun Home(
                             workout = featured,
                             onStartClick = {
                                 navController.navigate(
-                                    "workoutsettingscreen/${featured.workout.workoutId}"
+                                    "workoutsettingscreen/${featured.workout.workoutId}",
                                 ) {
                                     popUpTo(Screens.Home.route)
                                 }
-                            }
+                            },
                         )
                         Spacer(modifier = Modifier.height(20.dp))
                     }
@@ -223,9 +220,9 @@ fun Home(
                         actionLabel = "See all",
                         onActionClick = {
                             navController.navigate(
-                                Screens.AllWorkouts.createRoute(Screens.AllWorkouts.FILTER_CHALLENGE)
+                                Screens.AllWorkouts.createRoute(Screens.AllWorkouts.FILTER_CHALLENGE),
                             )
-                        }
+                        },
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -233,31 +230,32 @@ fun Home(
                 item {
                     if (challengeWorkouts.isEmpty()) {
                         EmptyCatalogueHint(
-                            text = "No challenges yet. Browse all workouts to get started."
+                            text = "No challenges yet. Browse all workouts to get started.",
                         )
                     } else {
                         HorizontalPager(
                             state = challengePagerState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(132.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(132.dp),
                             contentPadding = PaddingValues(horizontal = 20.dp),
-                            pageSpacing = 12.dp
+                            pageSpacing = 12.dp,
                         ) { pageIndex ->
                             val item = challengeWorkouts[pageIndex]
                             WorkoutCatalogueCard(
                                 workout = item,
                                 onClick = {
                                     navController.navigate(
-                                        "workoutsettingscreen/${item.workout.workoutId}"
+                                        "workoutsettingscreen/${item.workout.workoutId}",
                                     )
-                                }
+                                },
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         PageIndicator(
                             numberOfPages = challengeWorkouts.size,
-                            selectedPage = challengePagerState.currentPage
+                            selectedPage = challengePagerState.currentPage,
                         )
                     }
                     Spacer(modifier = Modifier.height(18.dp))
@@ -269,9 +267,9 @@ fun Home(
                             count = coachWorkouts.size,
                             onClick = {
                                 navController.navigate(
-                                    Screens.AllWorkouts.createRoute(Screens.AllWorkouts.FILTER_COACH)
+                                    Screens.AllWorkouts.createRoute(Screens.AllWorkouts.FILTER_COACH),
                                 )
-                            }
+                            },
                         )
                     }
                 }
@@ -283,18 +281,19 @@ fun Home(
         ModalBottomSheet(
             onDismissRequest = { showMenuSheet = false },
             sheetState = menuSheetState,
-            containerColor = GrozzSurface
+            containerColor = GrozzSurface,
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 40.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp, bottom = 40.dp),
             ) {
                 Text(
                     text = "Menu",
                     style = MaterialTheme.typography.titleLarge,
                     color = GrozzOnBackground,
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp),
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 MenuItemRow(
@@ -303,7 +302,7 @@ fun Home(
                     onClick = {
                         showMenuSheet = false
                         navController.navigate(Screens.Home.Profile.route)
-                    }
+                    },
                 )
                 MenuItemRow(
                     iconRes = R.drawable.settings,
@@ -311,12 +310,12 @@ fun Home(
                     onClick = {
                         showMenuSheet = false
                         navController.navigate(Screens.HomesSettings.route)
-                    }
+                    },
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
                     thickness = 0.5.dp,
-                    color = GrozzTextSecondary.copy(alpha = 0.25f)
+                    color = GrozzTextSecondary.copy(alpha = 0.25f),
                 )
                 MenuItemRow(
                     iconRes = R.drawable.logouticon128,
@@ -326,7 +325,7 @@ fun Home(
                         showMenuSheet = false
                         authViewModel.logout()
                         navController.navigateToLoginAfterLogout()
-                    }
+                    },
                 )
             }
         }
@@ -334,26 +333,23 @@ fun Home(
 }
 
 @Composable
-private fun HomeTopBar(
-    onProfileClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
-    unreadCount: Int
-) {
+private fun HomeTopBar(onProfileClick: () -> Unit, onNotificationsClick: () -> Unit, unreadCount: Int) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            // Only status-bar inset here. Scaffold contentWindowInsets are zeroed,
-            // and bottom nav applies navigationBarsPadding once by itself.
-            .statusBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                // Only status-bar inset here. Scaffold contentWindowInsets are zeroed,
+                // and bottom nav applies navigationBarsPadding once by itself.
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onProfileClick) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
                 contentDescription = "Menu",
                 modifier = Modifier.size(26.dp),
-                tint = GrozzOnBackground
+                tint = GrozzOnBackground,
             )
         }
 
@@ -371,17 +367,17 @@ private fun HomeTopBar(
                             Text(
                                 text = unreadCount.toString(),
                                 color = GrozzOnBackground,
-                                fontSize = 10.sp
+                                fontSize = 10.sp,
                             )
                         }
                     }
-                }
+                },
             ) {
                 Icon(
                     painter = painterResource(R.drawable.circlenotifications),
                     contentDescription = "Notifications",
                     tint = GrozzOnBackground,
-                    modifier = Modifier.size(26.dp)
+                    modifier = Modifier.size(26.dp),
                 )
             }
         }
@@ -390,13 +386,20 @@ private fun HomeTopBar(
 
 @Composable
 private fun GreetingSection(userName: String) {
-    val firstName = userName.trim().split(" ").firstOrNull().orEmpty().ifBlank { "Athlete" }
+    val firstName =
+        userName
+            .trim()
+            .split(" ")
+            .firstOrNull()
+            .orEmpty()
+            .ifBlank { "Athlete" }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 4.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 4.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -404,52 +407,51 @@ private fun GreetingSection(userName: String) {
                 fontFamily = Oswald,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
-                color = GrozzOnBackground
+                color = GrozzOnBackground,
             )
             Text(
                 text = firstName,
                 fontFamily = Oswald,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
-                color = GrozzYellow
+                color = GrozzYellow,
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "Ready to crush your goals today?",
             style = MaterialTheme.typography.bodySmall,
-            color = GrozzTextSecondary.copy(alpha = 0.7f)
+            color = GrozzTextSecondary.copy(alpha = 0.7f),
         )
     }
 }
 
 @Composable
-private fun HomeHeroCard(
-    workout: WorkoutWithExercises,
-    onStartClick: () -> Unit
-) {
+private fun HomeHeroCard(workout: WorkoutWithExercises, onStartClick: () -> Unit) {
     val exerciseCount = workout.exercises.size
 
     GrozzPhotoCard(
         painter = safeWorkoutPainter(workout.workout.image),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .height(186.dp),
-        hero = true
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .height(186.dp),
+        hero = true,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 text = "Today's Pick",
                 style = MaterialTheme.typography.labelSmall,
                 color = GrozzYellow,
                 fontFamily = Lexend,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Column {
                 Text(
@@ -459,23 +461,24 @@ private fun HomeHeroCard(
                     fontSize = 20.sp,
                     color = GrozzOnBackground,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (exerciseCount > 0) {
-                        "${counted(exerciseCount, "exercise")} · ${workoutTypeLabel(workout.workout.workoutType)}"
-                    } else {
-                        workoutTypeLabel(workout.workout.workoutType)
-                    },
+                    text =
+                        if (exerciseCount > 0) {
+                            "${counted(exerciseCount, "exercise")} · ${workoutTypeLabel(workout.workout.workoutType)}"
+                        } else {
+                            workoutTypeLabel(workout.workout.workoutType)
+                        },
                     style = MaterialTheme.typography.bodySmall,
-                    color = GrozzTextSecondary
+                    color = GrozzTextSecondary,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 GrozzPrimaryButton(
                     text = "Start workout",
                     onClick = onStartClick,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
@@ -483,23 +486,19 @@ private fun HomeHeroCard(
 }
 
 @Composable
-private fun SectionHeader(
-    titleTop: String,
-    titleBottom: String,
-    actionLabel: String,
-    onActionClick: () -> Unit
-) {
+private fun SectionHeader(titleTop: String, titleBottom: String, actionLabel: String, onActionClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             HorizontalDivider(
                 thickness = 2.dp,
                 color = GrozzYellow,
-                modifier = Modifier.width(28.dp)
+                modifier = Modifier.width(28.dp),
             )
             Spacer(modifier = Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -508,7 +507,7 @@ private fun SectionHeader(
                     fontFamily = Oswald,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = GrozzOnBackground
+                    color = GrozzOnBackground,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -516,7 +515,7 @@ private fun SectionHeader(
                     fontFamily = Oswald,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = GrozzYellow
+                    color = GrozzYellow,
                 )
             }
         }
@@ -524,40 +523,40 @@ private fun SectionHeader(
             text = actionLabel,
             style = MaterialTheme.typography.labelLarge,
             color = GrozzYellow,
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .clickable(onClick = onActionClick)
-                .padding(horizontal = 8.dp, vertical = 8.dp)
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onActionClick)
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
         )
     }
 }
 
 @Composable
-private fun WorkoutCatalogueCard(
-    workout: WorkoutWithExercises,
-    onClick: () -> Unit
-) {
+private fun WorkoutCatalogueCard(workout: WorkoutWithExercises, onClick: () -> Unit) {
     val difficulty = workout.workout.workoutRating.coerceIn(0, 5)
     val exerciseCount = workout.exercises.size
 
     GrozzPhotoCard(
         painter = safeWorkoutPainter(workout.workout.image),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(132.dp)
-            .clickable(onClick = onClick)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(132.dp)
+                .clickable(onClick = onClick),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.Bottom
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(14.dp),
+            verticalArrangement = Arrangement.Bottom,
         ) {
             Text(
                 text = workoutTypeLabel(workout.workout.workoutType).uppercase(),
                 color = GrozzYellow,
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Text(
                 text = workout.workout.workoutName,
@@ -566,7 +565,7 @@ private fun WorkoutCatalogueCard(
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -575,7 +574,7 @@ private fun WorkoutCatalogueCard(
                         text = counted(exerciseCount, "exercise"),
                         icon = R.drawable.shutterspeedfilledicon128,
                         textColor = GrozzTextSecondary,
-                        iconColor = GrozzTextSecondary
+                        iconColor = GrozzTextSecondary,
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                 }
@@ -584,7 +583,7 @@ private fun WorkoutCatalogueCard(
                         painter = painterResource(id = R.drawable.skullicon128),
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = if (index < difficulty) GrozzYellow else Color.White.copy(alpha = 0.35f)
+                        tint = if (index < difficulty) GrozzYellow else Color.White.copy(alpha = 0.35f),
                     )
                     if (index < 4) Spacer(modifier = Modifier.size(2.dp))
                 }
@@ -596,31 +595,32 @@ private fun WorkoutCatalogueCard(
 @Composable
 private fun CoachPicksTeaser(count: Int, onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(GrozzRadiusPanel))
-            .background(GrozzSurface)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(GrozzRadiusPanel))
+                .background(GrozzSurface)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "Coach's picks",
                 style = MaterialTheme.typography.titleMedium,
-                color = GrozzOnBackground
+                color = GrozzOnBackground,
             )
             Text(
                 text = "${counted(count, "workout")} ready in catalogue",
                 style = MaterialTheme.typography.bodySmall,
-                color = GrozzTextSecondary
+                color = GrozzTextSecondary,
             )
         }
         Text(
             text = "Browse",
             style = MaterialTheme.typography.labelLarge,
-            color = GrozzYellow
+            color = GrozzYellow,
         )
     }
 }
@@ -631,7 +631,7 @@ private fun EmptyCatalogueHint(text: String) {
         text = text,
         style = MaterialTheme.typography.bodyMedium,
         color = GrozzTextSecondary,
-        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
     )
 }
 
@@ -639,103 +639,100 @@ private fun EmptyCatalogueHint(text: String) {
 private fun HomeLoadingState(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         Box(
-            modifier = Modifier
-                .width(140.dp)
-                .height(18.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .shimmerEffect()
+            modifier =
+                Modifier
+                    .width(140.dp)
+                    .height(18.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shimmerEffect(),
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
-            modifier = Modifier
-                .width(200.dp)
-                .height(12.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .shimmerEffect()
+            modifier =
+                Modifier
+                    .width(200.dp)
+                    .height(12.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shimmerEffect(),
         )
         Spacer(modifier = Modifier.height(20.dp))
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(186.dp)
-                .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(GrozzRadiusPhoto))
-                .shimmerEffect()
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(186.dp)
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(GrozzRadiusPhoto))
+                    .shimmerEffect(),
         )
         Spacer(modifier = Modifier.height(20.dp))
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(132.dp)
-                .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(GrozzRadiusPhoto))
-                .shimmerEffect()
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(132.dp)
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(GrozzRadiusPhoto))
+                    .shimmerEffect(),
         )
     }
 }
 
 @Composable
-fun MenuItemRow(
-    iconRes: Int,
-    text: String,
-    textColor: Color = GrozzOnBackground,
-    onClick: () -> Unit
-) {
+fun MenuItemRow(iconRes: Int, text: String, textColor: Color = GrozzOnBackground, onClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = text,
             tint = textColor,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
             color = textColor,
             fontFamily = Lexend,
-            fontSize = 16.sp
+            fontSize = 16.sp,
         )
         Spacer(modifier = Modifier.weight(1f))
         Icon(
             painter = painterResource(id = R.drawable.keyboarddoublearrowright),
             contentDescription = null,
             tint = Color.Gray,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(16.dp),
         )
     }
 }
 
 @Composable
-fun PageIndicator(
-    numberOfPages: Int,
-    selectedPage: Int,
-    modifier: Modifier = Modifier
-) {
+fun PageIndicator(numberOfPages: Int, selectedPage: Int, modifier: Modifier = Modifier) {
     if (numberOfPages <= 1) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
         repeat(numberOfPages) { iteration ->
             val isSelected = iteration == selectedPage
             Box(
-                modifier = Modifier
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(if (isSelected) GrozzYellow else Color.Gray.copy(alpha = 0.45f))
-                    .size(if (isSelected) 8.dp else 6.dp)
-                    .animateContentSize()
+                modifier =
+                    Modifier
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) GrozzYellow else Color.Gray.copy(alpha = 0.45f))
+                        .size(if (isSelected) 8.dp else 6.dp)
+                        .animateContentSize(),
             )
         }
     }
@@ -748,19 +745,21 @@ fun Modifier.shimmerEffect(): Modifier = composed {
         initialValue = -2 * size.width.toFloat(),
         targetValue = 2 * size.width.toFloat(),
         animationSpec = infiniteRepeatable(animation = tween(1000)),
-        label = "shimmerOffset"
+        label = "shimmerOffset",
     )
 
     background(
-        brush = Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF22262B),
-                Color(0xFF35393F),
-                Color(0xFF22262B)
+        brush =
+            Brush.linearGradient(
+                colors =
+                    listOf(
+                        Color(0xFF22262B),
+                        Color(0xFF35393F),
+                        Color(0xFF22262B),
+                    ),
+                start = Offset(startOffsetX, 0f),
+                end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat()),
             ),
-            start = Offset(startOffsetX, 0f),
-            end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
-        )
     ).onGloballyPositioned {
         size = it.size
     }
@@ -770,19 +769,19 @@ fun Modifier.shimmerEffect(): Modifier = composed {
  * Picks one catalogue workout for the local calendar day.
  * Same day → same workout; next day → a new seeded random pick.
  */
-private fun pickTodaysWorkout(
-    workouts: List<WorkoutWithExercises>
-): WorkoutWithExercises? {
+private fun pickTodaysWorkout(workouts: List<WorkoutWithExercises>): WorkoutWithExercises? {
     if (workouts.isEmpty()) return null
 
-    val pool = workouts
-        .filterNot { it.workout.workoutType.equals("User", ignoreCase = true) }
-        .ifEmpty { workouts }
-        .sortedBy { it.workout.workoutId }
+    val pool =
+        workouts
+            .filterNot { it.workout.workoutType.equals("User", ignoreCase = true) }
+            .ifEmpty { workouts }
+            .sortedBy { it.workout.workoutId }
 
     val calendar = Calendar.getInstance()
-    val daySeed = calendar.get(Calendar.YEAR) * 1_000L +
-        calendar.get(Calendar.DAY_OF_YEAR)
+    val daySeed =
+        calendar.get(Calendar.YEAR) * 1_000L +
+            calendar.get(Calendar.DAY_OF_YEAR)
 
     return pool[Random(daySeed).nextInt(pool.size)]
 }

@@ -1,6 +1,5 @@
 package com.grozzbear.projectfitness.data.local.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
@@ -9,11 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class WorkoutSettingViewModel(
-    private val repo: WorkoutRepository,
-    private val workoutId: String
-) : ViewModel() {
-
+class WorkoutSettingViewModel(private val repo: WorkoutRepository, private val workoutId: String) : ViewModel() {
     val workoutFlow = repo.templates.observeWorkoutFull(workoutId)
 
     val catalogExercises = repo.catalog.observeAllActive()
@@ -22,9 +17,10 @@ class WorkoutSettingViewModel(
         if (catalogIds.isEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
             val full = runCatching { workoutFlow.first() }.getOrNull() ?: return@launch
-            val existingCatalogIds = full.exercises
-                .mapNotNull { it.exercise.catalogExerciseId }
-                .toSet()
+            val existingCatalogIds =
+                full.exercises
+                    .mapNotNull { it.exercise.catalogExerciseId }
+                    .toSet()
             val newCatalogIds = catalogIds.filter { it !in existingCatalogIds }
             if (newCatalogIds.isEmpty()) return@launch
             repo.templates.addExercisesFromCatalog(workoutId, newCatalogIds)
@@ -59,13 +55,12 @@ class WorkoutSettingViewModel(
             if (fromIndex == toIndex) return@launch
 
             list.add(toIndex, list.removeAt(fromIndex))
-            Log.d("Log List", list.toList().toString())
             list.forEachIndexed { index, item ->
                 if (item.exercise.orderIndex != index) {
                     repo.templates.updateExerciseOrder(
                         exerciseId = item.exercise.exerciseId,
                         workoutId = workoutId,
-                        orderIndex = index
+                        orderIndex = index,
                     )
                 }
             }
@@ -78,7 +73,6 @@ class WorkoutSettingViewModel(
         }
     }
 
-    private suspend fun findLastMember(exerciseId: String): Int {
-        return (repo.templates.getMaxOfExerciseSet(exerciseId) ?: -1) + 1
-    }
+    private suspend fun findLastMember(exerciseId: String): Int =
+        (repo.templates.getMaxOfExerciseSet(exerciseId) ?: -1) + 1
 }

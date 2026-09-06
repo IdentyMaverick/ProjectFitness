@@ -55,9 +55,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,14 +66,12 @@ import coil.compose.AsyncImage
 import com.grozzbear.R
 import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzMuted
-import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzRadiusButton
 import com.grozzbear.ui.theme.GrozzRadiusChip
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
-import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.PersonalInformationsScreenViewModel
 import data.remote.UserProfile
 import java.util.Calendar
@@ -85,7 +80,7 @@ import viewmodel.ProfileUiState
 @Composable
 fun PersonalInformationsScreen(
     navController: NavController,
-    personalInformationsScreenViewModel: PersonalInformationsScreenViewModel
+    personalInformationsScreenViewModel: PersonalInformationsScreenViewModel,
 ) {
     val profileState by personalInformationsScreenViewModel.profileState.collectAsState()
     val context = LocalContext.current
@@ -102,19 +97,20 @@ fun PersonalInformationsScreen(
                 onBack = {
                     personalInformationsScreenViewModel.loadUid()
                     navController.popBackStack()
-                }
+                },
             )
         },
         containerColor = GrozzSystemBar,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { paddingValues ->
         when (val state = profileState) {
             is ProfileUiState.Loading -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(color = GrozzYellow)
                 }
@@ -122,11 +118,12 @@ fun PersonalInformationsScreen(
 
             is ProfileUiState.Error -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(horizontal = 32.dp),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                            .padding(horizontal = 32.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -134,7 +131,7 @@ fun PersonalInformationsScreen(
                             color = Color.White,
                             fontFamily = Lexend,
                             fontSize = 18.sp,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -142,18 +139,18 @@ fun PersonalInformationsScreen(
                             color = Color.Gray,
                             fontFamily = Lexend,
                             fontSize = 14.sp,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                         Spacer(modifier = Modifier.height(20.dp))
                         Button(
                             onClick = { personalInformationsScreenViewModel.loadUid() },
                             colors = ButtonDefaults.buttonColors(containerColor = GrozzYellow),
-                            shape = RoundedCornerShape(14.dp)
+                            shape = RoundedCornerShape(14.dp),
                         ) {
                             Text(
                                 text = "Retry",
                                 color = Color.Black,
-                                fontFamily = Lexend
+                                fontFamily = Lexend,
                             )
                         }
                     }
@@ -163,20 +160,21 @@ fun PersonalInformationsScreen(
             is ProfileUiState.Ready -> {
                 PersonalInfoForm(
                     profile = state.profile,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues),
                     onSave = { first, gender, birthDate, height, weight ->
                         personalInformationsScreenViewModel.updateUserInformation(
                             first = first,
                             gender = gender,
                             birthDate = birthDate,
                             height = height,
-                            weight = weight
+                            weight = weight,
                         )
                         Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
                         personalInformationsScreenViewModel.loadUid()
-                    }
+                    },
                 )
             }
         }
@@ -187,7 +185,7 @@ fun PersonalInformationsScreen(
 private fun PersonalInfoForm(
     profile: UserProfile,
     modifier: Modifier = Modifier,
-    onSave: (first: String, gender: Boolean, birthDate: String, height: String, weight: String) -> Unit
+    onSave: (first: String, gender: Boolean, birthDate: String, height: String, weight: String) -> Unit,
 ) {
     var first by remember(profile.first) { mutableStateOf(profile.first) }
     var gender by remember(profile.gender) { mutableStateOf(profile.gender) }
@@ -196,30 +194,34 @@ private fun PersonalInfoForm(
     var weight by remember(profile.weight) { mutableStateOf(profile.weight) }
 
     Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            modifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Box(
-            modifier = Modifier
-                .size(104.dp)
-                .border(3.dp, GrozzYellow, CircleShape)
-                .padding(3.dp)
-                .border(2.dp, Color.Black, CircleShape)
-                .padding(3.dp)
+            modifier =
+                Modifier
+                    .size(104.dp)
+                    .border(3.dp, GrozzYellow, CircleShape)
+                    .padding(3.dp)
+                    .border(2.dp, Color.Black, CircleShape)
+                    .padding(3.dp),
         ) {
             AsyncImage(
-                model = profile.userPhotoUri.ifBlank {
-                    R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
-                },
+                model =
+                    profile.userPhotoUri.ifBlank {
+                        R.drawable.grozzholdsdumbbellbothhandsnobackgroundxml
+                    },
                 contentDescription = "Profile photo",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                contentScale = ContentScale.Crop,
             )
         }
 
@@ -230,13 +232,13 @@ private fun PersonalInfoForm(
                 text = "Update ",
                 color = Color.White,
                 fontSize = 18.sp,
-                fontFamily = Lexend
+                fontFamily = Lexend,
             )
             Text(
                 text = "Profile",
                 color = GrozzYellow,
                 fontSize = 18.sp,
-                fontFamily = Lexend
+                fontFamily = Lexend,
             )
         }
 
@@ -245,7 +247,7 @@ private fun PersonalInfoForm(
             color = Color.White.copy(alpha = 0.45f),
             fontSize = 13.sp,
             fontFamily = Lexend,
-            modifier = Modifier.padding(top = 4.dp)
+            modifier = Modifier.padding(top = 4.dp),
         )
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -255,7 +257,7 @@ private fun PersonalInfoForm(
             value = first,
             onValueChange = { first = it },
             placeholder = "Your name",
-            leadingIconRes = R.drawable.personadd
+            leadingIconRes = R.drawable.personadd,
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -267,36 +269,38 @@ private fun PersonalInfoForm(
             placeholder = "Your email",
             leadingIconRes = R.drawable.alternateemailicon128,
             readOnly = true,
-            enabled = false
+            enabled = false,
         )
 
         Spacer(modifier = Modifier.height(18.dp))
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             GenderSelector(
                 gender = gender,
                 onGenderChange = { gender = it },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             BirthDateSelector(
                 birthDate = birthDate,
                 onBirthDateChange = { birthDate = it },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
         Spacer(modifier = Modifier.height(18.dp))
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 ProfileFieldLabel("Height (cm)", padded = false)
@@ -305,7 +309,7 @@ private fun PersonalInfoForm(
                     onValueChange = { height = it.filter { ch -> ch.isDigit() || ch == '.' }.take(6) },
                     placeholder = "Height",
                     keyboardType = KeyboardType.Decimal,
-                    horizontalPadding = 0.dp
+                    horizontalPadding = 0.dp,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
@@ -315,7 +319,7 @@ private fun PersonalInfoForm(
                     onValueChange = { weight = it.filter { ch -> ch.isDigit() || ch == '.' }.take(6) },
                     placeholder = "Weight",
                     keyboardType = KeyboardType.Decimal,
-                    horizontalPadding = 0.dp
+                    horizontalPadding = 0.dp,
                 )
             }
         }
@@ -328,23 +332,24 @@ private fun PersonalInfoForm(
             },
             colors = ButtonDefaults.buttonColors(containerColor = GrozzYellow),
             shape = RoundedCornerShape(GrozzRadiusButton),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .height(56.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(56.dp),
         ) {
             Text(
                 text = "Save Changes",
                 color = GrozzSystemBar,
                 fontSize = 16.sp,
-                fontFamily = Lexend
+                fontFamily = Lexend,
             )
             Spacer(modifier = Modifier.width(10.dp))
             Icon(
                 painter = painterResource(R.drawable.sendicon128),
                 contentDescription = null,
                 tint = GrozzSystemBar,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -357,10 +362,11 @@ private fun ProfileFieldLabel(text: String, padded: Boolean = true) {
         color = Color.White.copy(alpha = 0.7f),
         fontFamily = Lexend,
         fontSize = 14.sp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (padded) Modifier.padding(horizontal = 20.dp) else Modifier)
-            .padding(bottom = 8.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .then(if (padded) Modifier.padding(horizontal = 20.dp) else Modifier)
+                .padding(bottom = 8.dp),
     )
 }
 
@@ -373,60 +379,60 @@ private fun ProfileOutlinedField(
     readOnly: Boolean = false,
     enabled: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
-    horizontalPadding: Dp = 16.dp
+    horizontalPadding: Dp = 16.dp,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = horizontalPadding),
         placeholder = {
             Text(
                 text = placeholder,
                 color = GrozzMuted,
-                fontFamily = Lexend
+                fontFamily = Lexend,
             )
         },
-        textStyle = TextStyle(
-            color = Color.White,
-            fontFamily = Lexend,
-            fontSize = 16.sp
-        ),
+        textStyle =
+            TextStyle(
+                color = Color.White,
+                fontFamily = Lexend,
+                fontSize = 16.sp,
+            ),
         singleLine = true,
         readOnly = readOnly,
         enabled = enabled,
         shape = RoundedCornerShape(GrozzRadiusChip),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = GrozzSurface,
-            unfocusedContainerColor = GrozzSurface,
-            disabledContainerColor = GrozzSurface,
-            focusedBorderColor = GrozzMuted,
-            unfocusedBorderColor = GrozzBorder,
-            disabledBorderColor = GrozzBorder,
-            cursorColor = GrozzYellow,
-            disabledTextColor = Color.White.copy(alpha = 0.55f)
-        ),
-        leadingIcon = leadingIconRes?.let { res ->
-            {
-                Icon(
-                    painter = painterResource(res),
-                    contentDescription = null,
-                    tint = GrozzMuted,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
+        colors =
+            OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = GrozzSurface,
+                unfocusedContainerColor = GrozzSurface,
+                disabledContainerColor = GrozzSurface,
+                focusedBorderColor = GrozzMuted,
+                unfocusedBorderColor = GrozzBorder,
+                disabledBorderColor = GrozzBorder,
+                cursorColor = GrozzYellow,
+                disabledTextColor = Color.White.copy(alpha = 0.55f),
+            ),
+        leadingIcon =
+            leadingIconRes?.let { res ->
+                {
+                    Icon(
+                        painter = painterResource(res),
+                        contentDescription = null,
+                        tint = GrozzMuted,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            },
     )
 }
 
 @Composable
-private fun GenderSelector(
-    gender: Boolean,
-    onGenderChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun GenderSelector(gender: Boolean, onGenderChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
     val options = listOf("Male", "Female")
     var expanded by remember { mutableStateOf(false) }
     val selectedOption = if (gender) "Female" else "Male"
@@ -436,24 +442,25 @@ private fun GenderSelector(
             text = "Gender",
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
-            fontFamily = Lexend
+            fontFamily = Lexend,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(GrozzRadiusChip))
-                .background(GrozzSurface)
-                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusChip))
-                .clickable { expanded = true }
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(GrozzRadiusChip))
+                    .background(GrozzSurface)
+                    .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusChip))
+                    .clickable { expanded = true }
+                    .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.CenterStart,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = selectedOption,
@@ -461,19 +468,19 @@ private fun GenderSelector(
                     fontSize = 16.sp,
                     fontFamily = Lexend,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color.Gray
+                    tint = Color.Gray,
                 )
             }
 
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(GrozzSurface)
+                modifier = Modifier.background(GrozzSurface),
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
@@ -481,13 +488,13 @@ private fun GenderSelector(
                             Text(
                                 text = option,
                                 color = Color.White,
-                                fontFamily = Lexend
+                                fontFamily = Lexend,
                             )
                         },
                         onClick = {
                             onGenderChange(option == "Female")
                             expanded = false
-                        }
+                        },
                     )
                 }
             }
@@ -497,24 +504,19 @@ private fun GenderSelector(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BirthDateSelector(
-    birthDate: String,
-    onBirthDateChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun BirthDateSelector(birthDate: String, onBirthDateChange: (String) -> Unit, modifier: Modifier = Modifier) {
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    val datePickerState = rememberDatePickerState(
-        yearRange = 1900..currentYear,
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                return utcTimeMillis <= System.currentTimeMillis()
-            }
+    val datePickerState =
+        rememberDatePickerState(
+            yearRange = 1900..currentYear,
+            selectableDates =
+                object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                        utcTimeMillis <= System.currentTimeMillis()
 
-            override fun isSelectableYear(year: Int): Boolean {
-                return year <= currentYear
-            }
-        }
-    )
+                    override fun isSelectableYear(year: Int): Boolean = year <= currentYear
+                },
+        )
     var showDatePicker by remember { mutableStateOf(false) }
 
     if (showDatePicker) {
@@ -523,13 +525,15 @@ private fun BirthDateSelector(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val date = datePickerState.selectedDateMillis?.let {
-                            java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-                                .format(java.util.Date(it))
-                        } ?: birthDate
+                        val date =
+                            datePickerState.selectedDateMillis?.let {
+                                java.text
+                                    .SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                                    .format(java.util.Date(it))
+                            } ?: birthDate
                         onBirthDateChange(date)
                         showDatePicker = false
-                    }
+                    },
                 ) {
                     Text("OK", color = GrozzYellow)
                 }
@@ -538,7 +542,7 @@ private fun BirthDateSelector(
                 TextButton(onClick = { showDatePicker = false }) {
                     Text("Cancel", color = Color.Gray)
                 }
-            }
+            },
         ) {
             DatePicker(state = datePickerState)
         }
@@ -549,19 +553,20 @@ private fun BirthDateSelector(
             text = "Birth Date",
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
-            fontFamily = Lexend
+            fontFamily = Lexend,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(GrozzRadiusChip))
-                .background(GrozzSurface)
-                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusChip))
-                .clickable { showDatePicker = true }
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(GrozzRadiusChip))
+                    .background(GrozzSurface)
+                    .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusChip))
+                    .clickable { showDatePicker = true }
+                    .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.CenterStart,
         ) {
             Text(
                 text = if (birthDate.isBlank()) "Select date" else birthDate,
@@ -569,7 +574,7 @@ private fun BirthDateSelector(
                 fontSize = 16.sp,
                 fontFamily = Lexend,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

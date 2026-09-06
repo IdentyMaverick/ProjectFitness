@@ -14,11 +14,14 @@ import viewmodel.AuthViewModel
 class HomesViewModel(
     private val repo: WorkoutRepository,
     private val userRepository: UserRepository,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
 ) : ViewModel() {
     val workoutsFlow = repo.templates.observeWorkouts()
     val currentUserUid: String?
-        get() = Firebase.auth.currentUser?.uid?.takeIf { it.isNotBlank() }
+        get() =
+            Firebase.auth.currentUser
+                ?.uid
+                ?.takeIf { it.isNotBlank() }
     private val _userName = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
     var userName: StateFlow<String> = _userName
     private val _nickname = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
