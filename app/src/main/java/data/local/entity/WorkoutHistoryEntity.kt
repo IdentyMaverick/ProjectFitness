@@ -3,10 +3,12 @@ package data.local.entity
 import androidx.annotation.Keep
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.util.UUID
 
+/** Completed or in-progress session. Room table `workout_history`. Not a template. */
 @Entity(tableName = "workout_history")
 @Keep
 data class WorkoutHistoryEntity(
@@ -23,11 +25,11 @@ data class WorkoutHistoryEntity(
 @Entity(
     tableName = "exercise_logs",
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = WorkoutHistoryEntity::class,
             parentColumns = ["sessionId"],
             childColumns = ["sessionOwnerId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )
@@ -45,14 +47,15 @@ data class ExerciseLogEntity(
     val imageUrl: String? = null
 )
 
+/** Logged set on a session. Room table `set_logs`. Not a template set. */
 @Entity(
     tableName = "set_logs",
     foreignKeys = [
-        androidx.room.ForeignKey(
+        ForeignKey(
             entity = ExerciseLogEntity::class,
             parentColumns = ["logId"],
             childColumns = ["logOwnerId"],
-            onDelete = androidx.room.ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )

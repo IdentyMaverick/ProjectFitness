@@ -27,7 +27,7 @@ class ProfileViewModel(
     private val _workoutHistoryFull = MutableStateFlow<List<WorkoutHistoryFull>>(emptyList())
     private val userId = MutableStateFlow("")
     val workoutHistoryFull = userId.flatMapLatest { uid ->
-        repo.observeWorkoutHistoryOther(uid)
+        repo.sessions.observeWorkoutHistoryOther(uid)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -37,7 +37,7 @@ class ProfileViewModel(
     val userHistory: StateFlow<List<WorkoutHistoryEntity>> = targetNickname
         .flatMapLatest { nickname ->
             if (nickname.isBlank()) flowOf(emptyList())
-            else repo.observeUserWorkoutHistory(nickname)
+            else repo.sessions.observeUserWorkoutHistory(nickname)
         }
         .stateIn(
             scope = viewModelScope,

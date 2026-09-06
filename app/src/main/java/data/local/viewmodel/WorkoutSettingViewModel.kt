@@ -7,7 +7,6 @@ import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class WorkoutSettingViewModel(
@@ -15,14 +14,9 @@ class WorkoutSettingViewModel(
     private val workoutId: String
 ) : ViewModel() {
 
-    val workoutFlow = repo.observeWorkoutFull(workoutId)
-        .map { full ->
-            full.copy(
-                exercises = full.exercises.sortedBy { it.exercise.orderIndex }
-            )
-        }
+    val workoutFlow = repo.templates.observeWorkoutFull(workoutId)
 
-    val catalogExercises = repo.getAllCatalogExercises()
+    val catalogExercises = repo.catalog.observeAllActive()
 
     fun addExercisesFromCatalog(catalogIds: Set<String>) {
         if (catalogIds.isEmpty()) return
@@ -33,25 +27,26 @@ class WorkoutSettingViewModel(
                 .toSet()
             val newCatalogIds = catalogIds.filter { it !in existingCatalogIds }
             if (newCatalogIds.isEmpty()) return@launch
-            repo.addExercisesFromCatalog(workoutId, newCatalogIds)
+            repo.templates.addExercisesFromCatalog(workoutId, newCatalogIds)
         }
     }
 
     fun addSet(setId: String, exerciseId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.addSet(setId, exerciseId, 0, 0f, workoutId = workoutId)
+            val lastIndex = findLastMember(exerciseId)
+            repo.templates.addSet(setId, exerciseId, 0, 0f, workoutId = workoutId, setIndex = lastIndex)
         }
     }
 
     fun updateSet(setId: String, exerciseOwnerId: String, newReps: Int, newWeight: Double) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.updateSet(setId, exerciseOwnerId, newReps, newWeight.toFloat(), workoutId)
+            repo.templates.updateSet(setId, exerciseOwnerId, newReps, newWeight.toFloat(), workoutId)
         }
     }
 
     fun deleteSet(set: SetEntity) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.deleteSet(set, workoutId)
+            repo.templates.deleteSet(set, workoutId)
         }
     }
 
@@ -67,7 +62,7 @@ class WorkoutSettingViewModel(
             Log.d("Log List", list.toList().toString())
             list.forEachIndexed { index, item ->
                 if (item.exercise.orderIndex != index) {
-                    repo.updateExerciseOrder(
+                    repo.templates.updateExerciseOrder(
                         exerciseId = item.exercise.exerciseId,
                         workoutId = workoutId,
                         orderIndex = index
@@ -79,7 +74,11 @@ class WorkoutSettingViewModel(
 
     fun removeExercise(exerciseId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.deleteSelectedExercise(exerciseId, workoutId)
+            repo.templates.deleteSelectedExercise(exerciseId, workoutId)
         }
+    }
+
+    private suspend fun findLastMember(exerciseId: String): Int {
+        return (repo.templates.getMaxOfExerciseSet(exerciseId) ?: -1) + 1
     }
 }

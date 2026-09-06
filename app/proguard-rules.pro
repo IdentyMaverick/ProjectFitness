@@ -1,12 +1,12 @@
 -keepattributes Signature, Annotation, InnerClasses, EnclosingMethod
+-keepattributes *Annotation*
+
 -dontwarn androidx.compose.**
 -dontwarn androidx.compose.runtime.ParcelableSnapshotMutationPolicy
 -keep class androidx.compose.runtime.ParcelableSnapshotMutationPolicy { *; }
 
 -keep class com.grozzbear.data.models.** { *; }
 -keep class com.google.gson.** { *; }
-
--keepattributes *Annotation*
 
 -keep class * extends androidx.room.RoomDatabase
 -dontwarn androidx.room.**
@@ -30,8 +30,3 @@
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 
 -keepnames class com.grozzbear.models.** { *; }
-
--keepattributes Signature
--keepattributes *Annotation*
-
--keep class com.google.firebase.** { *; }

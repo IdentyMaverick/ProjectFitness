@@ -44,6 +44,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.ui.components.GrozzPrimaryButton
@@ -51,6 +52,7 @@ import com.grozzbear.ui.components.GrozzTextField
 import com.grozzbear.ui.theme.GrozzBackground
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Oswald
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.LoginUiState
@@ -157,13 +159,15 @@ fun RegisterScreen(navController: NavController, authViewModel: AuthViewModel) {
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(110.dp)
                     .padding(bottom = 8.dp)
             )
 
             Text(
                 text = "REGISTER",
-                style = MaterialTheme.typography.displayLarge,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )

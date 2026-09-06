@@ -73,6 +73,13 @@ import coil.compose.AsyncImage
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
 import ui.mainpages.navigation.Screens
@@ -82,9 +89,7 @@ import viewmodel.ProfileViewModel
 import viewmodel.SocialViewModel
 import viewmodel.ViewModelProfile
 
-private val ProfileCardBg = Color(0xFF202B36).copy(alpha = 0.55f)
-private val ProfileAccent = Color(0xFFF1C40F)
-private val ProfileMuted = Color(0xFF4B5F71)
+private val ProfileCardBg = GrozzSurface
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -156,7 +161,7 @@ fun Profile(
         topBar = {
             HomeTopBarProfile(navController)
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier
             .fillMaxSize()
             .blur(blurAlpha),
@@ -169,7 +174,7 @@ fun Profile(
                         .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = ProfileAccent)
+                    CircularProgressIndicator(color = GrozzYellow)
                 }
             }
 
@@ -184,7 +189,7 @@ fun Profile(
                     Text(
                         text = "Couldn't load profile. Pull to refresh or try again later.",
                         color = Color.Gray,
-                        fontFamily = FontFamily(Font(R.font.lexendregular)),
+                        fontFamily = Lexend,
                         fontSize = 15.sp,
                         textAlign = TextAlign.Center
                     )
@@ -210,7 +215,7 @@ fun Profile(
                         Box(
                             modifier = Modifier
                                 .size(110.dp)
-                                .border(4.dp, ProfileAccent, CircleShape)
+                                .border(4.dp, GrozzYellow, CircleShape)
                                 .padding(4.dp)
                                 .border(2.dp, Color.Black, CircleShape)
                                 .padding(4.dp)
@@ -235,8 +240,8 @@ fun Profile(
                             onClick = { launcherProfile.launch("image/*") },
                             modifier = Modifier
                                 .size(36.dp)
-                                .background(ProfileAccent, CircleShape)
-                                .border(2.dp, Color(0xFF121417), CircleShape)
+                                .background(GrozzYellow, CircleShape)
+                                .border(2.dp, GrozzSystemBar, CircleShape)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.imageicon128),
@@ -253,7 +258,7 @@ fun Profile(
                         Text(
                             profile.first,
                             color = Color.White,
-                            fontFamily = FontFamily(Font(R.font.lexendbold)),
+                            fontFamily = Lexend,
                             fontSize = 20.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -263,7 +268,7 @@ fun Profile(
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(ProfileAccent)
+                                    .background(GrozzYellow)
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
@@ -278,8 +283,8 @@ fun Profile(
 
                     Text(
                         "@${profile.nickname}",
-                        color = ProfileAccent,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        color = GrozzYellow,
+                        fontFamily = Lexend,
                         fontSize = 15.sp
                     )
 
@@ -332,18 +337,18 @@ fun Profile(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(18.dp))
                                         .then(
-                                            if (isSelected) Modifier.background(ProfileAccent)
+                                            if (isSelected) Modifier.background(GrozzYellow)
                                             else Modifier
                                         ),
                                     text = {
                                         Text(
                                             text = title,
                                             style = TextStyle(
-                                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                                fontFamily = Lexend,
                                                 fontSize = 15.sp,
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                             ),
-                                            color = if (isSelected) Color.Black else ProfileMuted
+                                            color = if (isSelected) Color.Black else GrozzMuted
                                         )
                                     }
                                 )
@@ -362,7 +367,7 @@ fun Profile(
                             Text(
                                 text = "Lifetime Statistics",
                                 textAlign = TextAlign.Start,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontFamily = Lexend,
                                 fontWeight = FontWeight.Bold,
                                 style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
                                 color = Color.White,
@@ -379,7 +384,7 @@ fun Profile(
                             ) {
                                 LifetimeStatCard(
                                     value = formatStatNumber(totalWorkout),
-                                    lines = listOf("WORKOUTS" to Color.White, "COMPLETED" to ProfileAccent),
+                                    lines = listOf("WORKOUTS" to Color.White, "COMPLETED" to GrozzYellow),
                                     modifier = Modifier.weight(1f)
                                 )
                                 LifetimeStatCard(
@@ -387,7 +392,7 @@ fun Profile(
                                     lines = listOf(
                                         "KG" to Color.White,
                                         "WEIGHT" to Color.White,
-                                        "LIFTED" to ProfileAccent
+                                        "LIFTED" to GrozzYellow
                                     ),
                                     modifier = Modifier.weight(1f),
                                     valueFontSize = 36.sp
@@ -407,7 +412,7 @@ fun Profile(
                                     lines = listOf(
                                         "MINUTES" to Color.White,
                                         "SPENT FOR" to Color.White,
-                                        "WORKOUTS" to ProfileAccent
+                                        "WORKOUTS" to GrozzYellow
                                     ),
                                     modifier = Modifier.weight(1f)
                                 )
@@ -415,7 +420,7 @@ fun Profile(
                                     value = formatStatNumber(consistencyScore),
                                     lines = listOf(
                                         "CONSISTENCY" to Color.White,
-                                        "SCORE" to ProfileAccent
+                                        "SCORE" to GrozzYellow
                                     ),
                                     modifier = Modifier.weight(1f)
                                 )
@@ -430,7 +435,7 @@ fun Profile(
                             Text(
                                 text = "Last Activity",
                                 textAlign = TextAlign.Start,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontFamily = Lexend,
                                 fontWeight = FontWeight.Bold,
                                 style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
                                 color = Color.White,
@@ -484,7 +489,7 @@ fun Profile(
                                     Text(
                                         text = "No workout history yet. Start your first workout today!",
                                         textAlign = TextAlign.Center,
-                                        fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                        fontFamily = Lexend,
                                         fontWeight = FontWeight.Bold,
                                         style = TextStyle(letterSpacing = 0.sp, fontSize = 15.sp),
                                         color = Color.Gray.copy(alpha = 0.5f),
@@ -493,7 +498,7 @@ fun Profile(
                                     Button(
                                         onClick = { navController.navigate("home") },
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = ProfileAccent
+                                            containerColor = GrozzYellow
                                         ),
                                         shape = RoundedCornerShape(15.dp),
                                         modifier = Modifier
@@ -506,7 +511,8 @@ fun Profile(
                                             text = "START TRAINING",
                                             style = TextStyle(
                                                 fontSize = 20.sp,
-                                                fontFamily = FontFamily(Font(R.font.oswaldbold))
+                                                fontFamily = Oswald,
+                                                fontWeight = FontWeight.Bold
                                             ),
                                             color = Color.Black
                                         )
@@ -551,7 +557,7 @@ fun Profile(
                                         modifier = Modifier
                                             .padding(12.dp)
                                             .size(48.dp)
-                                            .background(ProfileAccent, CircleShape)
+                                            .background(GrozzYellow, CircleShape)
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.imageicon128),
@@ -588,7 +594,7 @@ private fun LifetimeStatCard(
             Text(
                 text = value,
                 textAlign = TextAlign.Center,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 fontSize = valueFontSize,
@@ -599,7 +605,7 @@ private fun LifetimeStatCard(
                 Text(
                     text = label,
                     textAlign = TextAlign.Center,
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    fontFamily = Lexend,
                     fontWeight = FontWeight.Bold,
                     color = color,
                     fontSize = 12.sp
@@ -632,7 +638,7 @@ private fun ActivityHistoryRow(
             Icon(
                 painter = painterResource(R.drawable.dumbbellicon128),
                 contentDescription = null,
-                tint = ProfileAccent,
+                tint = GrozzYellow,
                 modifier = Modifier.size(30.dp)
             )
             Spacer(Modifier.width(16.dp))
@@ -641,7 +647,7 @@ private fun ActivityHistoryRow(
                     text = workoutName,
                     style = TextStyle(
                         fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontFamily = Lexend,
                         color = Color.White
                     ),
                     maxLines = 1,
@@ -652,7 +658,7 @@ private fun ActivityHistoryRow(
                         text = dateLabel,
                         style = TextStyle(
                             fontSize = 11.sp,
-                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            fontFamily = Lexend,
                             color = Color.White.copy(alpha = 0.5f)
                         )
                     )
@@ -661,7 +667,7 @@ private fun ActivityHistoryRow(
             Icon(
                 painter = painterResource(R.drawable.keyboarddoublearrowright),
                 contentDescription = null,
-                tint = ProfileAccent,
+                tint = GrozzYellow,
                 modifier = Modifier.size(25.dp)
             )
         }
@@ -707,7 +713,8 @@ fun HomeTopBarProfile(
         Text(
             text = "PROFILE",
             color = Color.White,
-            fontFamily = FontFamily(Font(R.font.oswaldbold)),
+            fontFamily = Oswald,
+            fontWeight = FontWeight.Bold,
             fontSize = 20.sp
         )
 

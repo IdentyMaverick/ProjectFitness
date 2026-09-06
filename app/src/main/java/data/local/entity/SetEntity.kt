@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
+/** Planned set on a workout template. Room table `exercise_set`. Not a session log. */
 @Entity(
     tableName = "exercise_set",
     foreignKeys = [
@@ -26,5 +27,6 @@ data class SetEntity(
     val reps: Int,
     val weight: Float,
     val note: String? = null,
-    val isClicked: Boolean = false
+    val isClicked: Boolean = false,
+    val setIndex: Int = 0
 )

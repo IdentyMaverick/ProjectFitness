@@ -35,7 +35,6 @@ class ViewModelSave : ViewModel() {
     var selectedWorkoutName = mutableStateOf("")
     var selectedCompletedName = mutableStateOf("")
 
-
     var idFlag = mutableStateOf(1)
     var idFlag2 = mutableStateOf(3)
 
@@ -87,10 +86,10 @@ class ViewModelSave : ViewModel() {
     // -----------------------------
     // Challenge selection (Senin mevcut)
     // -----------------------------
-    var challangesSelectedIndex = mutableStateOf(0) // artık challengeId gibi kullan
-    var challangesSelectedName = mutableStateOf("")
-    var challangesSelectedDifficulty = mutableStateOf(0)
-    var challangesSelectedDetail = mutableStateOf("")
+    var challengesSelectedIndex = mutableStateOf(0)
+    var challengesSelectedName = mutableStateOf("")
+    var challengesSelectedDifficulty = mutableStateOf(0)
+    var challengesSelectedDetail = mutableStateOf("")
 
     // ✅ Challenge detail ekranında kullanmak için:
     // (Room relation ile gelen challenge + exercises)

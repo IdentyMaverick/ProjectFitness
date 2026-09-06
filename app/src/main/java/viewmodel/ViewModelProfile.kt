@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 
-class ViewModelProfile() : ViewModel() {
+class ViewModelProfile : ViewModel() {
     var imageBitmap = mutableStateOf<ImageBitmap?>(null)
     var selectedImageUri = mutableStateOf<String?>(null)
     var rememberMeBool = mutableStateOf(false)
@@ -14,6 +14,4 @@ class ViewModelProfile() : ViewModel() {
     var selectedWorkoutName = mutableStateOf("")
 
     var nickNameId = mutableStateOf("")
-
-
 }

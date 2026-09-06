@@ -1,10 +1,8 @@
 package ui.mainpages.navigation
 
-import ui.mainpages.inside.OtherScreenProfile
-import viewmodel.SocialViewModel
-import ui.mainpages.inside.WorkoutCompleteScreen
 import activity.inside.ActivityInside
 import activity.inside.CreateWorkout
+import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -14,6 +12,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -33,6 +32,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,7 +40,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -60,8 +59,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -109,15 +106,17 @@ import data.remote.StorageRepository
 import data.remote.UserRepository
 import data.remote.WorkoutinRepository
 import ui.mainpages.inside.FaqcontactfeedbackScreen
+import ui.mainpages.inside.FindUsersScreen
 import ui.mainpages.inside.HomesSettings
 import ui.mainpages.inside.NotificationScreen
 import ui.mainpages.inside.OldWorkoutDetails
+import ui.mainpages.inside.OtherScreenProfile
 import ui.mainpages.inside.PersonalInformationsScreen
 import ui.mainpages.inside.Profile
-import ui.mainpages.inside.FindUsersScreen
 import ui.mainpages.inside.ProjectFollowScreen
 import ui.mainpages.inside.ProjectFollowersScreen
 import ui.mainpages.inside.WorkoutCompleteAnalysisScreen
+import ui.mainpages.inside.WorkoutCompleteScreen
 import ui.mainpages.inside.WorkoutLog
 import ui.mainpages.inside.WorkoutSettingScreen
 import ui.mainpages.loginscreens.ForgetPasswordScreen
@@ -132,6 +131,7 @@ import ui.mainpages.openscreen.InfoHorizontalScreen
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
 import viewmodel.ProjectFitnessViewModel
+import viewmodel.SocialViewModel
 import viewmodel.ViewModelProfile
 import viewmodel.ViewModelSave
 import viewmodel.WorkoutinViewModel
@@ -140,10 +140,8 @@ import viewmodel.WorkoutinViewModel
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Navigation(workoutRepository: WorkoutRepository) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-
-
-    val sharedPref = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+    val context = LocalContext.current
+    val sharedPref = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     val isBoardingCompleted = sharedPref.getBoolean("is_boarding_completed", false)
     val isUserLoggedIn = FirebaseAuth.getInstance().currentUser != null
     val navController = rememberNavController()
@@ -208,11 +206,12 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121417))
+            .background(GrozzSystemBar)
     )
     {
         NavHost(
-            navController = navController, startDestination = when {
+            navController = navController,
+            startDestination = when {
                 !isBoardingCompleted -> Screens.InfoHorizontalScreen.route
                 !isUserLoggedIn -> Screens.LoginScreen.route
                 else -> Screens.Home.route
@@ -261,7 +260,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     popExitTransition = {
 
                         slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                    }) { backStackEntry ->
+                    }
+                ) { backStackEntry ->
 
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("create_workout_graph")
@@ -326,7 +326,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                }) {
+                }
+            ) {
                 HomesSettings(
                     navController = navController,
                     viewModel,
@@ -367,7 +368,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             composable(
                 route = Screens.Activity.route,
                 enterTransition = { fadeIn(animationSpec = tween(400)) },
-                exitTransition = { fadeOut(animationSpec = tween(400)) }) {
+                exitTransition = { fadeOut(animationSpec = tween(400)) }
+            ) {
                 Activity(
                     navController = navController,
                     activityViewModel = activityViewModel,
@@ -492,8 +494,9 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 val workoutIdArg = backStackEntry.arguments
                     ?.getString(Screens.ChooseExercises.ARG_WORKOUT_ID)
                 val isEdit = Screens.ChooseExercises.isEditMode(workoutIdArg)
+                val isHistory = Screens.ChooseExercises.isHistoryMode(workoutIdArg)
 
-                val createWorkoutViewModel: CreateWorkoutViewModel? = if (!isEdit) {
+                val createWorkoutViewModel: CreateWorkoutViewModel? = if (!isEdit && !isHistory) {
                     val parentEntry = remember(backStackEntry) {
                         runCatching { navController.getBackStackEntry("create_workout_graph") }
                             .getOrNull()
@@ -529,6 +532,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                     workoutinViewModel = workoutinModel,
                     createWorkoutViewModel = createWorkoutViewModel,
                     workoutSettingViewModel = workoutSettingViewModel,
+                    oldWorkoutDetailsViewModel = if (isHistory) oldWorkoutDetailsViewModel else null,
                     activityInsideViewModel = activityInsideViewModel,
                     targetWorkoutId = workoutIdArg
                 )
@@ -611,7 +615,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                }) {
+                }
+            ) {
                 PersonalInformationsScreen(
                     navController = navController,
                     personalInformationsScreenViewModel = personalInformationsScreenViewModel
@@ -620,7 +625,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
             composable(
                 route = Screens.Meal.route,
                 enterTransition = { fadeIn(animationSpec = tween(400)) },
-                exitTransition = { fadeOut(animationSpec = tween(400)) })
+                exitTransition = { fadeOut(animationSpec = tween(400)) }
+            )
             {
                 Meal(navController = navController, authViewModel = authViewModel)
             }
@@ -648,7 +654,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                }) {
+                }
+            ) {
 
                 WorkoutCompleteScreen(
                     navController = navController,
@@ -682,7 +689,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                })
+                }
+            )
             {
                 val listOwnerNickname = it.arguments?.getString("nickname").orEmpty()
                 ProjectFollowersScreen(
@@ -717,7 +725,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                })
+                }
+            )
             {
                 val listOwnerNickname = it.arguments?.getString("nickname").orEmpty()
                 ProjectFollowScreen(
@@ -784,7 +793,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                })
+                }
+            )
             {
                 val filter = it.arguments?.getString(Screens.AllWorkouts.ARG_FILTER)
                     ?: Screens.AllWorkouts.FILTER_ALL
@@ -860,7 +870,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                }) {
+                }
+            ) {
                 WorkoutCompleteAnalysisScreen(
                     navController = navController,
                     workoutCompleteAnalysisScreenViewModel
@@ -890,7 +901,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                 popExitTransition = {
 
                     slideOutHorizontally(targetOffsetX = { 1000 }) + scaleOut(targetScale = 0.9f) + fadeOut()
-                }) {
+                }
+            ) {
                 FaqcontactfeedbackScreen(
                     navController = navController,
                     faqcontactfeedbackScreenViewModel = faqcontactfeedbackScreenViewModel
@@ -992,16 +1004,21 @@ fun Navigation(workoutRepository: WorkoutRepository) {
     if (infoDialog.value) {
         Dialog(onDismissRequest = { infoDialog.value = false }) {
             Box(
-                modifier = Modifier.fillMaxSize().background(color = Color.Transparent, shape = RoundedCornerShape(20.dp)).clickable { infoDialog.value = false },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Transparent, shape = RoundedCornerShape(20.dp))
+                    .clickable { infoDialog.value = false },
                 contentAlignment = Alignment.Center
             ) {
-                androidx.compose.animation.AnimatedVisibility(
+                AnimatedVisibility(
                     visible = infoDialog.value,
-                    enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.8f),
-                    exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(targetScale = 0.8f)
+                    enter = fadeIn() + scaleIn(initialScale = 0.8f),
+                    exit = fadeOut() + scaleOut(targetScale = 0.8f)
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxSize().padding(vertical = 200.dp).background(color = Color(0xFF121417), shape = RoundedCornerShape(20.dp)).clickable { infoDialog.value = false },
+                        modifier = Modifier.fillMaxSize().padding(vertical = 200.dp)
+                            .background(color = GrozzSystemBar, shape = RoundedCornerShape(20.dp))
+                            .clickable { infoDialog.value = false },
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -1015,7 +1032,8 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 modifier = Modifier.size(150.dp).graphicsLayer(
                                     translationY = -150f
                                 ),
-                            )}
+                            )
+                        }
                         Column(
                             modifier = Modifier.fillMaxSize()
                                 .padding(vertical = 20.dp, horizontal = 20.dp).graphicsLayer(
@@ -1030,15 +1048,15 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 Text(
                                     text = "PR",
                                     color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontSize = 25.sp
+                                    fontFamily = Lexend,
+                                    fontSize = 20.sp
                                 )
                                 Spacer(modifier = Modifier.width(1.dp))
                                 Text(
                                     text = "RANKINGS",
-                                    color = Color(0xFFF1C40F),
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
-                                    fontSize = 25.sp
+                                    color = GrozzYellow,
+                                    fontFamily = Lexend,
+                                    fontSize = 20.sp
                                 )
                             }
                             Spacer(modifier = Modifier.height(20.dp))
@@ -1056,7 +1074,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 Text(
                                     text = "Not Verified",
                                     color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontFamily = Lexend,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1075,7 +1093,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 Text(
                                     text = "Waiting for Verification Lifting",
                                     color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontFamily = Lexend,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1094,7 +1112,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 Text(
                                     text = "Verified Lifting",
                                     color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontFamily = Lexend,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1113,7 +1131,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 Text(
                                     text = "Upload Your PR Lifting for Verification",
                                     color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontFamily = Lexend,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1125,14 +1143,14 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                                 Icon(
                                     painter = painterResource(R.drawable.videocallfilledicon128),
                                     contentDescription = null,
-                                    tint = Color(0xFFF1C40F),
+                                    tint = GrozzYellow,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Text(
                                     text = "Verified Lifting Video",
                                     color = Color.White,
-                                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                    fontFamily = Lexend,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1140,7 +1158,7 @@ fun Navigation(workoutRepository: WorkoutRepository) {
                             Text(
                                 text = "* Verification controls updates every 6 hours.",
                                 color = Color.White,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontFamily = Lexend,
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
@@ -1197,7 +1215,6 @@ fun NavigationBar(
                             flag3 = false
                             flag4 = false
                             navController.navigate(Screens.Home.route)
-
                         } else if (indexs == 2) {
                             flag = true
                             flag2 = false
@@ -1519,7 +1536,6 @@ fun NavigationBarLeaderboard(
                                 flag3 = false
                                 flag4 = false
                                 navController.navigate(Screens.Home.route)
-
                             } else if (indexs == 2) {
                                 flag = true
                                 flag2 = false
@@ -1694,13 +1710,14 @@ fun ProofUploadSectionLeaderboard(onUriSelected: (android.net.Uri) -> Unit, isUp
             ).show()
         }
     }
-            Icon(
-                painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
-                contentDescription = null,
-                tint = GrozzYellow,
-                modifier = Modifier.size(20.dp).clickable {
-                    launcher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly))
-                }
+    Icon(
+        painter = painterResource(id = R.drawable.arrowuploadprogress128icon),
+        contentDescription = null,
+        tint = GrozzYellow,
+        modifier = Modifier.size(20.dp).clickable {
+            launcher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
             )
+        }
+    )
 }

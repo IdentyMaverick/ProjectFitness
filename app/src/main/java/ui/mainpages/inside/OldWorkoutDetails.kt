@@ -1,8 +1,10 @@
 package ui.mainpages.inside
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,10 +26,13 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -48,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,22 +63,28 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
+import com.grozzbear.ui.components.GrozzPrimaryButton
+import com.grozzbear.ui.components.NumberPickerGrozz
 import com.grozzbear.ui.components.formatWeightKg
 import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusPanel
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.counted
 import data.local.entity.ExerciseLogWithSets
 import data.local.entity.SetLogEntity
 import data.local.entity.WorkoutHistoryFull
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.local.viewmodel.WorkoutCompleteScreenViewModel
+import ui.mainpages.navigation.Screens
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
@@ -94,6 +106,9 @@ fun OldWorkoutDetails(
     var editingSet by remember { mutableStateOf<SetLogEntity?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    var durationAdjustFlag = remember { mutableStateOf(false) }
+    val durationSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     LaunchedEffect(workout) {
         workout?.let {
             workoutCompleteScreenViewModel.setWorkoutData(
@@ -111,9 +126,9 @@ fun OldWorkoutDetails(
                 canManage = canManage,
                 onBack = {
                     if (!isEditModeEnabled) {
-                    oldWorkoutDetailsViewModel.clearTargetUser()
-                    navController.popBackStack() }
-                    else {
+                        oldWorkoutDetailsViewModel.clearTargetUser()
+                        navController.popBackStack()
+                    } else {
                         oldWorkoutDetailsViewModel.exitEditMode()
                     }
                 },
@@ -154,6 +169,11 @@ fun OldWorkoutDetails(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
+                    AnimatedVisibility(visible = isEditModeEnabled) {
+                        EditModeBanner(
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    }
                     val subtitle = listOf(formattedDate, elapsedTime)
                         .filter { it.isNotBlank() }
                         .joinToString(" · ")
@@ -170,7 +190,41 @@ fun OldWorkoutDetails(
                             textAlign = TextAlign.Center
                         )
                     }
-                    SummaryCardsRow(details)
+                    SummaryCardsRow(
+                        details,
+                        isEditModeEnabled,
+                        durationOnClick = { durationAdjustFlag.value = true },
+                        durationText = formatDuration(details.workoutHistory.totalDuration)
+                    )
+                    if (durationAdjustFlag.value) {
+                        val durationParts = formatDuration(details.workoutHistory.totalDuration)
+                            .split(':')
+                        val hour = durationParts.getOrNull(0)?.toIntOrNull() ?: 0
+                        val minute = durationParts.getOrNull(1)?.toIntOrNull() ?: 0
+                        val second = durationParts.getOrNull(2)?.toIntOrNull() ?: 0
+                        NumberPickerGrozz(
+                            sheetState = durationSheetState,
+                            onDismissRequest = { durationAdjustFlag.value = false },
+                            label = "Hour",
+                            value = hour,
+                            range = 0..23,
+                            onValueChange = { hour ->
+                                oldWorkoutDetailsViewModel.updateDraftDuration(hour * 3600L + minute * 60L + second)
+                            },
+                            label2 = "Minute",
+                            value2 = minute,
+                            range2 = 0..59,
+                            onValueChange2 = { minute ->
+                                oldWorkoutDetailsViewModel.updateDraftDuration(hour * 3600L + minute * 60L + second)
+                            },
+                            label3 = "Second",
+                            value3 = durationParts.getOrNull(2)?.toIntOrNull() ?: 0,
+                            range3 = 0..59,
+                            onValueChange3 = { second ->
+                                oldWorkoutDetailsViewModel.updateDraftDuration(hour * 3600L + minute * 60L + second)
+                            }
+                        )
+                    }
                 }
 
                 item {
@@ -187,6 +241,17 @@ fun OldWorkoutDetails(
                             fontFamily = Lexend,
                             letterSpacing = 0.5.sp
                         )
+                        if (isEditModeEnabled) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "EDITING",
+                                color = GrozzYellow,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = Lexend,
+                                letterSpacing = 0.6.sp
+                            )
+                        }
                         Spacer(Modifier.weight(1f))
                         Text(
                             text = "${details.exerciseWithSets.size} TOTAL",
@@ -217,26 +282,70 @@ fun OldWorkoutDetails(
                             )
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                text = "This session doesn’t include exercise details.",
+                                text = if (isEditModeEnabled) {
+                                    "Add movements to this session."
+                                } else {
+                                    "This session doesn’t include exercise details."
+                                },
                                 color = GrozzMuted,
                                 fontSize = 13.sp,
                                 fontFamily = Lexend,
                                 textAlign = TextAlign.Center
                             )
+                            if (isEditModeEnabled) {
+                                Spacer(Modifier.height(16.dp))
+                                GrozzPrimaryButton(
+                                    text = "Add Exercise",
+                                    onClick = {
+                                        navController.navigate(
+                                            Screens.ChooseExercises.createRoute(
+                                                Screens.ChooseExercises.MODE_HISTORY
+                                            )
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 } else {
-                    items(
+                    itemsIndexed(
                         items = details.exerciseWithSets,
-                        key = { it.exerciseLog.logId }
-                    ) { exerciseData ->
-                        ExerciseExpandableCard(
-                            exerciseData = exerciseData,
-                            isEditMode = isEditModeEnabled,
-                            onEditSet = { set ->
-                                editingSet = set
-                                showBottomSheet = true
-                            }
+                        key = { _, item -> item.exerciseLog.logId }
+                    ) { index, exerciseData ->
+                        Box(modifier = Modifier.animateItem()) {
+                            ExerciseExpandableCard(
+                                exerciseData = exerciseData,
+                                isEditMode = isEditModeEnabled,
+                                onEditSet = { set ->
+                                    editingSet = set
+                                    showBottomSheet = true
+                                },
+                                onAddSet = {
+                                    oldWorkoutDetailsViewModel.addDraftSet(exerciseData.exerciseLog.logId)
+                                },
+                                onDeleteSet = { set -> oldWorkoutDetailsViewModel.deleteDraftSet(set.setId) },
+                                canMoveUp = index > 0,
+                                canMoveDown = index < details.exerciseWithSets.lastIndex,
+                                onMoveUp = { oldWorkoutDetailsViewModel.moveDraftExercises(index, index - 1) },
+                                onMoveDown = { oldWorkoutDetailsViewModel.moveDraftExercises(index, index + 1) },
+                                onRemove = {}
+                            )
+                        }
+                    }
+                }
+                if (isEditModeEnabled && details.exerciseWithSets.isNotEmpty()) {
+                    item {
+                        GrozzPrimaryButton(
+                            text = "Add Exercise",
+                            onClick = {
+                                navController.navigate(
+                                    Screens.ChooseExercises.createRoute(
+                                        Screens.ChooseExercises.MODE_HISTORY
+                                    )
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -272,6 +381,7 @@ fun OldWorkoutDetails(
                         editingSet = null
                     },
                     onDelete = {
+                        oldWorkoutDetailsViewModel.deleteDraftSet(set.setId)
                         showBottomSheet = false
                         editingSet = null
                     }
@@ -281,17 +391,26 @@ fun OldWorkoutDetails(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SummaryCardsRow(workout: WorkoutHistoryFull) {
+private fun SummaryCardsRow(
+    workout: WorkoutHistoryFull,
+    isEditMode: Boolean,
+    durationOnClick: () -> Unit,
+    durationText: String
+) {
     val completedSets = workout.exerciseWithSets.flatMap { exercise ->
-        val clicked = exercise.setLogs.filter { it.clicked }
-        if (clicked.isNotEmpty()) clicked else exercise.setLogs
+        if (isEditMode) {
+            exercise.setLogs
+        } else {
+            val clicked = exercise.setLogs.filter { it.clicked }
+            if (clicked.isNotEmpty()) clicked else exercise.setLogs
+        }
     }
     val totalVolume = completedSets.sumOf { set ->
         (set.weight * set.reps).toDouble()
     }.toInt()
     val totalSets = completedSets.size
-    val durationText = formatDuration(workout.workoutHistory.totalDuration)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -301,19 +420,25 @@ private fun SummaryCardsRow(workout: WorkoutHistoryFull) {
             label = "DURATION",
             value = durationText,
             iconRes = R.drawable.shutterspeedfilledicon128,
-            modifier = Modifier.weight(1f)
+            isEditMode = isEditMode,
+            modifier = Modifier.weight(1f),
+            onClick = { durationOnClick() }
         )
         SummaryCard(
             label = "VOLUME",
             value = String.format("%,d", totalVolume),
             iconRes = R.drawable.dumbbellicon128,
-            modifier = Modifier.weight(1f)
+            isEditMode = isEditMode,
+            modifier = Modifier.weight(1f),
+            onClick = {}
         )
         SummaryCard(
             label = "SETS",
             value = totalSets.toString(),
             iconRes = R.drawable.timer10icon128,
-            modifier = Modifier.weight(1f)
+            isEditMode = isEditMode,
+            modifier = Modifier.weight(1f),
+            onClick = {}
         )
     }
 }
@@ -323,15 +448,22 @@ private fun SummaryCard(
     label: String,
     value: String,
     iconRes: Int,
-    modifier: Modifier
+    isEditMode: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit
 ) {
+    val borderColor by animateColorAsState(
+        targetValue = if (isEditMode) GrozzYellow else GrozzBorder,
+        label = "summaryBorder"
+    )
     Column(
         modifier = modifier
-            .height(112.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .height(96.dp)
+            .clip(RoundedCornerShape(14.dp))
             .background(GrozzSurface)
-            .border(1.dp, GrozzBorder, RoundedCornerShape(16.dp))
-            .padding(horizontal = 8.dp, vertical = 14.dp),
+            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
+            .padding(horizontal = 8.dp, vertical = 10.dp)
+            .clickable(isEditMode, onClick = { onClick() }),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -339,9 +471,9 @@ private fun SummaryCard(
             painter = painterResource(iconRes),
             contentDescription = null,
             tint = GrozzYellow,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.size(18.dp)
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             text = label,
             color = GrozzMuted,
@@ -354,7 +486,7 @@ private fun SummaryCard(
         Text(
             text = value,
             color = GrozzYellow,
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontFamily = Lexend,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
@@ -367,21 +499,41 @@ private fun SummaryCard(
 fun ExerciseExpandableCard(
     exerciseData: ExerciseLogWithSets,
     isEditMode: Boolean,
-    onEditSet: (SetLogEntity) -> Unit
+    onEditSet: (SetLogEntity) -> Unit,
+    onAddSet: () -> Unit,
+    onDeleteSet: (SetLogEntity) -> Unit,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRemove: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val visibleSets = remember(exerciseData.setLogs) {
-        val clicked = exerciseData.setLogs.filter { it.clicked }
-        if (clicked.isNotEmpty()) clicked else exerciseData.setLogs
+    val visibleSets = remember(exerciseData.setLogs, isEditMode) {
+        val source = if (isEditMode) {
+            exerciseData.setLogs
+        } else {
+            val clicked = exerciseData.setLogs.filter { it.clicked }
+            if (clicked.isNotEmpty()) clicked else exerciseData.setLogs
+        }
+        source.sortedBy { it.setIndex }
     }
     val bodyPart = exerciseData.exerciseLog.bodyPart.trim()
+    val borderColor by animateColorAsState(
+        targetValue = if (isEditMode) GrozzYellow else GrozzBorder,
+        label = "exerciseBorder"
+    )
+
+    LaunchedEffect(isEditMode) {
+        if (isEditMode) expanded = true
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(GrozzSurface)
-            .border(1.dp, GrozzBorder, RoundedCornerShape(16.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(GrozzRadiusPanel))
             .clickable { expanded = !expanded }
             .animateContentSize()
             .padding(16.dp)
@@ -426,10 +578,48 @@ fun ExerciseExpandableCard(
                 if (!expanded) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "${visibleSets.size} sets",
+                        text = counted(visibleSets.size, "set"),
                         color = GrozzMuted,
                         fontSize = 12.sp,
                         fontFamily = Lexend
+                    )
+                }
+            }
+
+            if (isEditMode) {
+                IconButton(
+                    onClick = onMoveUp,
+                    enabled = canMoveUp,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowUp,
+                        contentDescription = "Move up",
+                        tint = if (canMoveUp) GrozzYellow else GrozzMuted,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                IconButton(
+                    onClick = onMoveDown,
+                    enabled = canMoveDown,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Move down",
+                        tint = if (canMoveDown) GrozzYellow else GrozzMuted,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                IconButton(
+                    onClick = onRemove,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.terminate),
+                        contentDescription = "Remove exercise",
+                        tint = GrozzError,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -450,7 +640,7 @@ fun ExerciseExpandableCard(
             Column {
                 Spacer(Modifier.height(20.dp))
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    if (isEditMode){
+                    if (isEditMode) {
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -489,10 +679,10 @@ fun ExerciseExpandableCard(
                             )
                         }
                     } else {
-                    SetHeaderCell("SET", Modifier.weight(1f), TextAlign.Start)
-                    SetHeaderCell("KG", Modifier.weight(1f), TextAlign.Center)
-                    SetHeaderCell("REPS", Modifier.weight(1f), TextAlign.Center)
-                }
+                        SetHeaderCell("SET", Modifier.weight(1f), TextAlign.Start)
+                        SetHeaderCell("KG", Modifier.weight(1f), TextAlign.Center)
+                        SetHeaderCell("REPS", Modifier.weight(1f), TextAlign.Center)
+                    }
                 }
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider(color = GrozzBorder)
@@ -506,9 +696,25 @@ fun ExerciseExpandableCard(
                         fontFamily = Lexend,
                         modifier = Modifier.padding(vertical = 12.dp)
                     )
+                    Button(
+                        onClick = { onAddSet() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                    ) {
+                        Text(
+                            "Add set",
+                            color = GrozzYellow,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontFamily = Lexend
+                        )
+                    }
                 } else {
                     visibleSets.forEachIndexed { index, set ->
-                        if (isEditMode){
+                        if (isEditMode) {
                             Row(
                                 Modifier
                                     .fillMaxWidth()
@@ -558,12 +764,11 @@ fun ExerciseExpandableCard(
                                         tint = GrozzError,
                                         modifier = Modifier
                                             .size(22.dp)
-                                            .clickable {  }
+                                            .clickable { onDeleteSet(set) }
                                     )
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -598,8 +803,63 @@ fun ExerciseExpandableCard(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    if (isEditMode) {
+                        Button(
+                            onClick = { onAddSet() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                        ) {
+                            Text(
+                                "Add set",
+                                color = GrozzYellow,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontFamily = Lexend
+                            )
+                        }
+                    } else return@Column
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EditModeBanner(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(GrozzYellow.copy(alpha = 0.12f))
+            .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.editnote),
+            contentDescription = null,
+            tint = GrozzYellow,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Editing session",
+                color = GrozzYellow,
+                fontSize = 13.sp,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Tap the checkmark to save. Back discards changes.",
+                color = GrozzTextSecondary,
+                fontSize = 12.sp,
+                fontFamily = Lexend
+            )
         }
     }
 }
@@ -671,10 +931,12 @@ private fun OldWorkoutDetailsTopBar(
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
                 Icon(
-                    painter = if (isEditModeEnabled) painterResource(R.drawable.checkcircleicon128) else painterResource(R.drawable.editnote),
-                    contentDescription = "Menu",
+                    painter = if (isEditModeEnabled) painterResource(R.drawable.checkcircleicon128) else painterResource(
+                        R.drawable.editnote
+                    ),
+                    contentDescription = if (isEditModeEnabled) "Save" else "Edit",
                     modifier = Modifier.size(22.dp),
-                    tint = GrozzOnBackground
+                    tint = if (isEditModeEnabled) GrozzYellow else GrozzOnBackground
                 )
             }
         } else {
@@ -688,9 +950,11 @@ private fun OldWorkoutDetailsTopBar(
 }
 
 private fun formatDuration(seconds: Long): String {
-    val h = seconds / 3600
-    val m = (seconds % 3600) / 60
-    return if (h > 0) "${h}h ${m}m" else "${m}m"
+    val total = seconds.coerceAtLeast(0)
+    val h = total / 3600
+    val m = (total % 3600) / 60
+    val s = total % 60
+    return "%d:%02d:%02d".format(h, m, s)
 }
 
 private fun formatWeight(weight: Float): String {

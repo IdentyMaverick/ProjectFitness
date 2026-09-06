@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.PropertyName
 
+/** Catalog movement copied into templates. Room table `exercise_catalog`. */
 @Keep
 @Entity(tableName = "exercise_catalog")
 data class ExerciseCatalogEntity(

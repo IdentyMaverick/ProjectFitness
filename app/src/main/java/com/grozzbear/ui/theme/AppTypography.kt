@@ -50,9 +50,9 @@ val GrozzTypography = Typography(
     ),
     headlineMedium = TextStyle(
         fontFamily = Oswald,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 24.sp
     ),
     titleLarge = TextStyle(
         fontFamily = Lexend,
@@ -62,7 +62,7 @@ val GrozzTypography = Typography(
     ),
     titleMedium = TextStyle(
         fontFamily = Lexend,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 16.sp,
         lineHeight = 22.sp
     ),

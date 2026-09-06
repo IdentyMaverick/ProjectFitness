@@ -9,13 +9,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import data.remote.UserRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 class WorkoutCompleteScreenViewModel(
@@ -36,7 +36,6 @@ class WorkoutCompleteScreenViewModel(
     val totalRepsCompleted: StateFlow<Int> = _totalRepsCompleted
     val _prExercises = MutableStateFlow<List<String>>(emptyList())
     val prExercises: StateFlow<List<String>> = _prExercises
-
 
     init {
         getUserName()

@@ -1,5 +1,6 @@
 package ui.mainpages.openscreen
 
+import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,25 +17,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import kotlinx.coroutines.launch
 import ui.mainpages.navigation.Screens
 
@@ -67,9 +73,8 @@ fun InfoHorizontalScreen(navController: NavController) {
             imagesRes = R.drawable.infohorizontalscreenfourthphoto
         )
     )
-    val pagerState =
-        androidx.compose.foundation.pager.rememberPagerState(pageCount = { pages.size })
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -77,7 +82,7 @@ fun InfoHorizontalScreen(navController: NavController) {
             .background(Color(0xFF181F26))
     ) {
         // PAGER: Kaydırılabilir ana içerik
-        androidx.compose.foundation.pager.HorizontalPager(
+        HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { position ->
@@ -106,7 +111,7 @@ fun InfoHorizontalScreen(navController: NavController) {
                     ) {
                         HorizontalDivider(
                             thickness = 3.dp,
-                            color = Color(0xFFF1C40F),
+                            color = GrozzYellow,
                             modifier = Modifier.width(45.dp)
                         )
                         Spacer(Modifier.height(30.dp))
@@ -115,22 +120,24 @@ fun InfoHorizontalScreen(navController: NavController) {
                             color = Color.White,
                             fontSize = 45.sp,
                             lineHeight = 45.sp,
-                            fontFamily = FontFamily(Font(R.font.oswaldbold))
+                            fontFamily = Oswald,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(20.dp))
                         Text(
                             text = page.description,
                             color = Color.White.copy(alpha = 0.6f),
                             fontSize = 18.sp,
-                            fontFamily = FontFamily(Font(R.font.lexendregular))
+                            fontFamily = Lexend
                         )
                     }
 
                     // Dinamik Dikey Yazı
                     Text(
                         text = page.verticalText,
-                        color = Color(0xFFF1C40F),
-                        fontFamily = FontFamily(Font(R.font.oswaldbold)),
+                        color = GrozzYellow,
+                        fontFamily = Oswald,
+                        fontWeight = FontWeight.Bold,
                         fontSize = 70.sp, // Boyutu bir tık daha düşürmek güvenli bir alan yaratır
                         softWrap = false,
                         maxLines = 1,
@@ -170,7 +177,7 @@ fun InfoHorizontalScreen(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val context = LocalContext.current
             Image(
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
@@ -187,7 +194,7 @@ fun InfoHorizontalScreen(navController: NavController) {
                     interactionSource = remember { MutableInteractionSource() }
                 ),
                 color = Color.White.copy(alpha = 0.5f),
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                fontFamily = Lexend
             )
         }
 
@@ -205,7 +212,7 @@ fun InfoHorizontalScreen(navController: NavController) {
                             .padding(end = 6.dp)
                             .size(width = if (isSelected) 28.dp else 8.dp, height = 8.dp)
                             .background(
-                                color = if (isSelected) Color(0xFFF1C40F) else Color.White.copy(
+                                color = if (isSelected) GrozzYellow else Color.White.copy(
                                     alpha = 0.3f
                                 ),
                                 shape = CircleShape
@@ -213,7 +220,7 @@ fun InfoHorizontalScreen(navController: NavController) {
                     )
                 }
             }
-            val context = androidx.compose.ui.platform.LocalContext.current
+            val context = LocalContext.current
             Spacer(modifier = Modifier.height(height = 40.dp))
             Text(
                 text = if (pagerState.currentPage == pages.size - 1) "Get Started" else "Next",
@@ -234,17 +241,18 @@ fun InfoHorizontalScreen(navController: NavController) {
                         }
                     }
                 },
-                fontSize = 24.sp,
-                color = Color(0xFFF1C40F),
-                fontFamily = FontFamily(Font(R.font.oswaldbold))
+                fontSize = 18.sp,
+                color = GrozzYellow,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold
             )
         }
     }
 }
 
 // Context üzerinden SharedPreferences'a erişmek için bir yardımcı fonksiyon
-fun setHorizontalScreen(context: android.content.Context) {
-    val sharedPref = context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+fun setHorizontalScreen(context: Context) {
+    val sharedPref = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
     with(sharedPref.edit()) {
         putBoolean("is_boarding_completed", true)
         apply()

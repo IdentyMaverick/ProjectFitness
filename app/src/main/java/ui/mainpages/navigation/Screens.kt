@@ -7,7 +7,6 @@ sealed class Screens(val route: String) {
     object WorkoutCompleteAnalysisScreen : Screens("workoutcompleteanalysisscreen")
     object InfoHorizontalScreen : Screens("infohorizontalscreen")
 
-
     object LoginScreen : Screens("login") {
         object ForgetPasswordScreen : Screens("fps")
         object RegisterScreen : Screens("Register")
@@ -21,6 +20,7 @@ sealed class Screens(val route: String) {
     object ChooseExercises : Screens(route = "chooseexercises/{workoutId}") {
         const val ARG_WORKOUT_ID = "workoutId"
         const val MODE_CREATE = "new"
+        const val MODE_HISTORY = "history"
 
         fun createRoute(workoutId: String? = null): String {
             val id = workoutId?.takeIf { it.isNotBlank() } ?: MODE_CREATE
@@ -28,8 +28,12 @@ sealed class Screens(val route: String) {
         }
 
         fun isEditMode(workoutId: String?): Boolean =
-            !workoutId.isNullOrBlank() && workoutId != MODE_CREATE
+            !workoutId.isNullOrBlank() && workoutId != MODE_CREATE && workoutId != MODE_HISTORY
+
+        fun isHistoryMode(workoutId: String?): Boolean =
+            workoutId == MODE_HISTORY
     }
+
     object CreateWorkout : Screens(route = "createworkout")
     object LeaderBoard : Screens("leaderboard")
     object WorkoutSettingScreen : Screens(route = "workoutsettingscreen") {
@@ -45,13 +49,16 @@ sealed class Screens(val route: String) {
     object ProjectFollowersScreen : Screens(route = "projectfollowersscreen/{nickname}") {
         fun createRoute(nickname: String) = "projectfollowersscreen/${Uri.encode(nickname)}"
     }
+
     object ProjectFollowScreen : Screens(route = "projectfollowscreen/{nickname}") {
         fun createRoute(nickname: String) = "projectfollowscreen/${Uri.encode(nickname)}"
     }
+
     object FindUsersScreen : Screens(route = "findusersscreen")
     object OtherScreenProfile : Screens(route = "otherscreenprofile/{nickname}") {
         fun createRoute(nickname: String) = "otherscreenprofile/${Uri.encode(nickname)}"
     }
+
     object HomesSettings : Screens(route = "settings")
     object AllWorkouts : Screens(route = "allworkouts/{filter}") {
         const val ARG_FILTER = "filter"
@@ -61,6 +68,7 @@ sealed class Screens(val route: String) {
 
         fun createRoute(filter: String = FILTER_ALL) = "allworkouts/$filter"
     }
+
     object FaqcontactfeedbackScreen : Screens(route = "faqcontactfeedbackscreen")
     object PersonalInformationsScreen : Screens(route = "personalinformationsscreen")
     object OldWorkoutDetails : Screens(route = "oldworkoutdetails")

@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
 import kotlinx.coroutines.delay
 
 @Composable
@@ -28,7 +30,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121417)),
+            .background(GrozzSystemBar),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -37,7 +39,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 contentDescription = "Grozz Logo"
             )
             CircularProgressIndicator(
-                color = Color(0xFFF1C40F),
+                color = GrozzYellow,
                 modifier = Modifier.height(20.dp)
             )
         }

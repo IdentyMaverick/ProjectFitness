@@ -77,17 +77,20 @@ import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusChip
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.counted
 import com.grozzbear.ui.util.safeWorkoutPainter
+import com.grozzbear.ui.util.workoutTypeLabel
+import java.util.UUID
 import ui.mainpages.mainpages.WorkoutTag
 import ui.mainpages.navigation.Screens
 import viewmodel.ViewModelSave
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,19 +144,20 @@ fun WorkoutSettingScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .padding(horizontal = 24.dp, vertical = 10.dp)
                     ) {
                         Text(
                             text = workout.workout.workoutName,
                             color = GrozzOnBackground,
-                            style = MaterialTheme.typography.headlineMedium,
                             fontFamily = Oswald,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         WorkoutTag(
-                            text = workout.workout.workoutType,
+                            text = workoutTypeLabel(workout.workout.workoutType),
                             icon = R.drawable.dumbbellicon128,
                             textColor = GrozzYellow,
                             iconColor = GrozzYellow
@@ -168,7 +172,7 @@ fun WorkoutSettingScreen(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "${workout.exercises.size} exercises",
+                            text = counted(workout.exercises.size, "exercise"),
                             color = GrozzTextSecondary,
                             style = MaterialTheme.typography.bodySmall,
                             fontFamily = Lexend
@@ -321,7 +325,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(GrozzRadiusChip))
             .background(GrozzSurface)
             .combinedClickable(
                 onClick = { expanded = !expanded },
@@ -365,7 +369,7 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                 if (!expanded && exerciseSet.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "${exerciseSet.size} sets",
+                        text = counted(exerciseSet.size, "set"),
                         color = GrozzMuted,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -530,8 +534,8 @@ fun ExerciseExpandableCardWorkoutSettingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(40.dp)
-                        .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
-                    shape = RoundedCornerShape(12.dp),
+                        .border(1.dp, GrozzYellow, RoundedCornerShape(GrozzRadiusChip)),
+                    shape = RoundedCornerShape(GrozzRadiusChip),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                 ) {
                     Text(
@@ -571,7 +575,7 @@ fun EditSetBottomSheetContent(
         Text(
             text = "Edit set",
             color = GrozzOnBackground,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontFamily = Lexend
         )
         Spacer(modifier = Modifier.height(8.dp))

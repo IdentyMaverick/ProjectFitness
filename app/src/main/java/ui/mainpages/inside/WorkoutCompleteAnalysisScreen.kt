@@ -57,16 +57,19 @@ import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusButton
+import com.grozzbear.ui.theme.GrozzRadiusPanel
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.counted
 import data.local.entity.ExerciseLogWithSets
 import data.local.viewmodel.WorkoutCompleteAnalysisScreenViewModel
-import ui.mainpages.navigation.Screens
 import kotlin.math.roundToInt
+import ui.mainpages.navigation.Screens
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -261,7 +264,7 @@ private fun MuscleGroupChips(muscles: List<Map.Entry<String, Float>>) {
             }
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(GrozzRadiusButton))
                     .background(GrozzYellow)
                     .padding(horizontal = 14.dp, vertical = 8.dp)
             ) {
@@ -288,9 +291,9 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(GrozzSurface)
-            .border(1.dp, GrozzBorder, RoundedCornerShape(16.dp))
+            .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel))
             .clickable { expanded = !expanded }
             .animateContentSize()
             .padding(16.dp)
@@ -335,7 +338,7 @@ private fun AnalysisExerciseCard(exerciseData: ExerciseLogWithSets) {
                 if (!expanded) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "${completedSets.size} sets",
+                        text = counted(completedSets.size, "set"),
                         color = GrozzMuted,
                         fontSize = 12.sp,
                         fontFamily = Lexend

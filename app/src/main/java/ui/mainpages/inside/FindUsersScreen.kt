@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.grozzbear.ui.theme.GrozzSystemBar
 import viewmodel.AuthViewModel
 import viewmodel.SocialViewModel
 
@@ -66,7 +67,7 @@ fun FindUsersScreen(
                 navController = navController
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {

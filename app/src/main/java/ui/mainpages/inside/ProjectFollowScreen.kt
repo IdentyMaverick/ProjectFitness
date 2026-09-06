@@ -1,5 +1,6 @@
 package ui.mainpages.inside
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,11 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.grozzbear.ui.theme.GrozzSystemBar
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.SocialViewModel
@@ -81,7 +82,7 @@ fun ProjectFollowScreen(
                 navController = navController
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {
@@ -223,7 +224,7 @@ private fun ColumnWithSearch(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    androidx.compose.foundation.layout.Column(modifier = modifier) {
+    Column(modifier = modifier) {
         Spacer(modifier.height(16.dp))
         FollowSearchField(
             value = searchQuery,

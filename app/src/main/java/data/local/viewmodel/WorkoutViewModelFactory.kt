@@ -1,6 +1,5 @@
 package com.grozzbear.projectfitness.viewmodel
 
-import viewmodel.SocialViewModel
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
@@ -25,6 +24,7 @@ import data.remote.UserRepository
 import data.remote.WorkoutinRepository
 import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
+import viewmodel.SocialViewModel
 import viewmodel.WorkoutinViewModel
 
 class WorkoutViewModelFactory(

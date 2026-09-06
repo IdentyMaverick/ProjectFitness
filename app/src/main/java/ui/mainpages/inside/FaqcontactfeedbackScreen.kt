@@ -49,16 +49,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzRadiusButton
+import com.grozzbear.ui.theme.GrozzRadiusChip
+import com.grozzbear.ui.theme.GrozzRadiusPanel
+import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.FaqcontactfeedbackScreenViewModel
 
-private val SupportAccent = Color(0xFFF1C40F)
-private val SupportCardBg = Color(0xFF202B36).copy(alpha = 0.55f)
+private val SupportCardBg = GrozzSurface
 
 private data class FaqItem(
     val question: String,
@@ -135,26 +142,29 @@ fun FaqcontactfeedbackScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Help &",
-                color = Color.White,
-                fontSize = 22.sp,
+            Row(
                 modifier = Modifier.padding(horizontal = 24.dp),
-                fontFamily = FontFamily(Font(R.font.lexendbold))
-            )
-            Text(
-                text = "Feedback Hub",
-                color = SupportAccent,
-                fontSize = 22.sp,
-                modifier = Modifier.padding(horizontal = 24.dp),
-                fontFamily = FontFamily(Font(R.font.lexendbold))
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Help & ",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontFamily = Lexend
+                )
+                Text(
+                    text = "Feedback",
+                    color = GrozzYellow,
+                    fontSize = 18.sp,
+                    fontFamily = Lexend
+                )
+            }
             Text(
                 text = "Get answers fast, or tell us how we’re doing.",
                 color = Color.White.copy(alpha = 0.45f),
-                fontSize = 14.sp,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
+                fontFamily = Lexend
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -208,9 +218,9 @@ fun FaqcontactfeedbackScreen(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(GrozzRadiusPanel))
                     .background(SupportCardBg)
-                    .border(1.dp, SupportAccent.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                    .border(1.dp, GrozzYellow.copy(alpha = 0.35f), RoundedCornerShape(GrozzRadiusPanel))
                     .padding(vertical = 22.dp, horizontal = 16.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -218,7 +228,7 @@ fun FaqcontactfeedbackScreen(
                         text = "Tell us what you think",
                         color = Color.White,
                         fontSize = 16.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontFamily = Lexend,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -226,7 +236,7 @@ fun FaqcontactfeedbackScreen(
                         text = "How was your workout experience today?",
                         color = Color.White.copy(alpha = 0.45f),
                         fontSize = 13.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendregular)),
+                        fontFamily = Lexend,
                         textAlign = TextAlign.Center
                     )
 
@@ -241,7 +251,7 @@ fun FaqcontactfeedbackScreen(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(GrozzRadiusChip))
                                     .clickable(enabled = !feedbackSent) {
                                         selectedMood = mood.label
                                     }
@@ -250,15 +260,15 @@ fun FaqcontactfeedbackScreen(
                                 Icon(
                                     painter = painterResource(mood.iconRes),
                                     contentDescription = mood.label,
-                                    tint = if (selected) SupportAccent else Color.White.copy(alpha = 0.25f),
+                                    tint = if (selected) GrozzYellow else Color.White.copy(alpha = 0.25f),
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = mood.label,
-                                    color = if (selected) SupportAccent else Color.White.copy(alpha = 0.25f),
+                                    color = if (selected) GrozzYellow else Color.White.copy(alpha = 0.25f),
                                     fontSize = 10.sp,
-                                    fontFamily = FontFamily(Font(R.font.lexendregular))
+                                    fontFamily = Lexend
                                 )
                             }
                         }
@@ -278,12 +288,12 @@ fun FaqcontactfeedbackScreen(
                         },
                         enabled = !feedbackSent,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = SupportAccent,
+                            containerColor = GrozzYellow,
                             disabledContainerColor = Color.Gray,
                             contentColor = Color.Black,
                             disabledContentColor = Color.Black.copy(alpha = 0.7f)
                         ),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(GrozzRadiusButton),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
@@ -291,7 +301,7 @@ fun FaqcontactfeedbackScreen(
                         Text(
                             text = if (feedbackSent) "Feedback Sent" else "Send Feedback",
                             fontSize = 15.sp,
-                            fontFamily = FontFamily(Font(R.font.lexendbold))
+                            fontFamily = Lexend
                         )
                         if (!feedbackSent) {
                             Spacer(modifier = Modifier.width(8.dp))
@@ -315,7 +325,7 @@ private fun SectionTitle(text: String) {
         color = Color.White,
         fontSize = 16.sp,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp),
-        fontFamily = FontFamily(Font(R.font.lexendbold))
+        fontFamily = Lexend
     )
 }
 
@@ -328,15 +338,15 @@ private fun SupportContactCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val borderColor = if (enabled) SupportAccent.copy(alpha = 0.6f) else Color.Gray.copy(alpha = 0.35f)
-    val iconBg = if (enabled) SupportAccent else Color.Gray
+    val borderColor = if (enabled) GrozzYellow.copy(alpha = 0.6f) else Color.Gray.copy(alpha = 0.35f)
+    val iconBg = if (enabled) GrozzYellow else Color.Gray
 
     Box(
         modifier = modifier
-            .height(148.dp)
-            .clip(RoundedCornerShape(18.dp))
+            .height(120.dp)
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(SupportCardBg)
-            .border(1.dp, borderColor, RoundedCornerShape(18.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(GrozzRadiusPanel))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(16.dp),
         contentAlignment = Alignment.Center
@@ -360,7 +370,7 @@ private fun SupportContactCard(
                 text = title,
                 color = Color.White,
                 fontSize = 14.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontFamily = Lexend,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -368,7 +378,7 @@ private fun SupportContactCard(
                 text = subtitle,
                 color = Color.White.copy(alpha = 0.4f),
                 fontSize = 12.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 textAlign = TextAlign.Center
             )
         }
@@ -398,13 +408,13 @@ private fun FaqAccordionItem(
                 text = item.question,
                 color = Color.White,
                 fontSize = 14.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontFamily = Lexend,
                 modifier = Modifier.weight(1f)
             )
             Icon(
                 imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
-                tint = SupportAccent,
+                tint = GrozzYellow,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -419,7 +429,7 @@ private fun FaqAccordionItem(
                 color = Color.White.copy(alpha = 0.6f),
                 fontSize = 13.sp,
                 lineHeight = 19.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 modifier = Modifier.padding(top = 10.dp)
             )
         }

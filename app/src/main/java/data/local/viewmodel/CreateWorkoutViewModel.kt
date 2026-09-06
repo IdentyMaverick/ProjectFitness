@@ -9,6 +9,7 @@ import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutEntity
 import com.grozzbear.projectfitness.data.local.entity.WorkoutExerciseEntity
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @Keep
 data class ExerciseDraft(
@@ -40,7 +40,7 @@ class CreateWorkoutViewModel(
     private val repo: WorkoutRepository
 ) : ViewModel() {
 
-    val catalogWorkoutList = repo.getAllCatalogExercises()
+    val catalogWorkoutList = repo.catalog.observeAllActive()
 
     private val _selectedExerciseIds: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
     val selectedExerciseIds: StateFlow<Set<String>> = _selectedExerciseIds.asStateFlow()
@@ -146,7 +146,7 @@ class CreateWorkoutViewModel(
     ) {
         viewModelScope.launch {
             try {
-                repo.createWorkout(
+                repo.templates.createWorkout(
                     workoutId = workoutId,
                     name = workoutName,
                     workoutType = workoutType,
@@ -162,7 +162,7 @@ class CreateWorkoutViewModel(
                 for (draft in _draftExercises.value) {
                     val newExerciseId = UUID.randomUUID().toString()
 
-                    repo.addExercise(
+                    repo.templates.addExercise(
                         exerciseId = newExerciseId,
                         workoutId = workoutId,
                         name = draft.name,
@@ -180,23 +180,24 @@ class CreateWorkoutViewModel(
                         )
                     )
 
-                    for (set in draft.sets) {
+                    for ((index, set) in draft.sets.withIndex()) {
                         val newSetId = UUID.randomUUID().toString()
                         val newSetEntity = SetEntity(
                             setId = newSetId,
                             exerciseOwnerId = newExerciseId,
                             reps = set.reps,
                             weight = set.weight,
-                            note = null
+                            note = null,
+                            setIndex = index
                         )
 
-
-                        repo.addSet(
+                        repo.templates.addSet(
                             setId = newSetId,
                             exerciseId = newExerciseId,
                             reps = newSetEntity.reps,
                             weight = newSetEntity.weight,
-                            note = newSetEntity.note
+                            note = newSetEntity.note,
+                            setIndex = index
                         )
                         setForSync.add(newSetEntity)
                     }
@@ -211,7 +212,7 @@ class CreateWorkoutViewModel(
                     syncState = syncState
                 )
 
-                repo.saveAndSyncWorkout(newWorkout, exercisesForSync, setForSync)
+                repo.templates.saveAndSyncWorkout(newWorkout, exercisesForSync, setForSync)
 
                 onDone()
             } catch (t: Throwable) {

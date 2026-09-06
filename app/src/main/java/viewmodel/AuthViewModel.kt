@@ -35,7 +35,7 @@ class AuthViewModel(
     val registerState: StateFlow<RegisterUiState> = _registerState
     val loginState: StateFlow<LoginUiState> = _loginUiState
     val resetUiState: StateFlow<ResetUiState> = _resetUiState
-    val allHistoricalWorkouts = repo.observeHistoricalWorkouts()
+    val allHistoricalWorkouts = repo.sessions.observeHistoricalWorkouts()
     val _totalWorkoutNumber = MutableStateFlow<Long>(0L)
     val totalWorkoutNumber: StateFlow<Long> = _totalWorkoutNumber
     val _totalLiftedWeight = MutableStateFlow<Float>(0F)
@@ -223,7 +223,7 @@ class AuthViewModel(
         if (userId.isBlank()) return
         viewModelScope.launch {
             try {
-                _totalWorkoutNumber.value = repo.getUserTotalWorkoutNumber(userId)
+                _totalWorkoutNumber.value = repo.sessions.getUserTotalWorkoutNumber(userId)
             } catch (e: Exception) {
                 Log.d("TAG", "getTotalWorkoutNumber: ${e.message}")
             }
@@ -241,13 +241,13 @@ class AuthViewModel(
                 for (document in result) {
                     val workout = document.toObject(WorkoutHistoryEntity::class.java) ?: continue
 
-                    val existingRoomWorkout = repo.checkWorkoutExists(workout.sessionId)
+                    val existingRoomWorkout = repo.sessions.checkWorkoutExists(workout.sessionId)
 
                     if (existingRoomWorkout == null) {
-                        val fullData = repo.fetchOtherUserWorkoutDetails(userId, document.id)
+                        val fullData = repo.sessions.fetchOtherUserWorkoutDetails(userId, document.id)
 
                         fullData?.let {
-                            repo.insertFullHistory(it)
+                            repo.sessions.insertFullHistory(it)
                         }
                     }
                 }
@@ -261,7 +261,7 @@ class AuthViewModel(
         if (userId.isBlank()) return
         viewModelScope.launch {
             try {
-                _totalLiftedWeight.value = repo.getTotalLiftedWeight(userId).toFloat()
+                _totalLiftedWeight.value = repo.sessions.getTotalLiftedWeight(userId).toFloat()
             } catch (e: Exception) {
                 Log.d("TAG", "getTotalWorkoutNumber: ${e.message}")
             }
@@ -272,7 +272,7 @@ class AuthViewModel(
         if (userId.isBlank()) return
         viewModelScope.launch {
             try {
-                _totalSpentTime.value = repo.getTotalSpentTime(userId)
+                _totalSpentTime.value = repo.sessions.getTotalSpentTime(userId)
             } catch (e: Exception) {
                 Log.d("TAG", "getTotalWorkoutNumber: ${e.message}")
             }
@@ -332,7 +332,6 @@ class AuthViewModel(
                 }
                 Log.e("FirestoreError", count.toString())
                 _target.value = UserStats(count, weight, (time / 60))
-
             } catch (e: Exception) {
                 Log.e("FirestoreError", e.message.toString())
             }

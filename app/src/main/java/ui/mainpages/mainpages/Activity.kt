@@ -2,8 +2,6 @@ package ui.mainpages.mainpages
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,12 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,10 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,12 +53,13 @@ import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.entity.WorkoutEntity
 import com.grozzbear.projectfitness.data.local.viewmodel.ActivityViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
+import com.grozzbear.ui.components.GrozzPhotoCard
 import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.GrozzTopBarLogo
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
-import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusButton
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
@@ -75,6 +67,7 @@ import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
 import com.grozzbear.ui.util.safeWorkoutPainter
+import com.grozzbear.ui.util.workoutTypeLabel
 import ui.mainpages.navigation.NavigationBar
 import ui.mainpages.navigation.Screens
 import ui.mainpages.navigation.navigateToLoginAfterLogout
@@ -120,33 +113,20 @@ fun Activity(
                 flag4 = false
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(Screens.CreateWorkout.route) },
-                containerColor = GrozzYellow,
-                contentColor = GrozzOnPrimary,
-                modifier = Modifier.padding(bottom = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create workout"
-                )
-            }
-        },
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 88.dp)
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 24.dp)
         ) {
             item {
                 ActivityHeader(
                     workoutCount = myWorkouts.size,
                     onCreateClick = { navController.navigate(Screens.CreateWorkout.route) }
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(14.dp))
             }
 
             if (myWorkouts.isEmpty()) {
@@ -166,7 +146,7 @@ fun Activity(
                         },
                         onLongClick = { selectedWorkoutId = workout.workoutId }
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -277,37 +257,40 @@ private fun ActivityHeader(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HorizontalDivider(
-            thickness = 3.dp,
+            thickness = 2.dp,
             color = GrozzYellow,
-            modifier = Modifier.width(40.dp)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "YOUR",
-            fontFamily = Oswald,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = GrozzOnBackground
-        )
-        Text(
-            text = "WORKOUTS",
-            fontFamily = Oswald,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = GrozzYellow
+            modifier = Modifier.width(28.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "YOUR",
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = GrozzOnBackground
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "WORKOUTS",
+                fontFamily = Oswald,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = GrozzYellow
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = if (workoutCount == 0) {
                 "Build plans you can reuse anytime."
             } else {
                 "$workoutCount custom ${if (workoutCount == 1) "plan" else "plans"}"
             },
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = GrozzTextSecondary
         )
         if (workoutCount > 0) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             GrozzPrimaryButton(
                 text = "Create workout",
                 onClick = onCreateClick,
@@ -322,16 +305,16 @@ private fun ActivityEmptyState(onCreateClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 48.dp, bottom = 24.dp),
+            .padding(top = 32.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             painter = painterResource(R.drawable.dumbbell),
             contentDescription = null,
             tint = GrozzMuted,
-            modifier = Modifier.size(88.dp)
+            modifier = Modifier.size(64.dp)
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "No workouts yet",
             style = MaterialTheme.typography.titleLarge,
@@ -361,46 +344,26 @@ private fun MyWorkoutCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    Box(
+    GrozzPhotoCard(
+        painter = safeWorkoutPainter(workout.image),
         modifier = Modifier
             .fillMaxWidth()
-            .height(112.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(GrozzSurface)
+            .height(88.dp)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
     ) {
-        Image(
-            painter = safeWorkoutPainter(workout.image),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.88f)
-                        ),
-                        startY = 40f
-                    )
-                )
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(18.dp),
+                .padding(14.dp),
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
-                text = workout.workoutType.ifBlank { "Custom" }.uppercase(),
+                text = workoutTypeLabel(workout.workoutType).uppercase(),
                 color = GrozzYellow,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 fontFamily = Lexend
             )
@@ -409,7 +372,7 @@ private fun MyWorkoutCard(
                 color = GrozzOnBackground,
                 fontFamily = Oswald,
                 fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
+                fontSize = 18.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -458,7 +421,7 @@ fun LongClickModalBottom(
                     containerColor = GrozzError,
                     contentColor = GrozzOnBackground
                 ),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(GrozzRadiusButton)
             ) {
                 Text(
                     text = "Delete",

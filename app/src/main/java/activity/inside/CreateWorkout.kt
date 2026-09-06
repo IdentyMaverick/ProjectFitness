@@ -63,6 +63,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.grozzbear.R
 import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.IntPickerColumn
@@ -71,25 +73,25 @@ import com.grozzbear.ui.components.WeightWholeKgRange
 import com.grozzbear.ui.components.combineWeightKg
 import com.grozzbear.ui.components.formatWeightKg
 import com.grozzbear.ui.components.splitWeightKg
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusChip
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.counted
 import data.local.viewmodel.ChooseExercisesViewModel
 import data.local.viewmodel.CreateWorkoutViewModel
 import data.local.viewmodel.ExerciseDraft
+import java.util.UUID
 import kotlinx.coroutines.launch
 import ui.mainpages.navigation.Screens
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.R)
@@ -116,8 +118,6 @@ fun CreateWorkout(
     val currentUser = Firebase.auth.currentUser
     val canSave =
         currentUser != null && workoutNameInput.isNotBlank() && draft.isNotEmpty()
-
-
 
     fun saveWorkout() {
         val user = currentUser
@@ -194,31 +194,34 @@ fun CreateWorkout(
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                     HorizontalDivider(
-                        thickness = 3.dp,
+                        thickness = 2.dp,
                         color = GrozzYellow,
-                        modifier = Modifier.width(40.dp)
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "CREATE",
-                        fontFamily = Oswald,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = GrozzOnBackground
-                    )
-                    Text(
-                        text = "WORKOUT",
-                        fontFamily = Oswald,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = GrozzYellow
+                        modifier = Modifier.width(28.dp)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "CREATE",
+                            fontFamily = Oswald,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = GrozzOnBackground
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "WORKOUT",
+                            fontFamily = Oswald,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = GrozzYellow
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (draft.isEmpty()) {
                             "Name your plan, then add exercises."
                         } else {
-                            "${draft.size} ${if (draft.size == 1) "exercise" else "exercises"} ready"
+                            counted(draft.size, "exercise") + " ready"
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = GrozzTextSecondary
@@ -253,7 +256,7 @@ fun CreateWorkout(
                         fontFamily = Lexend
                     ),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(GrozzRadiusChip),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = GrozzSurface,
                         unfocusedContainerColor = GrozzSurface,
@@ -262,9 +265,11 @@ fun CreateWorkout(
                         cursorColor = GrozzYellow
                     ),
                     trailingIcon = {
-                        IconButton(onClick = {
-                            chooseExercisesViewModel.setName(randomWorkoutName())
-                        }) {
+                        IconButton(
+                            onClick = {
+                                chooseExercisesViewModel.setName(randomWorkoutName())
+                            }
+                        ) {
                             Icon(
                                 painter = painterResource(R.drawable.casinoicon128),
                                 contentDescription = "Random name",
@@ -444,7 +449,7 @@ fun ExerciseExpandableCardChooseExercises(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(GrozzRadiusChip))
             .background(GrozzSurface)
             .clickable { expanded = !expanded }
             .animateContentSize()

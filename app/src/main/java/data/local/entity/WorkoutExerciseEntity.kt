@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 import com.google.firebase.firestore.PropertyName
 import java.util.UUID
 
+/** Exercise on a planned template. Room table `exercise`. Order is [orderIndex]. */
 @Entity(
     tableName = "exercise",
     foreignKeys = [

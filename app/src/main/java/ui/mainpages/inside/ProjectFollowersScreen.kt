@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.grozzbear.ui.theme.GrozzSystemBar
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.SocialViewModel
@@ -64,7 +65,7 @@ fun ProjectFollowersScreen(
                 navController = navController
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         when {

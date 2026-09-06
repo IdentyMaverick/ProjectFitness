@@ -3,8 +3,10 @@ package ui.mainpages.loginscreens
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,6 +43,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.ui.components.GrozzPrimaryButton
@@ -49,6 +52,7 @@ import com.grozzbear.ui.theme.GrozzBackground
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Oswald
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.ResetUiState
@@ -124,22 +128,26 @@ fun ForgetPasswordScreen(navController: NavController, authViewModel: AuthViewMo
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(120.dp)
                     .padding(bottom = 8.dp)
             )
 
-            Text(
-                text = "RESET",
-                style = MaterialTheme.typography.displayLarge,
-                color = GrozzOnBackground,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "PASSWORD",
-                style = MaterialTheme.typography.displayMedium,
-                color = GrozzYellow,
-                textAlign = TextAlign.Center
-            )
+            Row(horizontalArrangement = Arrangement.Center) {
+                Text(
+                    text = "RESET ",
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = GrozzOnBackground
+                )
+                Text(
+                    text = "PASSWORD",
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = GrozzYellow
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

@@ -58,6 +58,7 @@ import com.grozzbear.ui.components.GrozzComingSoonPanel
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusPhoto
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
@@ -216,8 +217,8 @@ private fun ExerciseDemoCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .height(180.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .height(150.dp)
+            .clip(RoundedCornerShape(GrozzRadiusPhoto))
             .background(GrozzSurface),
         contentAlignment = Alignment.Center
     ) {
@@ -230,9 +231,11 @@ private fun ExerciseDemoCard(
                     contentScale = ContentScale.Crop
                 )
             }
+
             loading -> {
                 CircularProgressIndicator(color = GrozzYellow, strokeWidth = 2.dp)
             }
+
             else -> {
                 Icon(
                     painter = painterResource(R.drawable.dumbbell),
@@ -312,10 +315,12 @@ private fun ExerciseDetailTabs(
                 muscleUrl = muscleUrl,
                 muscleLoading = muscleLoading
             )
+
             1 -> GrozzComingSoonPanel(
                 title = "History",
                 message = "Your past sets for this exercise will show up here."
             )
+
             else -> GrozzComingSoonPanel(
                 title = "Charts",
                 message = "Progress charts for this movement are coming soon."
@@ -343,7 +348,7 @@ private fun InstructTab(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
+                .height(132.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(GrozzSurface),
             contentAlignment = Alignment.Center
@@ -359,9 +364,11 @@ private fun InstructTab(
                         contentScale = ContentScale.Fit
                     )
                 }
+
                 muscleLoading -> {
                     CircularProgressIndicator(color = GrozzYellow, strokeWidth = 2.dp)
                 }
+
                 else -> {
                     Text(
                         text = "Muscle map unavailable",
@@ -469,4 +476,3 @@ private fun MuscleChip(text: String, emphasized: Boolean) {
             .padding(horizontal = 10.dp, vertical = 5.dp)
     )
 }
-

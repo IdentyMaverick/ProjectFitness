@@ -140,7 +140,6 @@ class FirestoreRepository {
         }
     }
 
-
     fun observeAllUsers(): Flow<List<User>> = callbackFlow {
         val registration = firestore.collection("googlecloudusers")
             .addSnapshotListener { snapshot, exception ->
@@ -155,6 +154,4 @@ class FirestoreRepository {
             }
         awaitClose { registration.remove() }
     }
-
-
 }

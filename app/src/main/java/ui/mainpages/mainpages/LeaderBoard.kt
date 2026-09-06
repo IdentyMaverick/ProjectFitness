@@ -204,6 +204,7 @@ fun LeaderBoard(
             is ProfileUiState.Ready -> {
                 username.value = profileState.profile.nickname
             }
+
             else -> Unit
         }
 
@@ -217,18 +218,20 @@ fun LeaderBoard(
                 Text(
                     text = "PR",
                     color = GrozzOnBackground,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontFamily = Oswald
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "RANKINGS",
                     color = GrozzYellow,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontFamily = Oswald
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             FilterDropdown(
                 text = selectedExercise,
@@ -294,6 +297,7 @@ fun LeaderBoard(
                         }
                     }
                 }
+
                 displayEntries.isEmpty() -> {
                     Column(
                         modifier = Modifier
@@ -316,6 +320,7 @@ fun LeaderBoard(
                         )
                     }
                 }
+
                 else -> {
                     Leaderboard(
                         displayEntries,
@@ -416,7 +421,7 @@ fun LeaderBoard(
                 ) {
                     Text(
                         text = "Add PR",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         color = GrozzYellow,
                         fontFamily = Lexend,
                         modifier = Modifier
@@ -517,21 +522,32 @@ fun LeaderBoard(
                                 selectedModalBottomExercise.isBlank() -> {
                                     Toast.makeText(context, "Select an exercise.", Toast.LENGTH_SHORT).show()
                                 }
+
                                 weightVal == null || weightVal <= 0.0 -> {
                                     Toast.makeText(context, "Enter a valid lift weight.", Toast.LENGTH_SHORT).show()
                                 }
+
                                 repsVal == null || repsVal <= 0.0 -> {
                                     Toast.makeText(context, "Enter valid reps.", Toast.LENGTH_SHORT).show()
                                 }
+
                                 uri == null || !isSelectedVideo.value -> {
-                                    Toast.makeText(context, "Add a proof video under 15 seconds.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Add a proof video under 15 seconds.", Toast.LENGTH_SHORT)
+                                        .show()
                                 }
+
                                 username.value.isBlank() -> {
-                                    Toast.makeText(context, "Profile name is still loading. Try again.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Profile name is still loading. Try again.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
+
                                 else -> {
                                     isCompressing = true
-                                    val outputFile = java.io.File.createTempFile("compressed_v", ".mp4", context.cacheDir)
+                                    val outputFile =
+                                        java.io.File.createTempFile("compressed_v", ".mp4", context.cacheDir)
                                     val outputPath = outputFile.absolutePath
                                     val oneRm = estimateOneRepMax(weightInMBS.value, volumeInMBS.value)
 
@@ -555,7 +571,11 @@ fun LeaderBoard(
                                             showMenuSheetPrAdd = false
                                             isSelectedVideo.value = false
                                             selectedUri.value = null
-                                            Toast.makeText(context, "PR submitted for verification.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "PR submitted for verification.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
 
                                         override fun onError(
@@ -565,7 +585,11 @@ fun LeaderBoard(
                                         ) {
                                             isCompressing = false
                                             Log.e("TransformerError", exportException.message ?: "Unknown error")
-                                            Toast.makeText(context, "Compression failed, please try again.", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "Compression failed, please try again.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
 
@@ -597,12 +621,12 @@ fun LeaderBoard(
                             .padding(horizontal = 24.dp, vertical = 28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.grozzlogo),
-                            contentDescription = null,
-                            modifier = Modifier.size(72.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
+//                        Image(
+//                            painter = painterResource(R.drawable.grozzlogo),
+//                            contentDescription = null,
+//                            modifier = Modifier.size(72.dp)
+//                        )
+//                        Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
@@ -610,15 +634,17 @@ fun LeaderBoard(
                             Text(
                                 text = "PR",
                                 color = GrozzOnBackground,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontFamily = Lexend
+                                fontFamily = Oswald,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "RANKINGS",
                                 color = GrozzYellow,
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontFamily = Lexend
+                                fontFamily = Oswald,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
                             )
                         }
                         Spacer(modifier = Modifier.height(24.dp))
@@ -667,7 +693,10 @@ fun LeaderBoard(
         }
     }
     if (isVideoModalBottomSheetVisible.value) {
-        VideoModalBottomSheet(isVideoModalBottomSheetVisible = {isVideoModalBottomSheetVisible.value = it}, videoUrl = videoUrl.value)
+        VideoModalBottomSheet(
+            isVideoModalBottomSheetVisible = { isVideoModalBottomSheetVisible.value = it },
+            videoUrl = videoUrl.value
+        )
     }
 }
 
@@ -877,7 +906,14 @@ private fun HomeTopBarLeaderboard(
 }
 
 @Composable
-fun LazyColumnItem(index: Int, item: LeaderboardEntry, navController: NavController, onInfoClick: () -> Unit, onVideoModalBottomClick: () -> Unit, getUrl: (String) -> Unit) {
+fun LazyColumnItem(
+    index: Int,
+    item: LeaderboardEntry,
+    navController: NavController,
+    onInfoClick: () -> Unit,
+    onVideoModalBottomClick: () -> Unit,
+    getUrl: (String) -> Unit
+) {
     val rankColor = when (index) {
         0 -> GrozzYellow
         1 -> Color(0xFFC0C0C0)
@@ -1000,6 +1036,7 @@ fun LazyColumnItem(index: Int, item: LeaderboardEntry, navController: NavControl
         }
     }
 }
+
 @Composable
 fun Leaderboard(
     leaderboardEntries: List<LeaderboardEntry>,
@@ -1028,15 +1065,16 @@ fun Leaderboard(
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoModalBottomSheet(isVideoModalBottomSheetVisible: (Boolean) -> Unit, videoUrl: String) {
     ModalBottomSheet(
         onDismissRequest = { isVideoModalBottomSheetVisible(false) },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
     ) {
-            VideoPlayerSheet( videoUrl = videoUrl, onDismiss = {isVideoModalBottomSheetVisible(false)} )
+        VideoPlayerSheet(videoUrl = videoUrl, onDismiss = { isVideoModalBottomSheetVisible(false) })
     }
 }
 
@@ -1056,23 +1094,23 @@ fun VideoPlayerSheet(videoUrl: String, onDismiss: () -> Unit) {
                 DefaultMediaSourceFactory(context)
                     .setDataSourceFactory(cacheDataSourceFactory)
             )
-            .build().apply{
-            val mediaItem = MediaItem.fromUri(videoUrl)
-            setMediaItem(mediaItem)
-            prepare()
-            playWhenReady = true
-        }
+            .build().apply {
+                val mediaItem = MediaItem.fromUri(videoUrl)
+                setMediaItem(mediaItem)
+                prepare()
+                playWhenReady = true
+            }
     }
 
     DisposableEffect(Unit) {
-        onDispose{
+        onDispose {
             exoPlayer.release()
         }
     }
 
     Column(modifier = Modifier.fillMaxWidth().height(400.dp)) {
         AndroidView(
-            factory = {ctx ->
+            factory = { ctx ->
                 PlayerView(ctx).apply {
                     player = exoPlayer
                     useController = true
@@ -1119,7 +1157,7 @@ fun WeightInputField(weight: (String) -> Unit, weightString: String) {
             }
         },
         textStyle = TextStyle(
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = GrozzOnBackground,
             fontFamily = Lexend
@@ -1149,7 +1187,7 @@ fun WeightInputField(weight: (String) -> Unit, weightString: String) {
             Text(
                 text = "0",
                 style = TextStyle(
-                    fontSize = 24.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = GrozzMuted,
                     fontFamily = Lexend
@@ -1175,7 +1213,7 @@ fun VolumeInputField(volume: (String) -> Unit, volumeString: String) {
             }
         },
         textStyle = TextStyle(
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = GrozzOnBackground,
             fontFamily = Lexend
@@ -1205,7 +1243,7 @@ fun VolumeInputField(volume: (String) -> Unit, volumeString: String) {
             Text(
                 text = "0",
                 style = TextStyle(
-                    fontSize = 24.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = GrozzMuted,
                     fontFamily = Lexend
@@ -1255,7 +1293,7 @@ fun ProofUploadAddPr(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(160.dp)
+                .height(132.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .border(1.dp, GrozzBorder, RoundedCornerShape(12.dp))
                 .background(GrozzSystemBar)
@@ -1325,6 +1363,7 @@ fun ProofUploadAddPr(
         }
     }
 }
+
 @androidx.annotation.OptIn(UnstableApi::class)
 fun transformMedia3(
     context: Context,

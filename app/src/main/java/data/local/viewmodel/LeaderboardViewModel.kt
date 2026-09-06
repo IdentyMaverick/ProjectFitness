@@ -8,18 +8,19 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
+import data.remote.FirestorePaths
 import data.remote.LeaderboardEntry
+import java.util.UUID
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import viewmodel.ProfileViewModel
-import java.util.UUID
-import kotlin.coroutines.cancellation.CancellationException
 
 class LeaderboardViewModel(
     val repository: WorkoutRepository,
@@ -65,10 +66,16 @@ class LeaderboardViewModel(
         }
     }
 
-    private suspend fun updateFirestoreProof(userId: String, exercise: String, url: String, weight: Double, nickname: String) {
+    private suspend fun updateFirestoreProof(
+        userId: String,
+        exercise: String,
+        url: String,
+        weight: Double,
+        nickname: String
+    ) {
         val db = FirebaseFirestore.getInstance()
 
-        db.collection("googlecloudleaderboard")
+        db.collection(FirestorePaths.LEADERBOARD)
             .document("${userId}_${exercise}")
             .set(
                 mapOf(
@@ -116,7 +123,7 @@ class LeaderboardViewModel(
     suspend fun fetchUserImage(userId: String): String {
         return try {
             val db = FirebaseFirestore.getInstance()
-            val document = db.collection("googlecloudusers").document(userId).get().await()
+            val document = db.collection(FirestorePaths.USERS).document(userId).get().await()
             document.getString("userPhotoUri") ?: ""
         } catch (e: Exception) {
             Log.e("LeaderboardVM", "Fotoğraf çekilemedi: ${e.message}")

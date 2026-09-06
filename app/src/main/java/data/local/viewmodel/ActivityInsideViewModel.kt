@@ -11,6 +11,4 @@ class ActivityInsideViewModel(
 ) : ViewModel() {
     val _selectedCatalog = MutableStateFlow<ExerciseCatalogEntity>(ExerciseCatalogEntity())
     val selectedCatalog = _selectedCatalog.asStateFlow()
-
-
 }

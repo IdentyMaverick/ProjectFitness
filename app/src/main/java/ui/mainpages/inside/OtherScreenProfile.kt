@@ -69,6 +69,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.OldWorkoutDetailsViewModel
 import data.remote.User
 import ui.mainpages.navigation.Screens
@@ -76,9 +83,7 @@ import viewmodel.AuthViewModel
 import viewmodel.ProfileViewModel
 import viewmodel.SocialViewModel
 
-private val OtherProfileAccent = Color(0xFFF1C40F)
-private val OtherProfileCardBg = Color(0xFF202B36).copy(alpha = 0.55f)
-private val OtherProfileMuted = Color(0xFF4B5F71)
+private val OtherProfileCardBg = GrozzSurface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,10 +134,10 @@ fun OtherScreenProfile(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF121417)),
+                    .background(GrozzSystemBar),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = OtherProfileAccent)
+                CircularProgressIndicator(color = GrozzYellow)
             }
         }
 
@@ -193,7 +198,7 @@ private fun OtherProfileContent(
                 topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp
             )
         },
-        containerColor = Color(0xFF121417),
+        containerColor = GrozzSystemBar,
         modifier = Modifier
             .fillMaxSize()
             .blur(blurAlpha)
@@ -209,7 +214,7 @@ private fun OtherProfileContent(
             Box(
                 modifier = Modifier
                     .size(110.dp)
-                    .border(4.dp, OtherProfileAccent, CircleShape)
+                    .border(4.dp, GrozzYellow, CircleShape)
                     .padding(4.dp)
                     .border(2.dp, Color.Black, CircleShape)
                     .padding(4.dp)
@@ -234,8 +239,8 @@ private fun OtherProfileContent(
             Text(
                 text = currentUser.first.ifBlank { currentUser.nickname },
                 color = Color.White,
-                fontSize = 22.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontSize = 20.sp,
+                fontFamily = Lexend,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -244,9 +249,9 @@ private fun OtherProfileContent(
             )
             Text(
                 text = "@${currentUser.nickname}",
-                color = OtherProfileAccent,
+                color = GrozzYellow,
                 fontSize = 15.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold))
+                fontFamily = Lexend
             )
 
             Spacer(Modifier.height(16.dp))
@@ -265,7 +270,7 @@ private fun OtherProfileContent(
                         containerColor = if (isFollowing) {
                             Color.Transparent
                         } else {
-                            OtherProfileAccent
+                            GrozzYellow
                         },
                         contentColor = if (isFollowing) Color.White else Color.Black
                     ),
@@ -273,7 +278,7 @@ private fun OtherProfileContent(
                     border = if (isFollowing) {
                         BorderStroke(
                             1.dp,
-                            OtherProfileAccent.copy(alpha = 0.55f)
+                            GrozzYellow.copy(alpha = 0.55f)
                         )
                     } else {
                         null
@@ -288,7 +293,7 @@ private fun OtherProfileContent(
                     Text(
                         text = if (isFollowing) "Following" else "Follow",
                         style = TextStyle(
-                            fontFamily = FontFamily(Font(R.font.lexendsemibold)),
+                            fontFamily = Lexend,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -345,18 +350,18 @@ private fun OtherProfileContent(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(18.dp))
                                 .then(
-                                    if (isSelected) Modifier.background(OtherProfileAccent)
+                                    if (isSelected) Modifier.background(GrozzYellow)
                                     else Modifier
                                 ),
                             text = {
                                 Text(
                                     text = title,
                                     style = TextStyle(
-                                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                        fontFamily = Lexend,
                                         fontSize = 15.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                     ),
-                                    color = if (isSelected) Color.Black else OtherProfileMuted
+                                    color = if (isSelected) Color.Black else GrozzMuted
                                 )
                             }
                         )
@@ -375,7 +380,7 @@ private fun OtherProfileContent(
                     Text(
                         text = "Lifetime Statistics",
                         textAlign = TextAlign.Start,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontFamily = Lexend,
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
                         color = Color.White,
@@ -394,7 +399,7 @@ private fun OtherProfileContent(
                             value = formatOtherStatNumber(target.count),
                             lines = listOf(
                                 "WORKOUTS" to Color.White,
-                                "COMPLETED" to OtherProfileAccent
+                                "COMPLETED" to GrozzYellow
                             ),
                             modifier = Modifier.weight(1f)
                         )
@@ -403,7 +408,7 @@ private fun OtherProfileContent(
                             lines = listOf(
                                 "KG" to Color.White,
                                 "WEIGHT" to Color.White,
-                                "LIFTED" to OtherProfileAccent
+                                "LIFTED" to GrozzYellow
                             ),
                             modifier = Modifier.weight(1f),
                             valueFontSize = 36.sp
@@ -423,7 +428,7 @@ private fun OtherProfileContent(
                             lines = listOf(
                                 "MINUTES" to Color.White,
                                 "SPENT FOR" to Color.White,
-                                "WORKOUTS" to OtherProfileAccent
+                                "WORKOUTS" to GrozzYellow
                             ),
                             modifier = Modifier.weight(1f)
                         )
@@ -439,7 +444,7 @@ private fun OtherProfileContent(
                     Text(
                         text = "Last Activity",
                         textAlign = TextAlign.Start,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontFamily = Lexend,
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(letterSpacing = 0.sp, fontSize = 20.sp),
                         color = Color.White,
@@ -469,7 +474,7 @@ private fun OtherProfileContent(
                             Text(
                                 text = "No workout history yet",
                                 textAlign = TextAlign.Center,
-                                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                fontFamily = Lexend,
                                 fontWeight = FontWeight.Bold,
                                 style = TextStyle(letterSpacing = 0.sp, fontSize = 15.sp),
                                 color = Color.Gray.copy(alpha = 0.5f)
@@ -551,7 +556,7 @@ private fun OtherLifetimeStatCard(
             Text(
                 text = value,
                 textAlign = TextAlign.Center,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 fontSize = valueFontSize,
@@ -562,7 +567,7 @@ private fun OtherLifetimeStatCard(
                 Text(
                     text = label,
                     textAlign = TextAlign.Center,
-                    fontFamily = FontFamily(Font(R.font.lexendbold)),
+                    fontFamily = Lexend,
                     fontWeight = FontWeight.Bold,
                     color = color,
                     fontSize = 12.sp
@@ -595,7 +600,7 @@ private fun OtherActivityHistoryRow(
             Icon(
                 painter = painterResource(R.drawable.dumbbellicon128),
                 contentDescription = null,
-                tint = OtherProfileAccent,
+                tint = GrozzYellow,
                 modifier = Modifier.size(30.dp)
             )
             Spacer(Modifier.width(16.dp))
@@ -604,7 +609,7 @@ private fun OtherActivityHistoryRow(
                     text = workoutName,
                     style = TextStyle(
                         fontSize = 15.sp,
-                        fontFamily = FontFamily(Font(R.font.lexendbold)),
+                        fontFamily = Lexend,
                         color = Color.White
                     ),
                     maxLines = 1,
@@ -615,7 +620,7 @@ private fun OtherActivityHistoryRow(
                         text = dateLabel,
                         style = TextStyle(
                             fontSize = 11.sp,
-                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            fontFamily = Lexend,
                             color = Color.White.copy(alpha = 0.5f)
                         )
                     )
@@ -624,7 +629,7 @@ private fun OtherActivityHistoryRow(
             Icon(
                 painter = painterResource(R.drawable.keyboarddoublearrowright),
                 contentDescription = null,
-                tint = OtherProfileAccent,
+                tint = GrozzYellow,
                 modifier = Modifier.size(25.dp)
             )
         }
@@ -652,13 +657,13 @@ fun StatItem(label: String, count: Int, onClick: () -> Unit = {}) {
             text = "$count",
             color = Color.White,
             fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.lexendbold))
+            fontFamily = Lexend
         )
         Text(
             text = label,
             color = Color.Gray,
             fontSize = 11.sp,
-            fontFamily = FontFamily(Font(R.font.lexendbold))
+            fontFamily = Lexend
         )
     }
 }

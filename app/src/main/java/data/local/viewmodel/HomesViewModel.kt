@@ -16,7 +16,7 @@ class HomesViewModel(
     private val userRepository: UserRepository,
     authViewModel: AuthViewModel
 ) : ViewModel() {
-    val workoutsFlow = repo.observeWorkouts()
+    val workoutsFlow = repo.templates.observeWorkouts()
     val currentUserUid: String?
         get() = Firebase.auth.currentUser?.uid?.takeIf { it.isNotBlank() }
     private val _userName = kotlinx.coroutines.flow.MutableStateFlow("Yükleniyor...")
@@ -26,8 +26,8 @@ class HomesViewModel(
 
     init {
         viewModelScope.launch {
-            repo.seedDefaultsIfEmpty()
-            repo.syncCatalog()
+            repo.templates.seedDefaultsIfEmpty()
+            repo.catalog.syncCatalog()
             val uid = currentUserUid ?: return@launch
             getUserName(uid)
             authViewModel.saveUserFcmToken(uid)
@@ -36,7 +36,7 @@ class HomesViewModel(
 
     fun refreshExercises() {
         viewModelScope.launch {
-            repo.syncExercisesFromFirestore()
+            repo.catalog.syncExerciseImagesFromCatalog()
         }
     }
 

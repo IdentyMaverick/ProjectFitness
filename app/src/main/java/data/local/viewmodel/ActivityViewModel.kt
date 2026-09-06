@@ -22,10 +22,10 @@ class ActivityViewModel(
         userId.value = firebaseAuth.currentUser?.uid.orEmpty()
     }
 
-    val workoutsFlow = repo.observeWorkouts()
+    val workoutsFlow = repo.templates.observeWorkouts()
     val myWorkoutsFlow: Flow<List<WorkoutEntity>> = userId.flatMapLatest { uid ->
         if (uid.isBlank()) flowOf(emptyList())
-        else repo.observeMyWorkouts(uid)
+        else repo.templates.observeMyWorkouts(uid)
     }
 
     init {
@@ -36,15 +36,15 @@ class ActivityViewModel(
         if (uuid.isBlank()) return
         userId.value = uuid
         viewModelScope.launch {
-            repo.syncMyWorkouts(uuid)
+            repo.templates.syncMyWorkouts(uuid)
         }
     }
 
     fun deleteWorkouts(workoutId: String) {
         viewModelScope.launch {
             try {
-                repo.deleteWorkoutFirebase(workoutId)
-                repo.deleteWorkout(workoutId)
+                repo.templates.deleteWorkoutFirebase(workoutId)
+                repo.templates.deleteWorkout(workoutId)
             } catch (e: Exception) {
                 Log.e("DeleteError", "Silinemedi: ${e.message}")
             }

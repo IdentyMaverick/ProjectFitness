@@ -12,7 +12,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,7 +43,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,7 +58,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,20 +73,27 @@ import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.entity.WorkoutWithExercises
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
 import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
+import com.grozzbear.ui.components.GrozzPhotoCard
 import com.grozzbear.ui.components.GrozzPrimaryButton
 import com.grozzbear.ui.components.GrozzTopBarLogo
 import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusPanel
+import com.grozzbear.ui.theme.GrozzRadiusPhoto
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
-import java.util.Calendar
-import kotlin.random.Random
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.counted
+import com.grozzbear.ui.util.isChallengeType
+import com.grozzbear.ui.util.isCoachType
 import com.grozzbear.ui.util.safeWorkoutPainter
+import com.grozzbear.ui.util.workoutTypeLabel
+import java.util.Calendar
+import kotlin.random.Random
 import ui.mainpages.navigation.NavigationBar
 import ui.mainpages.navigation.Screens
 import ui.mainpages.navigation.navigateToLoginAfterLogout
@@ -122,9 +126,9 @@ fun Home(
 
     val workouts by homesViewModel.workoutsFlow.collectAsState(initial = emptyList())
     val challengeWorkouts =
-        workouts.filter { it.workout.workoutType.contains("challange", ignoreCase = true) }
+        workouts.filter { isChallengeType(it.workout.workoutType) }
     val coachWorkouts =
-        workouts.filter { it.workout.workoutType.contains("coach", ignoreCase = true) }
+        workouts.filter { isCoachType(it.workout.workoutType) }
     val userName by homesViewModel.userName.collectAsState()
     val nickname by homesViewModel.nickname.collectAsState()
     val notification by remember(nickname) {
@@ -193,7 +197,7 @@ fun Home(
             ) {
                 item {
                     GreetingSection(userName = userName)
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 item {
@@ -208,7 +212,7 @@ fun Home(
                                 }
                             }
                         )
-                        Spacer(modifier = Modifier.height(28.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
 
@@ -223,7 +227,7 @@ fun Home(
                             )
                         }
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 item {
@@ -236,9 +240,9 @@ fun Home(
                             state = challengePagerState,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(176.dp),
+                                .height(132.dp),
                             contentPadding = PaddingValues(horizontal = 20.dp),
-                            pageSpacing = 14.dp
+                            pageSpacing = 12.dp
                         ) { pageIndex ->
                             val item = challengeWorkouts[pageIndex]
                             WorkoutCatalogueCard(
@@ -256,7 +260,7 @@ fun Home(
                             selectedPage = challengePagerState.currentPage
                         )
                     }
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                 }
 
                 if (coachWorkouts.isNotEmpty()) {
@@ -392,24 +396,28 @@ private fun GreetingSection(userName: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(horizontal = 24.dp, vertical = 4.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "Hello, ",
-                style = MaterialTheme.typography.headlineMedium,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
                 color = GrozzOnBackground
             )
             Text(
                 text = firstName,
-                style = MaterialTheme.typography.headlineMedium,
+                fontFamily = Oswald,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
                 color = GrozzYellow
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = "Ready to crush your goals today?",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = GrozzTextSecondary.copy(alpha = 0.7f)
         )
     }
@@ -422,41 +430,23 @@ private fun HomeHeroCard(
 ) {
     val exerciseCount = workout.exercises.size
 
-    Box(
+    GrozzPhotoCard(
+        painter = safeWorkoutPainter(workout.workout.image),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .height(210.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(GrozzSurface)
+            .height(186.dp),
+        hero = true
     ) {
-        Image(
-            painter = safeWorkoutPainter(workout.workout.image),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.15f),
-                            Color.Black.copy(alpha = 0.85f)
-                        )
-                    )
-                )
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "Today's Pick",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 color = GrozzYellow,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Bold
@@ -464,22 +454,24 @@ private fun HomeHeroCard(
             Column {
                 Text(
                     text = workout.workout.workoutName,
-                    style = MaterialTheme.typography.headlineMedium,
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
                     color = GrozzOnBackground,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = if (exerciseCount > 0) {
-                        "$exerciseCount exercises · ${workout.workout.workoutType}"
+                        "${counted(exerciseCount, "exercise")} · ${workoutTypeLabel(workout.workout.workoutType)}"
                     } else {
-                        workout.workout.workoutType
+                        workoutTypeLabel(workout.workout.workoutType)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = GrozzTextSecondary
                 )
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 GrozzPrimaryButton(
                     text = "Start workout",
                     onClick = onStartClick,
@@ -501,38 +493,42 @@ private fun SectionHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             HorizontalDivider(
-                thickness = 3.dp,
+                thickness = 2.dp,
                 color = GrozzYellow,
-                modifier = Modifier.width(40.dp)
+                modifier = Modifier.width(28.dp)
             )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = titleTop,
-                fontFamily = Oswald,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                color = GrozzOnBackground
-            )
-            Text(
-                text = titleBottom,
-                fontFamily = Oswald,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                color = GrozzYellow
-            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = titleTop,
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = GrozzOnBackground
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = titleBottom,
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = GrozzYellow
+                )
+            }
         }
-        Spacer(modifier = Modifier.weight(1f))
-        TextButton(onClick = onActionClick) {
-            Text(
-                text = actionLabel,
-                style = MaterialTheme.typography.labelLarge,
-                color = GrozzYellow
-            )
-        }
+        Text(
+            text = actionLabel,
+            style = MaterialTheme.typography.labelLarge,
+            color = GrozzYellow,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onActionClick)
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+        )
     }
 }
 
@@ -544,40 +540,23 @@ private fun WorkoutCatalogueCard(
     val difficulty = workout.workout.workoutRating.coerceIn(0, 5)
     val exerciseCount = workout.exercises.size
 
-    Box(
+    GrozzPhotoCard(
+        painter = safeWorkoutPainter(workout.workout.image),
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(GrozzSurface)
+            .height(132.dp)
             .clickable(onClick = onClick)
     ) {
-        Image(
-            painter = safeWorkoutPainter(workout.workout.image),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f)),
-                        startY = 80f
-                    )
-                )
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(18.dp),
+                .padding(14.dp),
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
-                text = workout.workout.workoutType.uppercase(),
+                text = workoutTypeLabel(workout.workout.workoutType).uppercase(),
                 color = GrozzYellow,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold
             )
             Text(
@@ -585,15 +564,15 @@ private fun WorkoutCatalogueCard(
                 color = GrozzOnBackground,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (exerciseCount > 0) {
                     WorkoutTag(
-                        text = "$exerciseCount exercises",
+                        text = counted(exerciseCount, "exercise"),
                         icon = R.drawable.shutterspeedfilledicon128,
                         textColor = GrozzTextSecondary,
                         iconColor = GrozzTextSecondary
@@ -620,10 +599,10 @@ private fun CoachPicksTeaser(count: Int, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(GrozzSurface)
             .clickable(onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -633,7 +612,7 @@ private fun CoachPicksTeaser(count: Int, onClick: () -> Unit) {
                 color = GrozzOnBackground
             )
             Text(
-                text = "$count workouts ready in catalogue",
+                text = "${counted(count, "workout")} ready in catalogue",
                 style = MaterialTheme.typography.bodySmall,
                 color = GrozzTextSecondary
             )
@@ -662,38 +641,38 @@ private fun HomeLoadingState(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         Box(
             modifier = Modifier
-                .width(160.dp)
-                .height(22.dp)
+                .width(140.dp)
+                .height(18.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
-                .width(220.dp)
-                .height(14.dp)
+                .width(200.dp)
+                .height(12.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(210.dp)
+                .height(186.dp)
                 .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(GrozzRadiusPhoto))
                 .shimmerEffect()
         )
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(132.dp)
                 .padding(horizontal = 20.dp)
-                .clip(RoundedCornerShape(22.dp))
+                .clip(RoundedCornerShape(GrozzRadiusPhoto))
                 .shimmerEffect()
         )
     }

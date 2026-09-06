@@ -57,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,16 +67,20 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzBorder
+import com.grozzbear.ui.theme.GrozzMuted
+import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzRadiusButton
+import com.grozzbear.ui.theme.GrozzRadiusChip
+import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.PersonalInformationsScreenViewModel
 import data.remote.UserProfile
-import viewmodel.ProfileUiState
 import java.util.Calendar
-
-private val InfoAccent = Color(0xFFF1C40F)
-private val InfoSurface = Color(0xFF1C2126)
-private val InfoBorder = Color(0xFF2E353D)
-private val InfoMuted = Color(0xFF4B5F71)
+import viewmodel.ProfileUiState
 
 @Composable
 fun PersonalInformationsScreen(
@@ -111,7 +116,7 @@ fun PersonalInformationsScreen(
                         .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = InfoAccent)
+                    CircularProgressIndicator(color = GrozzYellow)
                 }
             }
 
@@ -127,7 +132,7 @@ fun PersonalInformationsScreen(
                         Text(
                             text = "Couldn't load your profile",
                             color = Color.White,
-                            fontFamily = FontFamily(Font(R.font.lexendbold)),
+                            fontFamily = Lexend,
                             fontSize = 18.sp,
                             textAlign = TextAlign.Center
                         )
@@ -135,20 +140,20 @@ fun PersonalInformationsScreen(
                         Text(
                             text = "Check your connection and try again.",
                             color = Color.Gray,
-                            fontFamily = FontFamily(Font(R.font.lexendregular)),
+                            fontFamily = Lexend,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(20.dp))
                         Button(
                             onClick = { personalInformationsScreenViewModel.loadUid() },
-                            colors = ButtonDefaults.buttonColors(containerColor = InfoAccent),
+                            colors = ButtonDefaults.buttonColors(containerColor = GrozzYellow),
                             shape = RoundedCornerShape(14.dp)
                         ) {
                             Text(
                                 text = "Retry",
                                 color = Color.Black,
-                                fontFamily = FontFamily(Font(R.font.lexendbold))
+                                fontFamily = Lexend
                             )
                         }
                     }
@@ -201,7 +206,7 @@ private fun PersonalInfoForm(
         Box(
             modifier = Modifier
                 .size(104.dp)
-                .border(3.dp, InfoAccent, CircleShape)
+                .border(3.dp, GrozzYellow, CircleShape)
                 .padding(3.dp)
                 .border(2.dp, Color.Black, CircleShape)
                 .padding(3.dp)
@@ -224,14 +229,14 @@ private fun PersonalInfoForm(
             Text(
                 text = "Update ",
                 color = Color.White,
-                fontSize = 22.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                fontSize = 18.sp,
+                fontFamily = Lexend
             )
             Text(
                 text = "Profile",
-                color = InfoAccent,
-                fontSize = 22.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                color = GrozzYellow,
+                fontSize = 18.sp,
+                fontFamily = Lexend
             )
         }
 
@@ -239,7 +244,7 @@ private fun PersonalInfoForm(
             text = "@${profile.nickname}",
             color = Color.White.copy(alpha = 0.45f),
             fontSize = 13.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular)),
+            fontFamily = Lexend,
             modifier = Modifier.padding(top = 4.dp)
         )
 
@@ -321,8 +326,8 @@ private fun PersonalInfoForm(
             onClick = {
                 onSave(first.trim(), gender, birthDate, height.trim(), weight.trim())
             },
-            colors = ButtonDefaults.buttonColors(containerColor = InfoAccent),
-            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = GrozzYellow),
+            shape = RoundedCornerShape(GrozzRadiusButton),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -330,15 +335,15 @@ private fun PersonalInfoForm(
         ) {
             Text(
                 text = "Save Changes",
-                color = Color(0xFF121417),
+                color = GrozzSystemBar,
                 fontSize = 16.sp,
-                fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                fontFamily = Lexend
             )
             Spacer(modifier = Modifier.width(10.dp))
             Icon(
                 painter = painterResource(R.drawable.sendicon128),
                 contentDescription = null,
-                tint = Color(0xFF121417),
+                tint = GrozzSystemBar,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -350,7 +355,7 @@ private fun ProfileFieldLabel(text: String, padded: Boolean = true) {
     Text(
         text = text,
         color = Color.White.copy(alpha = 0.7f),
-        fontFamily = FontFamily(Font(R.font.lexendsemibold)),
+        fontFamily = Lexend,
         fontSize = 14.sp,
         modifier = Modifier
             .fillMaxWidth()
@@ -379,28 +384,28 @@ private fun ProfileOutlinedField(
         placeholder = {
             Text(
                 text = placeholder,
-                color = InfoMuted,
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                color = GrozzMuted,
+                fontFamily = Lexend
             )
         },
         textStyle = TextStyle(
             color = Color.White,
-            fontFamily = FontFamily(Font(R.font.lexendregular)),
+            fontFamily = Lexend,
             fontSize = 16.sp
         ),
         singleLine = true,
         readOnly = readOnly,
         enabled = enabled,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(GrozzRadiusChip),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = InfoSurface,
-            unfocusedContainerColor = InfoSurface,
-            disabledContainerColor = InfoSurface,
-            focusedBorderColor = InfoMuted,
-            unfocusedBorderColor = InfoBorder,
-            disabledBorderColor = InfoBorder,
-            cursorColor = InfoAccent,
+            focusedContainerColor = GrozzSurface,
+            unfocusedContainerColor = GrozzSurface,
+            disabledContainerColor = GrozzSurface,
+            focusedBorderColor = GrozzMuted,
+            unfocusedBorderColor = GrozzBorder,
+            disabledBorderColor = GrozzBorder,
+            cursorColor = GrozzYellow,
             disabledTextColor = Color.White.copy(alpha = 0.55f)
         ),
         leadingIcon = leadingIconRes?.let { res ->
@@ -408,7 +413,7 @@ private fun ProfileOutlinedField(
                 Icon(
                     painter = painterResource(res),
                     contentDescription = null,
-                    tint = InfoMuted,
+                    tint = GrozzMuted,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -431,16 +436,16 @@ private fun GenderSelector(
             text = "Gender",
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.lexendsemibold))
+            fontFamily = Lexend
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(InfoSurface)
-                .border(1.dp, InfoBorder, RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(GrozzRadiusChip))
+                .background(GrozzSurface)
+                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusChip))
                 .clickable { expanded = true }
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.CenterStart
@@ -454,7 +459,7 @@ private fun GenderSelector(
                     text = selectedOption,
                     color = Color.White,
                     fontSize = 16.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendregular)),
+                    fontFamily = Lexend,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -468,7 +473,7 @@ private fun GenderSelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(InfoSurface)
+                modifier = Modifier.background(GrozzSurface)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
@@ -476,7 +481,7 @@ private fun GenderSelector(
                             Text(
                                 text = option,
                                 color = Color.White,
-                                fontFamily = FontFamily(Font(R.font.lexendregular))
+                                fontFamily = Lexend
                             )
                         },
                         onClick = {
@@ -526,7 +531,7 @@ private fun BirthDateSelector(
                         showDatePicker = false
                     }
                 ) {
-                    Text("OK", color = InfoAccent)
+                    Text("OK", color = GrozzYellow)
                 }
             },
             dismissButton = {
@@ -544,25 +549,25 @@ private fun BirthDateSelector(
             text = "Birth Date",
             color = Color.White.copy(alpha = 0.7f),
             fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.lexendsemibold))
+            fontFamily = Lexend
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(InfoSurface)
-                .border(1.dp, InfoBorder, RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(GrozzRadiusChip))
+                .background(GrozzSurface)
+                .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusChip))
                 .clickable { showDatePicker = true }
                 .padding(horizontal = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
                 text = if (birthDate.isBlank()) "Select date" else birthDate,
-                color = if (birthDate.isBlank()) InfoMuted else Color.White,
+                color = if (birthDate.isBlank()) GrozzMuted else Color.White,
                 fontSize = 16.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

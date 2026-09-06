@@ -40,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.pm.PackageInfoCompat
@@ -49,6 +50,8 @@ import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnPrimary
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import ui.mainpages.navigation.navigateToLoginAfterLogout
 import viewmodel.AuthViewModel
 import viewmodel.ProjectFitnessViewModel
@@ -206,7 +209,7 @@ fun SettingsFlowTopBar(
             text = title,
             color = Color.White,
             fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold)),
+            fontFamily = Oswald,
             modifier = Modifier.align(Alignment.Center)
         )
 
@@ -236,7 +239,7 @@ fun SettingRow(
             text = text,
             style = TextStyle(
                 color = textColor,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 fontSize = 16.sp
             )
         )
@@ -282,7 +285,7 @@ fun SettingSwitchRow(
             text = text,
             style = TextStyle(
                 color = if (enabled) Color.White else Color.White.copy(alpha = 0.5f),
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 fontSize = 16.sp
             ),
             modifier = Modifier.weight(1f)
@@ -317,7 +320,7 @@ fun SettingInfoRow(
             text = label,
             style = TextStyle(
                 color = Color.White,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 fontSize = 16.sp
             )
         )
@@ -326,7 +329,7 @@ fun SettingInfoRow(
             text = value,
             style = TextStyle(
                 color = GrozzMuted,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 fontSize = 16.sp
             )
         )
@@ -339,7 +342,7 @@ fun SettingSectionTitle(title: String, color: Color) {
         text = title,
         style = TextStyle(
             color = color,
-            fontFamily = FontFamily(Font(R.font.lexendbold)),
+            fontFamily = Lexend,
             fontSize = 16.sp
         ),
         modifier = Modifier

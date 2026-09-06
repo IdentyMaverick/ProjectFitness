@@ -15,7 +15,15 @@ import data.local.entity.SetLogEntity
 import data.local.entity.WorkoutHistoryEntity
 
 @Database(
-    entities = [WorkoutEntity::class, WorkoutExerciseEntity::class, SetEntity::class, ExerciseCatalogEntity::class, ExerciseLogEntity::class, SetLogEntity::class, WorkoutHistoryEntity::class],
+    entities = [
+        WorkoutEntity::class,
+        WorkoutExerciseEntity::class,
+        SetEntity::class,
+        ExerciseCatalogEntity::class,
+        ExerciseLogEntity::class,
+        SetLogEntity::class,
+        WorkoutHistoryEntity::class
+    ],
     version = 1,
     exportSchema = true
 )

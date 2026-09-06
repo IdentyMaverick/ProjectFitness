@@ -146,18 +146,41 @@ interface WorkoutDao {
 
     @Query(
         """
-    SELECT MAX(orderIndex) FROM exercise
-    WHERE workoutOwnerId = :workoutId
-    """
+        SELECT MAX(orderIndex) FROM exercise
+        WHERE workoutOwnerId = :workoutId
+        """
     )
     suspend fun getMaxOrderIndex(workoutId: String): Int?
 
     @Query(
         """
-    UPDATE exercise
-    SET orderIndex = :orderIndex
-    WHERE exerciseId = :exerciseId
-    """
+        UPDATE exercise
+        SET orderIndex = :orderIndex
+        WHERE exerciseId = :exerciseId
+        """
     )
     suspend fun updateExerciseOrder(exerciseId: String, orderIndex: Int)
+
+    @Query(
+        """
+        SELECT MAX(setIndex) FROM exercise_set
+        WHERE exerciseOwnerId = :exerciseId
+        """
+    )
+    suspend fun getMaxOfExerciseSet(exerciseId: String): Int?
+
+    @Query(
+        """
+        UPDATE workout_history
+        SET totalDuration = :duration
+        WHERE sessionID = :sessionId
+        """
+    )
+    suspend fun updateSessionDuration(sessionId: String, duration: Long)
+
+    @Query("UPDATE exercise_logs SET setOrder = :setOrder WHERE logId = :logId")
+    suspend fun updateExerciseLogOrder(logId: Long, setOrder: Int)
+
+    @Query("UPDATE workout SET workoutType = 'challenge' WHERE LOWER(workoutType) = 'challange'")
+    suspend fun migrateChallengeSpelling()
 }

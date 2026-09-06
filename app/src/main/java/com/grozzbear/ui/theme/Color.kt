@@ -14,7 +14,7 @@ val GrozzSurface = Color(0xFF1C2126)
 /** Borders / dividers on dark surfaces. */
 val GrozzBorder = Color(0xFF2E353D)
 
-/** Brand accent — buttons, highlights, selected states. */
+/** Brand accent — the only yellow. Buttons, highlights, selected states. */
 val GrozzYellow = Color(0xFFF1C40F)
 
 /** Placeholder / secondary labels. */

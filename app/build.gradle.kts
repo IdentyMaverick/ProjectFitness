@@ -54,11 +54,6 @@ android {
         jvmTarget = "17"
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -83,16 +78,16 @@ android {
 }
 
 dependencies {
-    val nav_version = "2.8.5"
-    val room_version = "2.6.1"
-    val vico_version = "2.0.0-alpha.28"
+    val navVersion = "2.8.5"
+    val roomVersion = "2.6.1"
+    val vicoVersion = "2.0.0-alpha.28"
 
     // Core & Lifecycle
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.9.3")
 
-    // Jetpack Compose [cite: 8]
+    // Jetpack Compose
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -102,10 +97,10 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata")
 
     // Navigation & Room
-    implementation("androidx.navigation:navigation-compose:$nav_version")
-    implementation("androidx.room:room-runtime:$room_version")
-    kapt("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
+    implementation("androidx.navigation:navigation-compose:$navVersion")
+    implementation("androidx.room:room-runtime:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
@@ -118,7 +113,7 @@ dependencies {
     // Google Auth
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
-    // Üçüncü Parti Kütüphaneler [cite: 9]
+    // Third-party libraries
     implementation("com.chargemap.compose:numberpicker:1.0.3")
     implementation("dev.chrisbanes.snapper:snapper:0.3.0")
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
@@ -130,9 +125,9 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
 
     // Vico Charts
-    implementation("com.patrykandpatrick.vico:compose:$vico_version")
-    implementation("com.patrykandpatrick.vico:compose-m3:$vico_version")
-    implementation("com.patrykandpatrick.vico:core:$vico_version")
+    implementation("com.patrykandpatrick.vico:compose:$vicoVersion")
+    implementation("com.patrykandpatrick.vico:compose-m3:$vicoVersion")
+    implementation("com.patrykandpatrick.vico:core:$vicoVersion")
 
     // Test
     testImplementation("junit:junit:4.13.2")

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "4679d377abce7126bd614a5dad49c5e4",
+    "identityHash": "768a0fd7b73db9452d01687c0c1e8b77",
     "entities": [
       {
         "tableName": "workout",
@@ -146,7 +146,7 @@
       },
       {
         "tableName": "exercise_set",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`setId` TEXT NOT NULL, `exerciseOwnerId` TEXT NOT NULL, `reps` INTEGER NOT NULL, `weight` REAL NOT NULL, `note` TEXT, `isClicked` INTEGER NOT NULL, PRIMARY KEY(`setId`), FOREIGN KEY(`exerciseOwnerId`) REFERENCES `exercise`(`exerciseId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`setId` TEXT NOT NULL, `exerciseOwnerId` TEXT NOT NULL, `reps` INTEGER NOT NULL, `weight` REAL NOT NULL, `note` TEXT, `isClicked` INTEGER NOT NULL, `setIndex` INTEGER NOT NULL, PRIMARY KEY(`setId`), FOREIGN KEY(`exerciseOwnerId`) REFERENCES `exercise`(`exerciseId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "setId",
@@ -181,6 +181,12 @@
           {
             "fieldPath": "isClicked",
             "columnName": "isClicked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setIndex",
+            "columnName": "setIndex",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -516,7 +522,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4679d377abce7126bd614a5dad49c5e4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '768a0fd7b73db9452d01687c0c1e8b77')"
     ]
   }
 }

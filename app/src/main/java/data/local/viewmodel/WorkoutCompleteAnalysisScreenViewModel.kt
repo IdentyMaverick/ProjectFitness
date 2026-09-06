@@ -27,7 +27,7 @@ class WorkoutCompleteAnalysisScreenViewModel(
             val sessionId = _activeWorkoutId.value
             if (sessionId.isEmpty()) return@launch
 
-            val workoutHistoryFull = repo.observeHistoricalWorkoutExercise(sessionId)
+            val workoutHistoryFull = repo.sessions.observeHistoricalWorkoutExercise(sessionId)
             val exercises = workoutHistoryFull.exerciseWithSets
             _exerciseList.value = exercises
 

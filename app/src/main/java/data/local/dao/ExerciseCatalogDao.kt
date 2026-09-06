@@ -14,8 +14,8 @@ interface ExerciseCatalogDao {
 
     @Query(
         """
-        SELECT * FROM exercise_catalog 
-        WHERE isActive = 1 
+        SELECT * FROM exercise_catalog
+        WHERE isActive = 1
         AND name LIKE '%' || :q || '%'
         ORDER BY bodyPart
     """

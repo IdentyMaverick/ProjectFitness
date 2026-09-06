@@ -1,6 +1,5 @@
 package ui.mainpages.mainpages
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,10 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,16 +42,21 @@ import androidx.navigation.NavController
 import com.grozzbear.R
 import com.grozzbear.projectfitness.data.local.entity.WorkoutWithExercises
 import com.grozzbear.projectfitness.data.local.viewmodel.HomesViewModel
+import com.grozzbear.ui.components.GrozzPhotoCard
 import com.grozzbear.ui.components.GrozzTopBarLogo
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
-import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzRadiusChip
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
 import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
+import com.grozzbear.ui.util.counted
+import com.grozzbear.ui.util.isChallengeType
+import com.grozzbear.ui.util.isCoachType
 import com.grozzbear.ui.util.safeWorkoutPainter
+import com.grozzbear.ui.util.workoutTypeLabel
 import ui.mainpages.navigation.Screens
 
 @Composable
@@ -68,11 +69,13 @@ fun AllWorkouts(
     val filteredWorkouts = remember(allWorkouts, filter) {
         when (filter) {
             Screens.AllWorkouts.FILTER_COACH -> allWorkouts.filter {
-                it.workout.workoutType.contains("coach", ignoreCase = true)
+                isCoachType(it.workout.workoutType)
             }
+
             Screens.AllWorkouts.FILTER_CHALLENGE -> allWorkouts.filter {
-                it.workout.workoutType.contains("challange", ignoreCase = true)
+                isChallengeType(it.workout.workoutType)
             }
+
             else -> allWorkouts
         }
     }
@@ -84,12 +87,14 @@ fun AllWorkouts(
                 emptyTitle = "No coach picks yet",
                 emptyBody = "Coach workouts will show up here when available."
             )
+
             Screens.AllWorkouts.FILTER_CHALLENGE -> WorkoutListCopy(
                 titleTop = "CHALLENGES",
                 titleBottom = "CATALOGUE",
                 emptyTitle = "No challenges yet",
                 emptyBody = "Challenge workouts will show up here when available."
             )
+
             else -> WorkoutListCopy(
                 titleTop = "ALL",
                 titleBottom = "WORKOUTS LIST",
@@ -113,38 +118,41 @@ fun AllWorkouts(
                 .padding(paddingValues)
                 .navigationBarsPadding(),
             contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .padding(top = 12.dp, bottom = 4.dp)
+                        .padding(top = 8.dp, bottom = 4.dp)
                 ) {
                     HorizontalDivider(
-                        thickness = 3.dp,
+                        thickness = 2.dp,
                         color = GrozzYellow,
-                        modifier = Modifier.width(40.dp)
+                        modifier = Modifier.width(28.dp)
                     )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = titleTop,
-                        color = GrozzOnBackground,
-                        fontSize = 24.sp,
-                        fontFamily = Oswald,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = titleBottom,
-                        color = GrozzYellow,
-                        fontSize = 24.sp,
-                        fontFamily = Oswald,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = titleTop,
+                            color = GrozzOnBackground,
+                            fontSize = 20.sp,
+                            fontFamily = Oswald,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = titleBottom,
+                            color = GrozzYellow,
+                            fontSize = 20.sp,
+                            fontFamily = Oswald,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${filteredWorkouts.size} workouts",
+                        text = counted(filteredWorkouts.size, "workout"),
                         color = GrozzMuted,
                         fontSize = 13.sp,
                         fontFamily = Lexend,
@@ -212,40 +220,23 @@ private fun AllWorkoutCard(
     val difficulty = workout.workout.workoutRating.coerceIn(0, 5)
     val exerciseCount = workout.exercises.size
 
-    Box(
+    GrozzPhotoCard(
+        painter = safeWorkoutPainter(workout.workout.image),
         modifier = modifier
             .fillMaxWidth()
-            .height(160.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(GrozzSurface)
+            .height(120.dp)
             .clickable(onClick = onClick)
     ) {
-        Image(
-            painter = safeWorkoutPainter(workout.workout.image),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.9f)),
-                        startY = 80f
-                    )
-                )
-        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(18.dp),
+                .padding(14.dp),
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
-                text = workout.workout.workoutType.uppercase(),
+                text = workoutTypeLabel(workout.workout.workoutType).uppercase(),
                 color = GrozzYellow,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Bold
             )
@@ -254,14 +245,14 @@ private fun AllWorkoutCard(
                 color = GrozzOnBackground,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             if (exerciseCount > 0) {
                 WorkoutTag(
-                    text = "$exerciseCount exercises",
+                    text = counted(exerciseCount, "exercise"),
                     icon = R.drawable.shutterspeedfilledicon128,
                     textColor = GrozzTextSecondary,
                     iconColor = GrozzTextSecondary
@@ -329,7 +320,7 @@ fun WorkoutTag(
 ) {
     Row(
         modifier = modifier
-            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
+            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(GrozzRadiusChip))
             .padding(horizontal = 10.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

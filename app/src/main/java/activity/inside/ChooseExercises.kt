@@ -53,17 +53,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.grozzbear.R
+import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
 import com.grozzbear.ui.theme.GrozzOnBackground
+import com.grozzbear.ui.theme.GrozzRadiusChip
+import com.grozzbear.ui.theme.GrozzRadiusPanel
+import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzYellow
-import com.grozzbear.projectfitness.data.local.viewmodel.WorkoutSettingViewModel
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.local.viewmodel.ActivityInsideViewModel
-import kotlinx.coroutines.flow.flowOf
 import data.local.viewmodel.CreateWorkoutViewModel
+import data.local.viewmodel.OldWorkoutDetailsViewModel
+import kotlinx.coroutines.flow.flowOf
 import ui.mainpages.navigation.Screens
 import viewmodel.ViewModelSave
 import viewmodel.WorkoutinViewModel
@@ -76,6 +83,7 @@ fun ChooseExercises(
     workoutinViewModel: WorkoutinViewModel,
     createWorkoutViewModel: CreateWorkoutViewModel?,
     workoutSettingViewModel: WorkoutSettingViewModel?,
+    oldWorkoutDetailsViewModel: OldWorkoutDetailsViewModel?,
     activityInsideViewModel: ActivityInsideViewModel,
     targetWorkoutId: String?
 ) {
@@ -107,12 +115,20 @@ fun ChooseExercises(
         remember { listOf("All", "Cable", "Barbell", "Bodyweight", "Dumbbell", "Machine", "Plate") }
 
     val isEdit = Screens.ChooseExercises.isEditMode(targetWorkoutId)
+    val isHistory = Screens.ChooseExercises.isHistoryMode(targetWorkoutId)
+    val isAddingToExisting = isEdit || isHistory
 
     val catalogFromEdit by (workoutSettingViewModel?.catalogExercises ?: flowOf(emptyList()))
         .collectAsState(initial = emptyList())
     val catalogFromCreate by (createWorkoutViewModel?.catalogWorkoutList ?: flowOf(emptyList()))
         .collectAsState(initial = emptyList())
-    val catalogExercisesList = if (isEdit) catalogFromEdit else catalogFromCreate
+    val catalogFromHistory by (oldWorkoutDetailsViewModel?.catalogExercises ?: flowOf(emptyList()))
+        .collectAsState(initial = emptyList())
+    val catalogExercisesList = when {
+        isHistory -> catalogFromHistory
+        isEdit -> catalogFromEdit
+        else -> catalogFromCreate
+    }
 
     val selectedIdsByCreateVm by (createWorkoutViewModel?.selectedExerciseIds ?: flowOf(emptySet()))
         .collectAsState(initial = emptySet())
@@ -121,6 +137,8 @@ fun ChooseExercises(
 
     val workoutFull by (workoutSettingViewModel?.workoutFlow ?: flowOf(null))
         .collectAsState(initial = null)
+    val historyDraft by (oldWorkoutDetailsViewModel?.draft ?: flowOf(null))
+        .collectAsState(initial = null)
 
     val existingCatalogIds = remember(workoutFull) {
         workoutFull?.exercises
@@ -128,8 +146,14 @@ fun ChooseExercises(
             ?.toSet()
             ?: emptySet()
     }
+    val existingHistoryNames = remember(historyDraft) {
+        historyDraft?.exerciseWithSets
+            ?.map { it.exerciseLog.exerciseName.lowercase() }
+            ?.toSet()
+            ?: emptySet()
+    }
 
-    val selectedIds = if (isEdit) editSelectedIds else selectedIdsByCreateVm
+    val selectedIds = if (isAddingToExisting) editSelectedIds else selectedIdsByCreateVm
     val exerciseCounter = selectedIds.size
 
     val filteredExercises =
@@ -159,7 +183,11 @@ fun ChooseExercises(
         floatingActionButton = {
             ExtendedStartButtonCreateWorkout(
                 onConfirmClick = {
-                    if (isEdit) {
+                    if (isHistory) {
+                        val selected = catalogExercisesList.filter { it.id in selectedIds }
+                        oldWorkoutDetailsViewModel?.addDraftExercisesFromCatalog(selected)
+                        navController.popBackStack()
+                    } else if (isEdit) {
                         workoutSettingViewModel?.addExercisesFromCatalog(selectedIds)
                         navController.popBackStack()
                     } else {
@@ -206,7 +234,6 @@ fun ChooseExercises(
                 )
             }
 
-
             Spacer(Modifier.height(20.dp))
 
             SearchBox(searchText)
@@ -218,7 +245,11 @@ fun ChooseExercises(
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 itemsIndexed(filteredExercises) { index, item ->
-                    val alreadyInWorkout = isEdit && item.id in existingCatalogIds
+                    val alreadyInWorkout = when {
+                        isEdit -> item.id in existingCatalogIds
+                        isHistory -> item.name.lowercase() in existingHistoryNames
+                        else -> false
+                    }
                     val clicked = item.id in selectedIds
 
                     Row(
@@ -226,10 +257,10 @@ fun ChooseExercises(
                             .fillMaxWidth()
                             .height(100.dp)
                             .padding(horizontal = 20.dp, vertical = 8.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF1C2126))
+                            .clip(RoundedCornerShape(GrozzRadiusChip))
+                            .background(GrozzSurface)
                             .clickable(enabled = !alreadyInWorkout) {
-                                if (isEdit) {
+                                if (isAddingToExisting) {
                                     editSelectedIds = if (!clicked) {
                                         editSelectedIds + item.id
                                     } else {
@@ -251,7 +282,7 @@ fun ChooseExercises(
                                 },
                                 color = when {
                                     alreadyInWorkout -> Color.White.copy(alpha = 0.2f)
-                                    clicked -> Color(0xFFF1C40F)
+                                    clicked -> GrozzYellow
                                     else -> Color.Transparent
                                 },
                                 shape = RoundedCornerShape(12.dp)
@@ -265,7 +296,7 @@ fun ChooseExercises(
                             Text(
                                 text = "${index + 1}",
                                 color = Color.White.copy(alpha = 0.6f),
-                                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                fontFamily = Lexend,
                                 fontSize = 12.sp
                             )
                         }
@@ -276,15 +307,15 @@ fun ChooseExercises(
                             Text(
                                 text = item.name,
                                 color = Color.White,
-                                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                                fontFamily = Lexend,
                                 fontSize = 16.sp,
                                 maxLines = 1
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = "${item.bodyPart} • ${item.equipment}",
-                                color = Color(0xFFF1C40F),
-                                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                                color = GrozzYellow,
+                                fontFamily = Lexend,
                                 fontSize = 12.sp
                             )
                         }
@@ -322,7 +353,7 @@ fun FilterDropdownCreateWorkout(
         Button(
             onClick = { onExpandChange(true) },
             modifier = Modifier
-                .border(1.dp, Color(0xFFF1C40F), RoundedCornerShape(8.dp))
+                .border(1.dp, GrozzYellow, RoundedCornerShape(8.dp))
                 .width(130.dp)
                 .height(40.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF21282F)),
@@ -338,9 +369,9 @@ fun FilterDropdownCreateWorkout(
                     text = text,
                     color = Color.White,
                     fontSize = 14.sp,
-                    fontFamily = FontFamily(Font(R.font.lexendextrabold))
+                    fontFamily = Lexend
                 )
-                Icon(Icons.Filled.ArrowDropDown, null, tint = Color(0xFFF1C40F))
+                Icon(Icons.Filled.ArrowDropDown, null, tint = GrozzYellow)
             }
         }
 
@@ -377,7 +408,7 @@ fun SearchBox(text: MutableState<String>) {
             .background(Color(0xFF21282F), shape = RoundedCornerShape(12.dp)),
         textStyle = TextStyle(
             fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular)),
+            fontFamily = Lexend,
             color = Color.White
         ),
         singleLine = true,
@@ -419,14 +450,16 @@ fun HomeTopBarCreateWorkout(navController: NavController) {
             text = "ADD",
             color = GrozzOnBackground,
             fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
+            fontFamily = Oswald,
+            fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "EXERCISES",
             color = GrozzYellow,
             fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold))
+            fontFamily = Oswald,
+            fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.width(48.dp))
@@ -437,17 +470,17 @@ fun HomeTopBarCreateWorkout(navController: NavController) {
 fun ExtendedStartButtonCreateWorkout(onConfirmClick: () -> Unit, totalSelectedExercise: String) {
     FloatingActionButton(
         onClick = onConfirmClick,
-        containerColor = Color(0xFFF1C40F),
-        shape = RoundedCornerShape(16.dp)
+        containerColor = GrozzYellow,
+        shape = RoundedCornerShape(GrozzRadiusPanel)
     ) {
-        if (totalSelectedExercise.toInt() <= 0){
-        Icon(
-            imageVector = Icons.Default.Add,
-            contentDescription = "Confirm",
-            tint = Color.Black,
-            modifier = Modifier.size(24.dp)
-        )}
-        else {
+        if (totalSelectedExercise.toInt() <= 0) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Confirm",
+                tint = Color.Black,
+                modifier = Modifier.size(24.dp)
+            )
+        } else {
             Text(
                 text = totalSelectedExercise,
                 color = Color.Black,

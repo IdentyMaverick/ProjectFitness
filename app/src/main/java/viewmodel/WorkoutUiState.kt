@@ -3,7 +3,6 @@ package viewmodel
 import androidx.annotation.Keep
 import com.grozzbear.projectfitness.data.remote.Workoutin
 
-
 interface WorkoutUiState {
     data object Idle : WorkoutUiState
     data object Loading : WorkoutUiState

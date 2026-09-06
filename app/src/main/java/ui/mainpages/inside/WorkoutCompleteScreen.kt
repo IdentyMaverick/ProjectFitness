@@ -68,6 +68,7 @@ import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusPanel
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
@@ -160,7 +161,7 @@ fun WorkoutCompleteScreen(
             Text(
                 text = "Great Job, $userFirstName",
                 color = GrozzOnBackground,
-                fontSize = 28.sp,
+                fontSize = 22.sp,
                 fontFamily = Lexend,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
@@ -293,7 +294,7 @@ private fun HomeTopBarWorkoutCompleteScreen(onClose: () -> Unit) {
             Text(
                 text = "SESSION",
                 color = GrozzOnBackground,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 letterSpacing = 0.sp,
                 fontFamily = Oswald,
                 fontWeight = FontWeight.Bold
@@ -302,7 +303,7 @@ private fun HomeTopBarWorkoutCompleteScreen(onClose: () -> Unit) {
             Text(
                 text = "SUMMARY",
                 color = GrozzYellow,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 letterSpacing = 0.sp,
                 fontFamily = Oswald,
                 fontWeight = FontWeight.Bold
@@ -330,9 +331,9 @@ private fun ProgressCircle(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(GrozzSurface)
-            .border(1.dp, GrozzBorder, RoundedCornerShape(16.dp))
+            .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel))
             .padding(vertical = 20.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -373,7 +374,7 @@ private fun ProgressCircle(
         Text(
             text = "$value",
             color = GrozzOnBackground,
-            fontSize = 22.sp,
+            fontSize = 18.sp,
             fontFamily = Lexend,
             fontWeight = FontWeight.ExtraBold
         )
@@ -400,9 +401,9 @@ private fun WorkoutRecordCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(GrozzSurface)
-            .border(1.dp, GrozzYellow.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+            .border(1.dp, GrozzYellow.copy(alpha = 0.35f), RoundedCornerShape(GrozzRadiusPanel))
             .padding(16.dp)
     ) {
         Row(

@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.grozzbear.projectfitness.data.local.entity.SetEntity
 import data.local.entity.SetLogEntity
+import data.remote.FirestorePaths
 import data.remote.LeaderboardEntry
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,14 +19,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-
 class WorkoutLogViewModel(
     val repo: com.grozzbear.projectfitness.data.local.repository.WorkoutRepository,
     workoutId: String,
     val workoutCompleteScreenViewModel: WorkoutCompleteScreenViewModel,
     val workoutCompleteAnalysisScreenViewModel: WorkoutCompleteAnalysisScreenViewModel
 ) : ViewModel() {
-    val workoutFlow = repo.observeWorkoutFull(workoutId)
+    val workoutFlow = repo.templates.observeWorkoutFull(workoutId)
     val addedExerciseMap = mutableMapOf<String, String>()
     var savedSetIds = mutableMapOf<String, Long>()
 
@@ -71,7 +71,7 @@ class WorkoutLogViewModel(
 
     fun startWorkout(workoutId: String, workoutName: String) {
         viewModelScope.launch {
-            val sessionId = repo.startHistoricalWorkout(workoutName, workoutId)
+            val sessionId = repo.sessions.startHistoricalWorkout(workoutName, workoutId)
             activeSessionId = sessionId
         }
     }
@@ -111,7 +111,7 @@ class WorkoutLogViewModel(
         activeSessionId?.let { id ->
             if (addedExerciseMap.containsKey(exerciseName)) return addedExerciseMap[exerciseName]
 
-            val exerciseId = repo.addExerciseLog(
+            val exerciseId = repo.sessions.addExerciseLog(
                 sessionId = id,
                 exerciseName = exerciseName,
                 bodyPart = bodyPart,
@@ -134,7 +134,7 @@ class WorkoutLogViewModel(
         val key = "${logId}_$setIndex"
         val r = reps.toIntOrNull() ?: 0
         val w = weight.toFloatOrNull() ?: 0f
-        val newId = repo.addSetLog(
+        val newId = repo.sessions.addSetLog(
             logOwnerId = logId.toLong(),
             setId = 0L,
             reps = r,
@@ -153,7 +153,7 @@ class WorkoutLogViewModel(
         val w = weight.toFloatOrNull() ?: 0f
         calculateAndStoreMax(exerciseName, w, r)
 
-        val newId = repo.addSetLog(
+        val newId = repo.sessions.addSetLog(
             logOwnerId = logId.toLong(),
             setId = existingSetId,
             reps = r,
@@ -186,7 +186,7 @@ class WorkoutLogViewModel(
             val key = "${logId}_$setIndex"
             val setIdToDelete = savedSetIds[key] ?: return@launch
 
-            repo.deleteHistoricalSet(
+            repo.sessions.deleteHistoricalSet(
                 SetLogEntity(
                     setId = setIdToDelete,
                     logOwnerId = logId.toLong(),
@@ -217,8 +217,7 @@ class WorkoutLogViewModel(
                     val reps = currentSetData?.reps ?: 0
                     val weight = currentSetData?.weight ?: 0f
 
-
-                    repo.addSetLog(
+                    repo.sessions.addSetLog(
                         logOwnerId = logId.toLong(),
                         setId = setId,
                         reps = reps,
@@ -235,7 +234,7 @@ class WorkoutLogViewModel(
     fun cancelAndExitWorkout(onComplete: () -> Unit) {
         viewModelScope.launch {
             stopWorkout()
-            activeSessionId?.let { repo.deleteHistoricalWorkoutById(it) }
+            activeSessionId?.let { repo.sessions.deleteHistoricalWorkoutById(it) }
             onComplete()
         }
     }
@@ -243,7 +242,7 @@ class WorkoutLogViewModel(
     fun updateExerciseNote(log: String) {
         activeExerciseId?.let {
             viewModelScope.launch {
-                repo.updateExerciseNote(
+                repo.sessions.updateExerciseNote(
                     it.toLong(),
                     log
                 )
@@ -254,7 +253,7 @@ class WorkoutLogViewModel(
     fun updateSetNote(log: String, setIndex: Int) {
         activeExerciseId?.let {
             viewModelScope.launch {
-                repo.updateSetNote(
+                repo.sessions.updateSetNote(
                     log,
                     it.toLong(),
                     setIndex
@@ -268,7 +267,7 @@ class WorkoutLogViewModel(
             val logId = addedExerciseMap[exerciseName] ?: return@launch
             val key = "${logId}_$setIndex"
             val setId = savedSetIds[key] ?: return@launch
-            repo.updateSetLogClick(isClicked, setId)
+            repo.sessions.updateSetLogClick(isClicked, setId)
 
             val currentList = exerciseSetsMap[exerciseName]
             if (currentList != null && setIndex < currentList.size) {
@@ -295,14 +294,14 @@ class WorkoutLogViewModel(
                 }
             }
             if (setsToDelete.isNotEmpty()) {
-                repo.deleteMultipleSets(setsToDelete)
+                repo.sessions.deleteMultipleSets(setsToDelete)
             }
 
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
             if (currentUserId != null) {
                 viewModelScope.launch {
                     val userDoc = FirebaseFirestore.getInstance()
-                        .collection("googlecloudusers")
+                        .collection(FirestorePaths.USERS)
                         .document(currentUserId)
                         .get()
                         .await()
@@ -344,7 +343,7 @@ class WorkoutLogViewModel(
                     Log.d("Firebase Error", e.message.toString())
                 }
                 workoutCompleteAnalysisScreenViewModel._activeWorkoutId.value = it
-                repo.finishWorkout(it, System.currentTimeMillis(), _elapsedTime.value, true)
+                repo.sessions.finishWorkout(it, System.currentTimeMillis(), _elapsedTime.value, true)
             }
             onComplete()
         }
@@ -368,7 +367,7 @@ class WorkoutLogViewModel(
 
     fun saveWorkoutHistoryToFirebase(userId: String, sessionId: String) {
         viewModelScope.launch {
-            repo.saveWorkoutHistoryToFirebase(userId, sessionId)
+            repo.sessions.saveWorkoutHistoryToFirebase(userId, sessionId)
         }
     }
 }

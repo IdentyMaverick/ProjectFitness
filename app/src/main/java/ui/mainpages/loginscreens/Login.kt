@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
@@ -62,6 +64,7 @@ import com.grozzbear.ui.components.GrozzTextField
 import com.grozzbear.ui.theme.GrozzBackground
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Oswald
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 import viewmodel.LoginUiState
@@ -139,22 +142,26 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 painter = painterResource(R.drawable.grozzlogo),
                 contentDescription = "Grozz Logo",
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(120.dp)
                     .padding(bottom = 8.dp)
             )
 
-            Text(
-                text = "WELCOME",
-                style = MaterialTheme.typography.displayLarge,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "BACK",
-                style = MaterialTheme.typography.displayMedium,
-                color = GrozzYellow,
-                textAlign = TextAlign.Center
-            )
+            Row(horizontalArrangement = Arrangement.Center) {
+                Text(
+                    text = "WELCOME ",
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = Color.White
+                )
+                Text(
+                    text = "BACK",
+                    fontFamily = Oswald,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = GrozzYellow
+                )
+            }
 
             Spacer(modifier = Modifier.height(28.dp))
 
@@ -333,6 +340,7 @@ private fun googleSignInErrorMessage(e: ApiException): String {
     return when (e.statusCode) {
         CommonStatusCodes.DEVELOPER_ERROR ->
             "Google Sign-In is not configured for this app. Add the debug SHA-1 in Firebase Console, then download a new google-services.json."
+
         else -> {
             val codeName = GoogleSignInStatusCodes.getStatusCodeString(e.statusCode)
             "Google sign-in failed ($codeName)"

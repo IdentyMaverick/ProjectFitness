@@ -103,6 +103,7 @@ import com.grozzbear.ui.theme.GrozzError
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusChip
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
@@ -175,300 +176,302 @@ fun WorkoutLog(
             )
 
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { pageIndex ->
-                val exercise = workout.exercises[pageIndex]
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { pageIndex ->
+                    val exercise = workout.exercises[pageIndex]
 
-                val currentSets = remember(exercise.exercise.exerciseId) {
-                    workoutLogViewModel.getOrInitSets(exercise.exercise.exerciseName, exercise.sets)
-                }
-                LaunchedEffect(pagerState.currentPage) {
-                    if (pagerState.currentPage == pageIndex) {
-                        workoutLogViewModel.addExercise(
-                            exercise.exercise.exerciseName,
-                            exercise.exercise.bodyPart,
-                            exercise.exercise.secondaryMuscles
-                        )
+                    val currentSets = remember(exercise.exercise.exerciseId) {
+                        workoutLogViewModel.getOrInitSets(exercise.exercise.exerciseName, exercise.sets)
                     }
-                }
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        ExerciseImageHeader(
-                            exerciseName = exercise.exercise.exerciseName,
-                            exerciseImage = exercise.exercise.exerciseImage,
-                            pageLabel = "${pagerState.currentPage + 1} of ${workout.exercises.size}"
-                        )
-                    }
-
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(GrozzSurface)
-                                .padding(horizontal = 20.dp, vertical = 14.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            FinalWorkoutTimer()
-                        }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 28.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "SET",
-                                color = GrozzMuted,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = Lexend,
-                                modifier = Modifier.width(30.dp)
+                    LaunchedEffect(pagerState.currentPage) {
+                        if (pagerState.currentPage == pageIndex) {
+                            workoutLogViewModel.addExercise(
+                                exercise.exercise.exerciseName,
+                                exercise.exercise.bodyPart,
+                                exercise.exercise.secondaryMuscles
                             )
-                            Text(
-                                "KG",
-                                color = GrozzMuted,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                "REPS",
-                                color = GrozzMuted,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontFamily = Lexend,
-                                modifier = Modifier.weight(1f),
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.width(25.dp))
-                            Spacer(modifier = Modifier.size(28.dp))
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
 
-                    itemsIndexed(
-                        items = currentSets,
-                        key = { _, item -> item.setId }
-                    ) { index, item ->
-                        val isDone = item.isClicked
-                        var rowWeight by remember(item.setId) {
-                            mutableStateOf(if (item.weight > 0) item.weight.toString() else "0")
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            ExerciseImageHeader(
+                                exerciseName = exercise.exercise.exerciseName,
+                                exerciseImage = exercise.exercise.exerciseImage,
+                                pageLabel = "${pagerState.currentPage + 1} of ${workout.exercises.size}"
+                            )
                         }
-                        var rowReps by remember(item.setId) {
-                            mutableStateOf(if (item.reps > 0) item.reps.toString() else "0")
-                        }
-                        var isDeleting by remember { mutableStateOf(false) }
 
-                        val dismissBoxState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = { dismissValue ->
-                                when (dismissValue) {
-                                    SwipeToDismissBoxValue.EndToStart -> {
-                                        isDeleting = true
-                                        false
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(GrozzSurface)
+                                    .padding(horizontal = 20.dp, vertical = 14.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                FinalWorkoutTimer()
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 28.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "SET",
+                                    color = GrozzMuted,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.width(30.dp)
+                                )
+                                Text(
+                                    "KG",
+                                    color = GrozzMuted,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    "REPS",
+                                    color = GrozzMuted,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontFamily = Lexend,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.width(25.dp))
+                                Spacer(modifier = Modifier.size(28.dp))
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+
+                        itemsIndexed(
+                            items = currentSets,
+                            key = { _, item -> item.setId }
+                        ) { index, item ->
+                            val isDone = item.isClicked
+                            var rowWeight by remember(item.setId) {
+                                mutableStateOf(if (item.weight > 0) item.weight.toString() else "0")
+                            }
+                            var rowReps by remember(item.setId) {
+                                mutableStateOf(if (item.reps > 0) item.reps.toString() else "0")
+                            }
+                            var isDeleting by remember { mutableStateOf(false) }
+
+                            val dismissBoxState = rememberSwipeToDismissBoxState(
+                                confirmValueChange = { dismissValue ->
+                                    when (dismissValue) {
+                                        SwipeToDismissBoxValue.EndToStart -> {
+                                            isDeleting = true
+                                            false
+                                        }
+
+                                        SwipeToDismissBoxValue.StartToEnd -> {
+                                            showBottomSheetLog = true
+                                            flag.value = 1
+                                            setIndex.intValue = index
+                                            false
+                                        }
+
+                                        else -> false
                                     }
-                                    SwipeToDismissBoxValue.StartToEnd -> {
-                                        showBottomSheetLog = true
-                                        flag.value = 1
-                                        setIndex.intValue = index
-                                        false
-                                    }
-                                    else -> false
+                                }
+                            )
+
+                            LaunchedEffect(isDeleting) {
+                                if (isDeleting) {
+                                    workoutLogViewModel.deleteSet(index, exercise.exercise.exerciseName)
+                                    currentSets.remove(item)
+                                    isDeleting = false
                                 }
                             }
-                        )
 
-                        LaunchedEffect(isDeleting) {
-                            if (isDeleting) {
-                                workoutLogViewModel.deleteSet(index, exercise.exercise.exerciseName)
-                                currentSets.remove(item)
-                                isDeleting = false
-                            }
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .animateContentSize()
-                        ) {
-                            SwipeToDismissBox(
-                                state = dismissBoxState,
-                                backgroundContent = {
-                                    val color by animateColorAsState(
-                                        when (dismissBoxState.targetValue) {
-                                            SwipeToDismissBoxValue.EndToStart -> GrozzError
-                                            SwipeToDismissBoxValue.StartToEnd -> Color(0xFF4CAF50)
-                                            else -> Color.Transparent
-                                        },
-                                        label = "dismissColor"
-                                    )
-                                    Box(
-                                        Modifier
-                                            .fillMaxSize()
-                                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(color)
-                                    )
-                                },
-                                content = {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .background(GrozzSurface.copy(alpha = 0.9f))
-                                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "${index + 1}",
-                                            modifier = Modifier.width(30.dp),
-                                            color = if (isDone) GrozzYellow else GrozzOnBackground,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontFamily = Lexend
-                                        )
-                                        Box(modifier = Modifier.weight(1f)) {
-                                            SetLogItemWeight(
-                                                rowWeight,
-                                                {
-                                                    rowWeight = it
-                                                    scope.launch {
-                                                        workoutLogViewModel.toggleSetDone(
-                                                            exercise.exercise.exerciseName,
-                                                            index,
-                                                            false
-                                                        )
-                                                    }
-                                                },
-                                                Modifier.fillMaxWidth(),
-                                                isDone
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Box(modifier = Modifier.weight(1f)) {
-                                            SetLogItemReps(
-                                                rowReps,
-                                                {
-                                                    rowReps = it
-                                                    scope.launch {
-                                                        workoutLogViewModel.toggleSetDone(
-                                                            exercise.exercise.exerciseName,
-                                                            index,
-                                                            false
-                                                        )
-                                                    }
-                                                },
-                                                Modifier.fillMaxWidth(),
-                                                isDone
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        IconButton(
-                                            onClick = {
-                                                scope.launch {
-                                                    clickedSetsNumber.value += 1
-                                                    clickedRepsNumber.value += rowReps.toIntOrNull() ?: 0
-                                                    workoutLogViewModel.saveSetToDb(
-                                                        rowReps,
-                                                        rowWeight,
-                                                        index,
-                                                        exercise.exercise.exerciseName
-                                                    )
-                                                    workoutLogViewModel.toggleSetDone(
-                                                        exercise.exercise.exerciseName,
-                                                        index,
-                                                        !isDone
-                                                    )
-                                                }
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize()
+                            ) {
+                                SwipeToDismissBox(
+                                    state = dismissBoxState,
+                                    backgroundContent = {
+                                        val color by animateColorAsState(
+                                            when (dismissBoxState.targetValue) {
+                                                SwipeToDismissBoxValue.EndToStart -> GrozzError
+                                                SwipeToDismissBoxValue.StartToEnd -> Color(0xFF4CAF50)
+                                                else -> Color.Transparent
                                             },
+                                            label = "dismissColor"
+                                        )
+                                        Box(
+                                            Modifier
+                                                .fillMaxSize()
+                                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(color)
+                                        )
+                                    },
+                                    content = {
+                                        Row(
                                             modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(CircleShape)
-                                                .background(
-                                                    if (isDone) GrozzYellow else GrozzBorder
-                                                )
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(GrozzSurface.copy(alpha = 0.9f))
+                                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Icon(
-                                                Icons.Default.Check,
-                                                contentDescription = if (isDone) "Completed" else "Mark complete",
-                                                tint = if (isDone) GrozzOnPrimary else GrozzMuted,
-                                                modifier = Modifier.size(18.dp)
+                                            Text(
+                                                text = "${index + 1}",
+                                                modifier = Modifier.width(30.dp),
+                                                color = if (isDone) GrozzYellow else GrozzOnBackground,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontFamily = Lexend
                                             )
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                SetLogItemWeight(
+                                                    rowWeight,
+                                                    {
+                                                        rowWeight = it
+                                                        scope.launch {
+                                                            workoutLogViewModel.toggleSetDone(
+                                                                exercise.exercise.exerciseName,
+                                                                index,
+                                                                false
+                                                            )
+                                                        }
+                                                    },
+                                                    Modifier.fillMaxWidth(),
+                                                    isDone
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(10.dp))
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                SetLogItemReps(
+                                                    rowReps,
+                                                    {
+                                                        rowReps = it
+                                                        scope.launch {
+                                                            workoutLogViewModel.toggleSetDone(
+                                                                exercise.exercise.exerciseName,
+                                                                index,
+                                                                false
+                                                            )
+                                                        }
+                                                    },
+                                                    Modifier.fillMaxWidth(),
+                                                    isDone
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            IconButton(
+                                                onClick = {
+                                                    scope.launch {
+                                                        clickedSetsNumber.value += 1
+                                                        clickedRepsNumber.value += rowReps.toIntOrNull() ?: 0
+                                                        workoutLogViewModel.saveSetToDb(
+                                                            rowReps,
+                                                            rowWeight,
+                                                            index,
+                                                            exercise.exercise.exerciseName
+                                                        )
+                                                        workoutLogViewModel.toggleSetDone(
+                                                            exercise.exercise.exerciseName,
+                                                            index,
+                                                            !isDone
+                                                        )
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .background(
+                                                        if (isDone) GrozzYellow else GrozzBorder
+                                                    )
+                                            ) {
+                                                Icon(
+                                                    Icons.Default.Check,
+                                                    contentDescription = if (isDone) "Completed" else "Mark complete",
+                                                    tint = if (isDone) GrozzOnPrimary else GrozzMuted,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
-                    }
 
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    val nextIdx = currentSets.size
-                                    workoutLogViewModel.saveSetToDb(
-                                        reps = "0",
-                                        weight = "0",
-                                        setIndex = nextIdx,
-                                        exerciseName = exercise.exercise.exerciseName
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth()
-                                .height(44.dp)
-                                .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                        ) {
-                            Text(
-                                text = "+  Add set",
-                                color = GrozzYellow,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontFamily = Lexend
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        val nextIdx = currentSets.size
+                                        workoutLogViewModel.saveSetToDb(
+                                            reps = "0",
+                                            weight = "0",
+                                            setIndex = nextIdx,
+                                            exerciseName = exercise.exercise.exerciseName
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .fillMaxWidth()
+                                    .height(44.dp)
+                                    .border(1.dp, GrozzYellow, RoundedCornerShape(12.dp)),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                            ) {
+                                Text(
+                                    text = "+  Add set",
+                                    color = GrozzYellow,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontFamily = Lexend
+                                )
+                            }
+                        }
+                        item {
+                            Spacer(
+                                modifier = Modifier.height(
+                                    if (!pagerState.canScrollForward) 120.dp else 80.dp
+                                )
                             )
                         }
                     }
-                    item {
-                        Spacer(
-                            modifier = Modifier.height(
-                                if (!pagerState.canScrollForward) 120.dp else 80.dp
-                            )
+                }
+
+                if (!pagerState.canScrollForward) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding()
+                            .padding(bottom = 16.dp),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        GrozzPrimaryButton(
+                            text = "Finish workout",
+                            onClick = { showBottomSheetFinish = true },
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp)
+                                .fillMaxWidth()
                         )
                     }
                 }
-            }
-
-            if (!pagerState.canScrollForward) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .navigationBarsPadding()
-                        .padding(bottom = 16.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    GrozzPrimaryButton(
-                        text = "Finish workout",
-                        onClick = { showBottomSheetFinish = true },
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            }
             } // content Box under top bar
 
             if (showBottomSheet) {
@@ -542,14 +545,16 @@ fun WorkoutLog(
                             workoutCompleteScreenViewModel._totalRepsCompleted.value =
                                 clickedRepsNumber.value
                             workoutLogViewModel.stopWorkout()
-                            workoutLogViewModel.finishWorkout({
-                                showBottomSheetFinish = false
-                                navController.navigate(Screens.WorkoutCompleteScreen.route) {
-                                    popUpTo(Screens.WorkoutCompleteScreen.route) {
-                                        inclusive = true
+                            workoutLogViewModel.finishWorkout(
+                                {
+                                    showBottomSheetFinish = false
+                                    navController.navigate(Screens.WorkoutCompleteScreen.route) {
+                                        popUpTo(Screens.WorkoutCompleteScreen.route) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
-                            })
+                            )
                         },
                         onDismiss = {
                             scope.launch { sheetStateFinish.hide() }.invokeOnCompletion {
@@ -600,7 +605,7 @@ fun ExerciseImageHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(240.dp)
+            .height(196.dp)
     ) {
         AsyncImage(
             model = fullUrl,
@@ -631,7 +636,7 @@ fun ExerciseImageHeader(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(12.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(GrozzRadiusChip))
                     .background(GrozzSystemBar.copy(alpha = 0.85f))
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
@@ -660,8 +665,9 @@ fun ExerciseImageHeader(
             Text(
                 text = firstWord.uppercase(),
                 color = GrozzOnBackground,
-                style = MaterialTheme.typography.headlineMedium,
                 fontFamily = Oswald,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -669,8 +675,9 @@ fun ExerciseImageHeader(
                 Text(
                     text = secondWord.uppercase(),
                     color = GrozzYellow,
-                    style = MaterialTheme.typography.headlineMedium,
                     fontFamily = Oswald,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -711,7 +718,7 @@ private fun HomeTopBarWorkoutLog(
         Row(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .clip(RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(GrozzRadiusChip))
                 .background(GrozzSurface)
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -760,7 +767,7 @@ fun WorkoutExitDialog(onConfirm: () -> Unit, onDismiss: () -> Unit, flag: Int) {
         Text(
             text = if (flag == 0) "End workout?" else "Complete workout?",
             color = GrozzOnBackground,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontFamily = Lexend
         )
         if (flag == 0) {
@@ -820,7 +827,7 @@ fun WorkoutLogDialog(
             onValueChange = { logValue.value = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp),
+                .height(160.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = GrozzSystemBar,
                 focusedContainerColor = GrozzSystemBar,

@@ -2,10 +2,14 @@ package com.grozzbear.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,8 +27,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -35,6 +44,10 @@ import com.grozzbear.ui.theme.GrozzBorder
 import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
+import com.grozzbear.ui.theme.GrozzRadiusButton
+import com.grozzbear.ui.theme.GrozzRadiusChip
+import com.grozzbear.ui.theme.GrozzRadiusPanel
+import com.grozzbear.ui.theme.GrozzRadiusPhoto
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzTextSecondary
 import com.grozzbear.ui.theme.GrozzYellow
@@ -55,6 +68,65 @@ fun GrozzTopBarLogo(modifier: Modifier = Modifier) {
         modifier = modifier.size(GrozzTopBarLogoSize)
     )
 }
+
+@Composable
+fun GrozzPhotoCard(
+    painter: Painter,
+    modifier: Modifier = Modifier,
+    hero: Boolean = false,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(GrozzRadiusPhoto))
+            .background(GrozzSurface)
+    ) {
+        Image(
+            painter = painter,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    if (hero) {
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.15f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
+                        )
+                    } else {
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.88f)
+                            ),
+                            startY = 40f
+                        )
+                    }
+                )
+        )
+        content()
+    }
+}
+
+@Composable
+fun GrozzPanel(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
+            .background(GrozzSurface)
+            .border(1.dp, GrozzBorder, RoundedCornerShape(GrozzRadiusPanel)),
+        content = content
+    )
+}
+
 @Composable
 fun GrozzPrimaryButton(
     text: String,
@@ -73,7 +145,7 @@ fun GrozzPrimaryButton(
             disabledContainerColor = GrozzYellow.copy(alpha = 0.5f),
             disabledContentColor = GrozzOnPrimary.copy(alpha = 0.7f)
         ),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(GrozzRadiusButton)
     ) {
         if (loading) {
             CircularProgressIndicator(
@@ -126,7 +198,7 @@ fun GrozzTextField(
             fontFamily = Lexend
         ),
         singleLine = singleLine,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(GrozzRadiusChip),
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         colors = OutlinedTextFieldDefaults.colors(
@@ -159,9 +231,9 @@ fun GrozzComingSoonPanel(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(GrozzRadiusPanel))
             .background(GrozzSurface)
-            .padding(horizontal = 24.dp, vertical = 28.dp),
+            .padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
@@ -185,17 +257,19 @@ fun GrozzComingSoonPanel(
 
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            color = GrozzOnBackground,
             fontFamily = Oswald,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 20.sp,
+            color = GrozzOnBackground,
             textAlign = TextAlign.Center
         )
         if (accentTitle != null) {
             Text(
                 text = accentTitle,
-                style = MaterialTheme.typography.headlineMedium,
-                color = GrozzYellow,
                 fontFamily = Oswald,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                color = GrozzYellow,
                 textAlign = TextAlign.Center
             )
         }
@@ -212,9 +286,10 @@ fun GrozzComingSoonPanel(
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = footer.uppercase(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = GrozzYellow,
                 fontFamily = Lexend,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = GrozzYellow,
                 textAlign = TextAlign.Center
             )
         }

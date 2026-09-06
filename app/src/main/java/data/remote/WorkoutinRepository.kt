@@ -8,7 +8,7 @@ class WorkoutinRepository(
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
     suspend fun getExercises(limit: Long = 100): List<Workoutin> {
-        val snap = firestore.collection("googlecloud")
+        val snap = firestore.collection(FirestorePaths.CATALOG)
             .whereEqualTo("isActive", true)
             .limit(limit)
             .get()
@@ -18,7 +18,7 @@ class WorkoutinRepository(
     }
 
     suspend fun getExercisesByBodyPart(bodyPart: List<String>, limit: Long = 200): List<Workoutin> {
-        val snap = firestore.collection("googlecloud")
+        val snap = firestore.collection(FirestorePaths.CATALOG)
             .whereEqualTo("isActive", true)
             .whereIn("bodyPart", bodyPart)
             .limit(limit)

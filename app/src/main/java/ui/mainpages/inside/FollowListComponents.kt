@@ -50,12 +50,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.grozzbear.R
+import com.grozzbear.ui.theme.GrozzSurface
+import com.grozzbear.ui.theme.GrozzYellow
+import com.grozzbear.ui.theme.Lexend
+import com.grozzbear.ui.theme.Oswald
 import data.remote.User
 import ui.mainpages.navigation.Screens
 import viewmodel.AuthViewModel
 
-private val FollowAccent = Color(0xFFF1C40F)
-private val FollowCardBg = Color(0xFF202B36).copy(alpha = 0.55f)
+private val FollowCardBg = GrozzSurface
 private val FollowSearchBg = Color(0xFF21282F)
 
 enum class FollowButtonStyle {
@@ -67,7 +70,7 @@ enum class FollowButtonStyle {
 @Composable
 fun FollowListLoadingState(modifier: Modifier = Modifier) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(color = FollowAccent)
+        CircularProgressIndicator(color = GrozzYellow)
     }
 }
 
@@ -99,7 +102,7 @@ fun FollowListTopBar(
         Text(
             text = title,
             color = Color.White,
-            fontFamily = FontFamily(Font(R.font.oswaldbold)),
+            fontFamily = Oswald,
             fontSize = 20.sp
         )
 
@@ -127,7 +130,7 @@ fun FollowSearchField(
             Text(
                 text = placeholder,
                 color = Color.White.copy(alpha = 0.35f),
-                fontFamily = FontFamily(Font(R.font.lexendregular))
+                fontFamily = Lexend
             )
         },
         leadingIcon = {
@@ -144,12 +147,12 @@ fun FollowSearchField(
             unfocusedContainerColor = FollowSearchBg,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            cursorColor = FollowAccent
+            cursorColor = GrozzYellow
         ),
         textStyle = TextStyle(
             color = Color.White,
             fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular))
+            fontFamily = Lexend
         )
     )
 }
@@ -164,9 +167,9 @@ fun FollowSectionHeader(
     val label = if (count != null) "$title · $count" else title
     Text(
         text = label,
-        color = if (accent) FollowAccent else Color.White,
+        color = if (accent) GrozzYellow else Color.White,
         fontSize = 16.sp,
-        fontFamily = FontFamily(Font(R.font.lexendbold)),
+        fontFamily = Lexend,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -206,15 +209,15 @@ fun FollowUserRow(
                 text = user.first.ifBlank { user.nickname },
                 color = Color.White,
                 fontSize = 16.sp,
-                fontFamily = FontFamily(Font(R.font.lexendbold)),
+                fontFamily = Lexend,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "@${user.nickname}",
-                color = FollowAccent,
+                color = GrozzYellow,
                 fontSize = 13.sp,
-                fontFamily = FontFamily(Font(R.font.lexendregular)),
+                fontFamily = Lexend,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -237,7 +240,7 @@ private fun FollowUserAvatar(
     Box(
         modifier = Modifier
             .size(52.dp)
-            .border(2.dp, FollowAccent, CircleShape)
+            .border(2.dp, GrozzYellow, CircleShape)
             .padding(2.dp)
             .border(2.dp, Color.Black, CircleShape)
             .padding(3.dp)
@@ -276,7 +279,7 @@ private fun FollowActionButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isFollowing) Color.White.copy(alpha = 0.1f) else FollowAccent
+            containerColor = if (isFollowing) Color.White.copy(alpha = 0.1f) else GrozzYellow
         ),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.height(34.dp),
@@ -287,7 +290,7 @@ private fun FollowActionButton(
             color = if (isFollowing) Color.White else Color.Black,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily(Font(R.font.lexendbold))
+            fontFamily = Lexend
         )
     }
 }
@@ -306,13 +309,13 @@ fun FollowEmptyState(
         Box(
             modifier = Modifier
                 .size(72.dp)
-                .background(FollowAccent.copy(alpha = 0.12f), CircleShape),
+                .background(GrozzYellow.copy(alpha = 0.12f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.accountcircle),
                 contentDescription = null,
-                tint = FollowAccent.copy(alpha = 0.7f),
+                tint = GrozzYellow.copy(alpha = 0.7f),
                 modifier = Modifier.size(36.dp)
             )
         }
@@ -323,7 +326,7 @@ fun FollowEmptyState(
             text = title,
             color = Color.White,
             fontSize = 20.sp,
-            fontFamily = FontFamily(Font(R.font.oswaldbold)),
+            fontFamily = Oswald,
             textAlign = TextAlign.Center
         )
 
@@ -333,7 +336,7 @@ fun FollowEmptyState(
             text = subtitle,
             color = Color.Gray,
             fontSize = 14.sp,
-            fontFamily = FontFamily(Font(R.font.lexendregular)),
+            fontFamily = Lexend,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )
