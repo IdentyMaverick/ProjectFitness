@@ -1,6 +1,5 @@
 package ui.mainpages.inside
 
-import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -192,7 +191,6 @@ private fun OtherProfileContent(
             FollowListTopBar(
                 title = topBarTitle,
                 navController = navController,
-                topPadding = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp,
             )
         },
         containerColor = GrozzSystemBar,

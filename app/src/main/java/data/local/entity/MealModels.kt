@@ -8,6 +8,10 @@ data class FoodEntry(
     val protein: Int = 0,
     val carbs: Int = 0,
     val fat: Int = 0,
+    /** Serving size in the entry's [unit] (g or ml). */
+    val amount: Int = 0,
+    /** `"g"` for solids, `"ml"` for liquids (liters are converted to ml when logging). */
+    val unit: String = FoodAmountUnit.G.label,
 )
 
 data class MealDayLog(
@@ -30,14 +34,94 @@ data class NutritionTargets(
     val usedFallbackProfile: Boolean = true,
 )
 
+/** Solid foods use grams; drinks use milliliters (optionally entered as liters). */
+enum class FoodAmountUnit(val label: String) {
+    G("g"),
+    ML("ml"),
+    ;
+
+    val isLiquid: Boolean get() = this == ML
+
+    val inputOptions: List<String>
+        get() =
+            when (this) {
+                G -> listOf("g")
+                ML -> listOf("ml", "L")
+            }
+
+    fun perBaseLabel(): String = "Per $FOOD_TEMPLATE_BASE_AMOUNT$label"
+
+    companion object {
+        fun fromLabel(label: String?): FoodAmountUnit =
+            entries.firstOrNull { it.label.equals(label, ignoreCase = true) } ?: G
+    }
+}
+
 data class FoodTemplate(
     val name: String,
+    /** Macros below are always per [FOOD_TEMPLATE_BASE_AMOUNT] of [unit]. */
     val calories: Int,
     val protein: Int,
     val carbs: Int,
     val fat: Int,
+    val unit: FoodAmountUnit = FoodAmountUnit.G,
     val popular: Boolean = false,
 )
+
+/** Templates store nutrition for this serving baseline (100g or 100ml). */
+const val FOOD_TEMPLATE_BASE_AMOUNT = 100
+
+/** Scale a per-100 macro to [amount] in the same unit. */
+fun scaleMacroPerBase(valuePerBase: Int, amount: Int): Int {
+    val safeAmount = amount.coerceAtLeast(0)
+    return ((valuePerBase.toLong() * safeAmount) / FOOD_TEMPLATE_BASE_AMOUNT).toInt()
+}
+
+data class ScaledFoodMacros(
+    val calories: Int,
+    val protein: Int,
+    val carbs: Int,
+    val fat: Int,
+    /** Amount stored on the entry, always in the template base unit (g or ml). */
+    val amount: Int,
+    val unit: FoodAmountUnit,
+)
+
+/**
+ * [inputAmount] is what the user typed.
+ * [inputUnitLabel] is `g`, `ml`, or `L`. Liters are converted to ml before scaling.
+ */
+fun FoodTemplate.scaledTo(
+    inputAmount: Int,
+    inputUnitLabel: String = unit.label,
+): ScaledFoodMacros {
+    val baseAmount = toBaseAmount(inputAmount, inputUnitLabel)
+    return ScaledFoodMacros(
+        calories = scaleMacroPerBase(calories, baseAmount),
+        protein = scaleMacroPerBase(protein, baseAmount),
+        carbs = scaleMacroPerBase(carbs, baseAmount),
+        fat = scaleMacroPerBase(fat, baseAmount),
+        amount = baseAmount,
+        unit = unit,
+    )
+}
+
+fun FoodTemplate.toBaseAmount(inputAmount: Int, inputUnitLabel: String): Int {
+    val safe = inputAmount.coerceAtLeast(0)
+    return if (unit.isLiquid && inputUnitLabel.equals("L", ignoreCase = true)) {
+        safe * 1000
+    } else {
+        safe
+    }
+}
+
+fun formatFoodAmount(amount: Int, unitLabel: String): String {
+    if (amount <= 0) return ""
+    if (unitLabel.equals("ml", ignoreCase = true) && amount >= 1000 && amount % 1000 == 0) {
+        return "${amount / 1000} L"
+    }
+    return "$amount $unitLabel"
+}
 
 data class WaterCupType(
     val id: String,
@@ -124,53 +208,54 @@ enum class MealSlot(val id: String, val label: String) {
 
 val GROZZ_FOOD_TEMPLATES =
     listOf(
-        FoodTemplate("Protein shake", 180, 30, 8, 3, popular = true),
-        FoodTemplate("Greek yogurt", 150, 15, 12, 4, popular = true),
-        FoodTemplate("Oatmeal", 300, 10, 50, 6, popular = true),
-        FoodTemplate("Eggs & toast", 350, 22, 28, 16, popular = true),
-        FoodTemplate("Chicken & rice", 520, 42, 55, 10, popular = true),
-        FoodTemplate("Turkey wrap", 430, 32, 38, 14, popular = true),
-        FoodTemplate("Salmon & veg", 480, 38, 18, 28, popular = true),
-        FoodTemplate("Banana", 105, 1, 27, 0, popular = true),
-        FoodTemplate("Whey + banana", 250, 28, 28, 3, popular = true),
-        FoodTemplate("Beef & potatoes", 560, 40, 45, 20, popular = true),
+        // Solids: macros per 100g. Liquids: macros per 100ml.
+        FoodTemplate("Protein shake", 60, 10, 3, 1, unit = FoodAmountUnit.ML, popular = true),
+        FoodTemplate("Yogurt", 100, 10, 8, 3, popular = true),
+        FoodTemplate("Oatmeal", 120, 4, 20, 2, popular = true),
+        FoodTemplate("Eggs & toast", 175, 11, 14, 8, popular = true),
+        FoodTemplate("Chicken & rice", 130, 11, 14, 3, popular = true),
+        FoodTemplate("Turkey wrap", 154, 11, 14, 5, popular = true),
+        FoodTemplate("Salmon & veg", 137, 11, 5, 8, popular = true),
+        FoodTemplate("Banana", 89, 1, 23, 0, popular = true),
+        FoodTemplate("Whey + banana", 114, 13, 13, 1, popular = true),
+        FoodTemplate("Beef & potatoes", 124, 9, 10, 4, popular = true),
         FoodTemplate("Chicken breast", 165, 31, 0, 4),
-        FoodTemplate("Egg whites", 80, 16, 1, 0),
-        FoodTemplate("Whole eggs (2)", 140, 12, 1, 10),
-        FoodTemplate("Cottage cheese", 180, 24, 8, 5),
-        FoodTemplate("Skim milk", 90, 8, 12, 0),
-        FoodTemplate("Whey isolate", 120, 27, 2, 1),
-        FoodTemplate("Casein pudding", 160, 24, 8, 2),
-        FoodTemplate("Tuna (can)", 180, 40, 0, 2),
-        FoodTemplate("Salmon fillet", 280, 34, 0, 16),
-        FoodTemplate("Lean beef", 250, 32, 0, 13),
-        FoodTemplate("Turkey mince", 220, 28, 0, 12),
-        FoodTemplate("Shrimp", 120, 24, 1, 2),
-        FoodTemplate("Tofu", 140, 16, 4, 8),
-        FoodTemplate("White rice", 200, 4, 44, 0),
-        FoodTemplate("Brown rice", 215, 5, 45, 2),
-        FoodTemplate("Pasta", 280, 10, 54, 2),
-        FoodTemplate("Sweet potato", 180, 4, 41, 0),
-        FoodTemplate("Potato", 160, 4, 36, 0),
-        FoodTemplate("Quinoa", 220, 8, 39, 4),
-        FoodTemplate("Rice cakes (2)", 70, 1, 15, 0),
-        FoodTemplate("Whole wheat bread", 80, 4, 14, 1),
-        FoodTemplate("Bagel", 280, 10, 54, 2),
-        FoodTemplate("Avocado", 240, 3, 12, 22),
-        FoodTemplate("Peanut butter", 190, 8, 7, 16),
-        FoodTemplate("Olive oil (1 tbsp)", 120, 0, 0, 14),
-        FoodTemplate("Almonds", 170, 6, 6, 15),
-        FoodTemplate("Apple", 95, 0, 25, 0),
-        FoodTemplate("Berries", 70, 1, 17, 0),
-        FoodTemplate("Orange", 80, 1, 19, 0),
-        FoodTemplate("Broccoli", 55, 4, 11, 1),
-        FoodTemplate("Mixed salad", 40, 2, 7, 0),
-        FoodTemplate("Protein bar", 210, 20, 22, 6),
-        FoodTemplate("Granola", 240, 6, 32, 10),
-        FoodTemplate("Pancakes", 350, 10, 52, 11),
-        FoodTemplate("Pizza slice", 285, 12, 36, 10),
-        FoodTemplate("Burger", 540, 28, 40, 28),
-        FoodTemplate("Sushi (8 pcs)", 300, 18, 42, 6),
-        FoodTemplate("Hummus & pita", 260, 8, 32, 10),
-        FoodTemplate("Latte", 150, 8, 14, 6),
+        FoodTemplate("Egg whites", 52, 11, 1, 0),
+        FoodTemplate("Whole eggs", 143, 13, 1, 10),
+        FoodTemplate("Cottage cheese", 98, 11, 3, 4),
+        FoodTemplate("Skim milk", 34, 3, 5, 0, unit = FoodAmountUnit.ML),
+        FoodTemplate("Whey isolate", 370, 85, 5, 2),
+        FoodTemplate("Casein pudding", 107, 16, 5, 1),
+        FoodTemplate("Tuna", 116, 26, 0, 1),
+        FoodTemplate("Salmon fillet", 208, 20, 0, 13),
+        FoodTemplate("Lean beef", 176, 26, 0, 8),
+        FoodTemplate("Turkey mince", 148, 21, 0, 7),
+        FoodTemplate("Shrimp", 99, 24, 0, 1),
+        FoodTemplate("Tofu", 76, 8, 2, 5),
+        FoodTemplate("White rice", 130, 3, 28, 0),
+        FoodTemplate("Brown rice", 111, 3, 23, 1),
+        FoodTemplate("Pasta", 131, 5, 25, 1),
+        FoodTemplate("Sweet potato", 86, 2, 20, 0),
+        FoodTemplate("Potato", 77, 2, 17, 0),
+        FoodTemplate("Quinoa", 120, 4, 21, 2),
+        FoodTemplate("Rice cakes", 387, 8, 82, 3),
+        FoodTemplate("Whole wheat bread", 247, 13, 41, 4),
+        FoodTemplate("Bagel", 257, 10, 50, 2),
+        FoodTemplate("Avocado", 160, 2, 9, 15),
+        FoodTemplate("Peanut butter", 588, 25, 20, 50),
+        FoodTemplate("Olive oil", 884, 0, 0, 100, unit = FoodAmountUnit.ML),
+        FoodTemplate("Almonds", 579, 21, 22, 50),
+        FoodTemplate("Apple", 52, 0, 14, 0),
+        FoodTemplate("Berries", 57, 1, 14, 0),
+        FoodTemplate("Orange", 47, 1, 12, 0),
+        FoodTemplate("Broccoli", 34, 3, 7, 0),
+        FoodTemplate("Mixed salad", 20, 1, 4, 0),
+        FoodTemplate("Protein bar", 350, 33, 37, 10),
+        FoodTemplate("Granola", 471, 10, 64, 20),
+        FoodTemplate("Pancakes", 227, 6, 28, 10),
+        FoodTemplate("Pizza", 266, 11, 33, 10),
+        FoodTemplate("Burger", 254, 13, 19, 14),
+        FoodTemplate("Sushi", 143, 9, 20, 3),
+        FoodTemplate("Hummus", 166, 8, 14, 10),
+        FoodTemplate("Latte", 54, 3, 5, 2, unit = FoodAmountUnit.ML),
     )

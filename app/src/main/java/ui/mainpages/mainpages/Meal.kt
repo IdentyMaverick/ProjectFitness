@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -73,7 +75,6 @@ import com.grozzbear.ui.theme.GrozzMuted
 import com.grozzbear.ui.theme.GrozzOnBackground
 import com.grozzbear.ui.theme.GrozzOnPrimary
 import com.grozzbear.ui.theme.GrozzRadiusChip
-import com.grozzbear.ui.theme.GrozzRadiusPanel
 import com.grozzbear.ui.theme.GrozzSurface
 import com.grozzbear.ui.theme.GrozzSystemBar
 import com.grozzbear.ui.theme.GrozzTextSecondary
@@ -82,10 +83,14 @@ import com.grozzbear.ui.theme.Lexend
 import com.grozzbear.ui.theme.Oswald
 import data.local.entity.FoodEntry
 import data.local.entity.FoodTemplate
+import data.local.entity.FOOD_TEMPLATE_BASE_AMOUNT
+import data.local.entity.FoodAmountUnit
 import data.local.entity.GROZZ_FOOD_TEMPLATES
 import data.local.entity.MealSlot
 import data.local.entity.NutritionGoal
 import data.local.entity.WaterCupType
+import data.local.entity.formatFoodAmount
+import data.local.entity.scaledTo
 import data.local.util.waterCupsFor
 import data.local.viewmodel.MealUiState
 import data.local.viewmodel.MealViewModel
@@ -180,6 +185,8 @@ fun Meal(
                     TrainingNoteCard(
                         title = state.trainingTitle,
                         note = state.trainingNote,
+                        navController = navController,
+                        workoutId = state.workoutId
                     )
                 }
                 item {
@@ -295,12 +302,12 @@ fun Meal(
             ) {
                 AddFoodSheet(
                     slot = slot,
-                    onAddCustom = { name, calories, protein, carbs, fat ->
-                        mealViewModel.addFood(slot, name, calories, protein, carbs, fat)
+                    onAddCustom = { name, calories, protein, carbs, fat, amount, unit ->
+                        mealViewModel.addFood(slot, name, calories, protein, carbs, fat, amount, unit)
                         addingSlot = null
                     },
-                    onAddTemplate = { template ->
-                        mealViewModel.addTemplate(slot, template)
+                    onAddTemplate = { template, amount, inputUnit ->
+                        mealViewModel.addTemplate(slot, template, amount, inputUnit)
                         addingSlot = null
                     },
                 )
@@ -539,8 +546,8 @@ private fun MacroRow(label: String, eaten: Int, target: Int, color: Color, unit:
 }
 
 @Composable
-private fun TrainingNoteCard(title: String, note: String) {
-    GrozzPanel(modifier = Modifier.fillMaxWidth()) {
+private fun TrainingNoteCard(title: String, note: String, navController: NavController, workoutId: String) {
+    GrozzPanel(modifier = Modifier.fillMaxWidth().clickable( onClick = { navController.navigate("workoutsettingscreen/${workoutId}") } )) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "AROUND TODAY’S WORKOUT",
@@ -1189,7 +1196,12 @@ private fun MealSlotCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = "${entry.calories} kcal · P ${entry.protein} · C ${entry.carbs} · F ${entry.fat}",
+                            text =
+                                buildString {
+                                    val amountLabel = formatFoodAmount(entry.amount, entry.unit)
+                                    if (amountLabel.isNotBlank()) append("$amountLabel · ")
+                                    append("${entry.calories} kcal · P ${entry.protein} · C ${entry.carbs} · F ${entry.fat}")
+                                },
                             color = GrozzMuted,
                             fontFamily = Lexend,
                             fontSize = 11.sp,
@@ -1213,15 +1225,20 @@ private fun MealSlotCard(
 @Composable
 private fun AddFoodSheet(
     slot: MealSlot,
-    onAddCustom: (String, Int, Int, Int, Int) -> Unit,
-    onAddTemplate: (FoodTemplate) -> Unit,
+    onAddCustom: (String, Int, Int, Int, Int, Int, String) -> Unit,
+    onAddTemplate: (FoodTemplate, Int, String) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
+    var selectedTemplate by remember { mutableStateOf<FoodTemplate?>(null) }
+    var templateAmount by remember { mutableStateOf(FOOD_TEMPLATE_BASE_AMOUNT.toString()) }
+    var templateInputUnit by remember { mutableStateOf(FoodAmountUnit.G.label) }
     var name by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var protein by remember { mutableStateOf("") }
     var carbs by remember { mutableStateOf("") }
     var fat by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    var customUnit by remember { mutableStateOf(FoodAmountUnit.G.label) }
     val trimmedQuery = query.trim()
     val matches =
         remember(trimmedQuery) {
@@ -1234,6 +1251,14 @@ private fun AddFoodSheet(
             }
         }
     val searching = trimmedQuery.isNotBlank()
+    val amountValue = templateAmount.toIntOrNull() ?: 0
+    val scaledPreview = selectedTemplate?.scaledTo(amountValue, templateInputUnit)
+
+    fun selectTemplate(template: FoodTemplate) {
+        selectedTemplate = template
+        templateInputUnit = template.unit.label
+        templateAmount = FOOD_TEMPLATE_BASE_AMOUNT.toString()
+    }
 
     Column(
         modifier =
@@ -1253,7 +1278,7 @@ private fun AddFoodSheet(
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "Search the list, tap a chip, or log your own.",
+            text = "Solids are per 100g, drinks per 100ml. Set the amount and macros scale automatically.",
             color = GrozzMuted,
             fontFamily = Lexend,
             fontSize = 13.sp,
@@ -1294,16 +1319,18 @@ private fun AddFoodSheet(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 matches.take(12).forEach { template ->
+                    val selected = selectedTemplate?.name == template.name
                     Text(
                         text = template.name,
-                        color = GrozzYellow,
+                        color = if (selected) GrozzOnPrimary else GrozzYellow,
                         fontFamily = Lexend,
                         fontSize = 12.sp,
                         modifier =
                             Modifier
                                 .clip(RoundedCornerShape(GrozzRadiusChip))
+                                .background(if (selected) GrozzYellow else Color.Transparent)
                                 .border(1.dp, GrozzYellow.copy(alpha = 0.45f), RoundedCornerShape(GrozzRadiusChip))
-                                .clickable { onAddTemplate(template) }
+                                .clickable { selectTemplate(template) }
                                 .padding(horizontal = 10.dp, vertical = 8.dp),
                     )
                 }
@@ -1316,7 +1343,7 @@ private fun AddFoodSheet(
                             Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(GrozzRadiusChip))
-                                .clickable { onAddTemplate(template) }
+                                .clickable { selectTemplate(template) }
                                 .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -1328,7 +1355,7 @@ private fun AddFoodSheet(
                                 fontSize = 14.sp,
                             )
                             Text(
-                                text = "${template.calories} kcal · P ${template.protein} · C ${template.carbs} · F ${template.fat}",
+                                text = "${template.unit.perBaseLabel()} · ${template.calories} kcal · P ${template.protein} · C ${template.carbs} · F ${template.fat}",
                                 color = GrozzMuted,
                                 fontFamily = Lexend,
                                 fontSize = 11.sp,
@@ -1336,7 +1363,7 @@ private fun AddFoodSheet(
                         }
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Add ${template.name}",
+                            contentDescription = "Select ${template.name}",
                             tint = GrozzYellow,
                             modifier = Modifier.size(18.dp),
                         )
@@ -1344,6 +1371,48 @@ private fun AddFoodSheet(
                 }
             }
         }
+
+        selectedTemplate?.let { template ->
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Amount for ${template.name}",
+                color = GrozzOnBackground,
+                fontFamily = Lexend,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            MealField(
+                value = templateAmount,
+                onValueChange = { templateAmount = it.filter(Char::isDigit).take(4) },
+                placeholder = if (template.unit.isLiquid) "Amount" else "Grams",
+                keyboardType = KeyboardType.Number,
+                unitOptions = template.unit.inputOptions,
+                selectedUnit = templateInputUnit,
+                onUnitChange = { templateInputUnit = it },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text =
+                    if (scaledPreview != null && amountValue > 0) {
+                        val previewAmount = formatFoodAmount(scaledPreview.amount, scaledPreview.unit.label)
+                        "$previewAmount → ${scaledPreview.calories} kcal · P ${scaledPreview.protein} · C ${scaledPreview.carbs} · F ${scaledPreview.fat}"
+                    } else {
+                        "Enter amount to preview nutrition."
+                    },
+                color = GrozzMuted,
+                fontFamily = Lexend,
+                fontSize = 12.sp,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            GrozzPrimaryButton(
+                text = "Add ${template.name}",
+                onClick = { onAddTemplate(template, amountValue, templateInputUnit) },
+                enabled = amountValue > 0 && (scaledPreview?.calories ?: 0) > 0,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Custom food",
@@ -1355,12 +1424,27 @@ private fun AddFoodSheet(
         Spacer(modifier = Modifier.height(8.dp))
         MealField(value = name, onValueChange = { if (it.length <= 40) name = it }, placeholder = "Food name")
         Spacer(modifier = Modifier.height(10.dp))
-        MealField(
-            value = calories,
-            onValueChange = { calories = it.filter(Char::isDigit).take(5) },
-            placeholder = "Calories",
-            keyboardType = KeyboardType.Number,
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(modifier = Modifier.weight(1f)) {
+                MealField(
+                    value = amount,
+                    onValueChange = { amount = it.filter(Char::isDigit).take(4) },
+                    placeholder = "Amount",
+                    keyboardType = KeyboardType.Number,
+                    unitOptions = listOf("g", "ml", "L"),
+                    selectedUnit = customUnit,
+                    onUnitChange = { customUnit = it },
+                )
+            }
+            Box(modifier = Modifier.weight(1f)) {
+                MealField(
+                    value = calories,
+                    onValueChange = { calories = it.filter(Char::isDigit).take(5) },
+                    placeholder = "Calories",
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(10.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(modifier = Modifier.weight(1f)) {
@@ -1392,12 +1476,19 @@ private fun AddFoodSheet(
         GrozzPrimaryButton(
             text = "Add food",
             onClick = {
+                val typedAmount = amount.toIntOrNull() ?: 0
+                val storedAmount =
+                    if (customUnit.equals("L", ignoreCase = true)) typedAmount * 1000 else typedAmount
+                val storedUnit =
+                    if (customUnit.equals("L", ignoreCase = true)) FoodAmountUnit.ML.label else customUnit
                 onAddCustom(
                     name,
                     calories.toIntOrNull() ?: 0,
                     protein.toIntOrNull() ?: 0,
                     carbs.toIntOrNull() ?: 0,
                     fat.toIntOrNull() ?: 0,
+                    storedAmount,
+                    storedUnit,
                 )
             },
             enabled = name.isNotBlank() && (calories.toIntOrNull() ?: 0) > 0,
@@ -1413,7 +1504,12 @@ private fun MealField(
     placeholder: String,
     keyboardType: KeyboardType = KeyboardType.Text,
     leadingIcon: @Composable (() -> Unit)? = null,
+    unitOptions: List<String> = emptyList(),
+    selectedUnit: String = "g",
+    onUnitChange: (String) -> Unit = {},
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -1435,6 +1531,41 @@ private fun MealField(
                 focusedTextColor = GrozzOnBackground,
                 unfocusedTextColor = GrozzOnBackground,
             ),
+        trailingIcon =
+            if (unitOptions.isEmpty()) {
+                null
+            } else {
+                {
+                    Box {
+                        Text(
+                            text = selectedUnit,
+                            modifier =
+                                Modifier
+                                    .clickable(enabled = unitOptions.size > 1) { expanded = true }
+                                    .padding(horizontal = 4.dp),
+                            color = GrozzYellow,
+                            fontFamily = Lexend,
+                            fontSize = 12.sp,
+                        )
+                        if (unitOptions.size > 1) {
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                            ) {
+                                unitOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, fontFamily = Lexend) },
+                                        onClick = {
+                                            onUnitChange(option)
+                                            expanded = false
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
     )
 }
 

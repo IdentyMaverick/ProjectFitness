@@ -8,12 +8,15 @@ import com.grozzbear.projectfitness.data.local.repository.WorkoutRepository
 import com.grozzbear.projectfitness.data.local.entity.WorkoutWithExercises
 import data.local.entity.FoodEntry
 import data.local.entity.FoodTemplate
+import data.local.entity.FOOD_TEMPLATE_BASE_AMOUNT
+import data.local.entity.FoodAmountUnit
 import data.local.entity.MealDayLog
 import data.local.entity.MealSlot
 import data.local.entity.NutritionGoal
 import data.local.entity.NutritionTargets
 import data.local.entity.WaterCupType
 import data.local.entity.WorkoutHistoryFull
+import data.local.entity.scaledTo
 import data.local.repository.MealStore
 import data.local.util.calculateNutritionTargets
 import data.local.util.formatMealDateLabel
@@ -51,6 +54,7 @@ data class MealUiState(
     val trainingTitle: String = "Rest day",
     val trainingNote: String = "",
     val profileIncomplete: Boolean = false,
+    val workoutId: String = ""
 )
 
 class MealViewModel(
@@ -129,18 +133,36 @@ class MealViewModel(
         viewModelScope.launch { mealStore.setCustomWaterMl(currentUid(), null) }
     }
 
-    fun addTemplate(slot: MealSlot, template: FoodTemplate) {
+    fun addTemplate(
+        slot: MealSlot,
+        template: FoodTemplate,
+        amount: Int = FOOD_TEMPLATE_BASE_AMOUNT,
+        inputUnitLabel: String = template.unit.label,
+    ) {
+        val scaled = template.scaledTo(amount, inputUnitLabel)
+        if (scaled.calories <= 0 || scaled.amount <= 0) return
         addFood(
             slot = slot,
             name = template.name,
-            calories = template.calories,
-            protein = template.protein,
-            carbs = template.carbs,
-            fat = template.fat,
+            calories = scaled.calories,
+            protein = scaled.protein,
+            carbs = scaled.carbs,
+            fat = scaled.fat,
+            amount = scaled.amount,
+            unit = scaled.unit.label,
         )
     }
 
-    fun addFood(slot: MealSlot, name: String, calories: Int, protein: Int, carbs: Int, fat: Int) {
+    fun addFood(
+        slot: MealSlot,
+        name: String,
+        calories: Int,
+        protein: Int,
+        carbs: Int,
+        fat: Int,
+        amount: Int = 0,
+        unit: String = FoodAmountUnit.G.label,
+    ) {
         val trimmed = name.trim()
         if (trimmed.isBlank() || calories <= 0) return
         viewModelScope.launch {
@@ -154,6 +176,8 @@ class MealViewModel(
                     protein = protein.coerceAtLeast(0),
                     carbs = carbs.coerceAtLeast(0),
                     fat = fat.coerceAtLeast(0),
+                    amount = amount.coerceAtLeast(0),
+                    unit = FoodAmountUnit.fromLabel(unit).label,
                 ),
             )
         }
@@ -190,6 +214,7 @@ class MealViewModel(
             )
         val filledCups = if (day.cupType.ml == 0) 0 else day.waterMl / day.cupType.ml
         val (title, note) = trainingFuelNote(pickTodaysTraining(workouts))
+        val workoutSelected = pickTodaysTraining(workouts)
         return MealUiState(
             isLoading = false,
             dateLabel = formatMealDateLabel(),
@@ -208,6 +233,7 @@ class MealViewModel(
             trainingTitle = title,
             trainingNote = note,
             profileIncomplete = profile == null || weight == null || height == null,
+            workoutId = workoutSelected?.workout?.workoutId ?: ""
         )
     }
 }

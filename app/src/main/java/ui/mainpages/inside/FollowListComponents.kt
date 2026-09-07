@@ -1,6 +1,5 @@
 package ui.mainpages.inside
 
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,7 +40,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -76,14 +74,12 @@ fun FollowListLoadingState(modifier: Modifier = Modifier) {
 fun FollowListTopBar(
     title: String,
     navController: NavController,
-    topPadding: Dp = if (Build.VERSION.SDK_INT >= 35) 50.dp else 0.dp,
 ) {
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(top = topPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
